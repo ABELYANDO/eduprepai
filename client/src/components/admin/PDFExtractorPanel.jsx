@@ -22,8 +22,14 @@ export default function PDFExtractorPanel({
 }) {
   const fileRef = useRef(null)
 
+  // `subject` starts empty (not defaulted to any real subject) when not
+  // locked — a silent default here previously caused several PDFs for
+  // other subjects (Computing, RME) to get saved as "Mathematics" simply
+  // because the admin didn't think to touch a dropdown that already
+  // looked "set". Forcing an explicit choice every time (validated in
+  // handleExtract) makes that mistake impossible to make silently.
   const [meta,     setMeta]     = useState({
-    subject:  lockedSubject  || 'Mathematics',
+    subject:  lockedSubject  || '',
     examType: lockedExamType || 'WASSCE',
     year: 2023,
     questionSource: 'pastPaper',
@@ -42,6 +48,7 @@ export default function PDFExtractorPanel({
 
   const handleExtract = async () => {
     if (!file) return toast.error('Please select a PDF first')
+    if (!meta.subject) return toast.error('Please select a subject before extracting')
     setLoading(true)
     setPreviews(null)
     try {
@@ -122,6 +129,7 @@ export default function PDFExtractorPanel({
                     onChange={e => setMeta(p => ({ ...p, subject: e.target.value }))}
                     className="input"
                   >
+                    <option value="" disabled>— Select subject —</option>
                     {getSubjectsForExamType(meta.examType)
                       .filter(s => !GHANAIAN_LANGUAGES.includes(s))
                       .map(s => <option key={s}>{s}</option>)}
@@ -141,7 +149,7 @@ export default function PDFExtractorPanel({
                       return {
                         ...p,
                         examType: e.target.value,
-                        subject: nextSubjects.includes(p.subject) ? p.subject : nextSubjects[0],
+                        subject: nextSubjects.includes(p.subject) ? p.subject : '',
                       }
                     })}
                     className="input"
