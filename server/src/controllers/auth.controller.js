@@ -175,19 +175,9 @@ export const teacherLogin = asyncHandler(async (req, res) => {
 })
 
 // ── POST /api/auth/teacher-register ────────────────────────────
-// Invite-code gated teacher self-registration, mirroring adminRegister.
-// Kept as a separate code (TEACHER_SIGNUP_CODE) from the admin one so a
-// school can hand out the teacher code without granting admin access.
+// Open teacher self-registration — no invite code required.
 export const teacherRegister = asyncHandler(async (req, res) => {
-  const { fullName, email, password, inviteCode } = req.body
-
-  const serverCode = process.env.TEACHER_SIGNUP_CODE
-  if (!serverCode || !serverCode.trim()) {
-    throw new AppError('Teacher registration is not available.', 403)
-  }
-  if (!inviteCode || inviteCode !== serverCode) {
-    throw new AppError('Invalid invite code.', 403)
-  }
+  const { fullName, email, password } = req.body
 
   const existing = await User.findOne({ email })
   if (existing) throw new AppError('Email already registered.', 409)
