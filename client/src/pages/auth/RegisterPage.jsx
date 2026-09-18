@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { GraduationCap, User, Mail, Lock, School, ArrowRight, Check, Eye, EyeOff, Users, KeyRound } from 'lucide-react'
+import { GraduationCap, User, Mail, Lock, School, ArrowRight, Check, Eye, EyeOff, Users } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { SUBJECTS_WASSCE, SUBJECTS_BECE, getPickerTiles } from '../../constants/subjects'
 
@@ -21,13 +21,15 @@ export default function RegisterPage() {
     fullName: '', email: '', password: '', confirmPassword: '',
     school: '', examType: 'WASSCE', subjects: [],
   })
-  const [teacherForm, setTeacherForm] = useState({ fullName: '', email: '', password: '', inviteCode: '' })
+  const [teacherForm, setTeacherForm] = useState({ fullName: '', email: '', password: '', confirmPassword: '' })
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState('')
   const [step,    setStep]    = useState(1) // 1 = personal details, 2 = exam + subjects
   const [openGroup, setOpenGroup] = useState(null) // which group tile (e.g. 'Ghanaian Language') is expanded
   const [showPw,        setShowPw]        = useState(false)
   const [showConfirmPw, setShowConfirmPw] = useState(false)
+  const [showTeacherPw,        setShowTeacherPw]        = useState(false)
+  const [showTeacherConfirmPw, setShowTeacherConfirmPw] = useState(false)
 
   const handleTeacherChange = (e) => {
     setError('')
@@ -36,9 +38,16 @@ export default function RegisterPage() {
 
   const handleTeacherSubmit = async (e) => {
     e.preventDefault()
+    if (teacherForm.password.length < 6) {
+      return setError('Password must be at least 6 characters')
+    }
+    if (teacherForm.password !== teacherForm.confirmPassword) {
+      return setError('Passwords do not match')
+    }
     setLoading(true); setError('')
     try {
-      await teacherRegister(teacherForm)
+      const { confirmPassword, ...payload } = teacherForm
+      await teacherRegister(payload)
       toast.success('Teacher account created!')
       navigate('/teacher')
     } catch (err) {
@@ -183,21 +192,39 @@ export default function RegisterPage() {
                 <div className="relative">
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input
-                    type="password" name="password" value={teacherForm.password}
+                    type={showTeacherPw ? 'text' : 'password'}
+                    name="password" value={teacherForm.password}
                     onChange={handleTeacherChange} required placeholder="At least 6 characters"
-                    className="input pl-10"
+                    className="input pl-10 pr-10"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowTeacherPw(p => !p)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                    aria-label={showTeacherPw ? 'Hide password' : 'Show password'}
+                  >
+                    {showTeacherPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
               <div>
-                <label className="label">Invite code</label>
+                <label className="label">Confirm password</label>
                 <div className="relative">
-                  <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input
-                    type="text" name="inviteCode" value={teacherForm.inviteCode}
-                    onChange={handleTeacherChange} required placeholder="Provided by your school"
-                    className="input pl-10"
+                    type={showTeacherConfirmPw ? 'text' : 'password'}
+                    name="confirmPassword" value={teacherForm.confirmPassword}
+                    onChange={handleTeacherChange} required placeholder="Re-enter your password"
+                    className="input pl-10 pr-10"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowTeacherConfirmPw(p => !p)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                    aria-label={showTeacherConfirmPw ? 'Hide password' : 'Show password'}
+                  >
+                    {showTeacherConfirmPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
               <button type="submit" disabled={loading} className="btn-primary w-full py-3">
