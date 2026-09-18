@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://eduprepai-server.onrender.com/api/:path*"
+      "destination": "https://eduprepai-server-d0lt.onrender.com/api/:path*"
     },
     {
       "source": "/(.*)",
