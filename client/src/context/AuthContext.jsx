@@ -73,7 +73,7 @@ export const AuthProvider = ({ children }) => {
     return data
   }
 
-  // ── Teacher registration (invite-code gated) ────────────────
+  // ── Teacher registration (open, no invite code) ─────────────
   const teacherRegister = async (formData) => {
     const data = await api.post('/auth/teacher-register', formData)
     sessionStorage.setItem('eduprepai_token', data.token)
