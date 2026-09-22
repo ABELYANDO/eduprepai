@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { GraduationCap, User, Mail, Lock, School, ArrowRight, Check, Eye, EyeOff, Users } from 'lucide-react'
+import { GraduationCap, User, Mail, Lock, School, ArrowRight, Check, Eye, EyeOff, Users, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { SUBJECTS_WASSCE, SUBJECTS_BECE, getPickerTiles } from '../../constants/subjects'
 
@@ -161,7 +161,7 @@ export default function RegisterPage() {
           <div className="card shadow-md">
             {error && (
               <div className="flex items-start gap-2 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 mb-5 text-sm">
-                <span className="flex-shrink-0 mt-0.5">⚠</span> {error}
+                <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" /> {error}
               </div>
             )}
             <form onSubmit={handleTeacherSubmit} className="space-y-4">
@@ -266,7 +266,7 @@ export default function RegisterPage() {
           {/* Error banner */}
           {error && (
             <div className="flex items-start gap-2 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 mb-5 text-sm">
-              <span className="flex-shrink-0 mt-0.5">⚠</span> {error}
+              <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" /> {error}
             </div>
           )}
 
