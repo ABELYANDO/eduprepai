@@ -1,4 +1,4 @@
-import { CheckCircle2, XCircle } from 'lucide-react'
+import { CheckCircle2, XCircle, Check } from 'lucide-react'
 import QuestionDiagram from '../QuestionDiagram'
 import PartAnswerEditor from '../PartAnswerEditor'
 
@@ -84,7 +84,7 @@ export default function ExamSectionC({
                     ? 'border-purple-500 bg-purple-500'
                     : 'border-slate-300'
                 }`}>
-                  {isSelected && <span className="text-white text-xs">✓</span>}
+                  {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-1.5">
