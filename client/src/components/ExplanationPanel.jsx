@@ -30,7 +30,6 @@ export default function ExplanationPanel({ explanation, onClose }) {
                 >
                   Marking Scheme Breakdown
                 </p>
-                <p className="text-xs text-slate-400">Powered by Gemini</p>
               </div>
             </div>
             <button
@@ -144,7 +143,6 @@ export default function ExplanationPanel({ explanation, onClose }) {
               >
                 AI Explanation
               </p>
-              <p className="text-xs text-slate-400">Powered by Gemini</p>
             </div>
           </div>
           <button
