@@ -186,7 +186,7 @@ export default function SettingsPage() {
         const profileData = await settingsAPI.getProfile()
         setProfile(profileData.profile)
       } else {
-        toast(data.message, { icon: '🏅' })
+        toast(data.message, { icon: <Award className="w-4 h-4 text-amber-500" /> })
       }
     } catch (err) {
       toast.error(err.message)
