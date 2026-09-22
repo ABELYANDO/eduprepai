@@ -10,7 +10,7 @@ import ExamSectionA         from '../../components/exam/ExamSectionA'
 import ExamSectionB         from '../../components/exam/ExamSectionB'
 import ExamSectionC         from '../../components/exam/ExamSectionC'
 import MockExamReview       from '../../components/exam/MockExamReview'
-import { BookOpen, ChevronRight, Send, AlertTriangle, History } from 'lucide-react'
+import { BookOpen, ChevronRight, Send, AlertTriangle, History, ClipboardList } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { getSubjectsForExamType } from '../../constants/subjects'
 import { gradeBadgeBucket } from '../../utils/gradeUtils'
@@ -81,7 +81,7 @@ export default function MockExamPage() {
       setScreen('cover')
 
       if (data.resumed) {
-        toast('Resuming your previous exam session', { icon: '📋' })
+        toast('Resuming your previous exam session', { icon: <ClipboardList className="w-4 h-4 text-teal-600" /> })
         // Pre-fill saved answers
         data.exam.sectionA.forEach((q, i) => {
           if (q.studentAnswer) setAnswersA(p => ({ ...p, [i]: q.studentAnswer }))
