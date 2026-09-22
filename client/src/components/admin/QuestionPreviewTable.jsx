@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronDown, ChevronUp, Trash2, AlertTriangle } from 'lucide-react'
+import { ChevronDown, ChevronUp, Trash2, AlertTriangle, ImageIcon, Check } from 'lucide-react'
 import { AI_RISK_SUBJECTS } from '../../constants/subjects'
 import QuestionDiagram from '../QuestionDiagram'
 
@@ -154,10 +154,14 @@ export default function QuestionPreviewTable({ previews, onApprove, onCancel, on
                     {q.questionSource === 'practice' ? 'Practice' : 'Past paper'}
                   </span>
                   {q.topic           && <span className="badge-teal">{q.topic}</span>}
-                  {q.hasImage        && <span className="badge-purple">📊 has diagram</span>}
+                  {q.hasImage        && (
+                    <span className="badge-purple inline-flex items-center gap-1">
+                      <ImageIcon className="w-3 h-3" /> has diagram
+                    </span>
+                  )}
                   {q.topicNeedsReview && (
-                    <span className="badge-red" title="Didn't confidently match a syllabus topic — check before saving">
-                      ⚠ topic needs review
+                    <span className="badge-red inline-flex items-center gap-1" title="Didn't confidently match a syllabus topic — check before saving">
+                      <AlertTriangle className="w-3 h-3" /> topic needs review
                     </span>
                   )}
                 </div>
@@ -226,7 +230,7 @@ export default function QuestionPreviewTable({ previews, onApprove, onCancel, on
                               : 'text-slate-400 hover:text-teal-600'
                           }`}
                         >
-                          ✓
+                          <Check className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     ))}
