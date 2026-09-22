@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { adminAPI } from '../../api/admin.api'
 import QuestionPreviewTable from './QuestionPreviewTable'
-import { FileSearch, Upload } from 'lucide-react'
+import { FileSearch, Upload, FileText } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { getSubjectsForExamType, GHANAIAN_LANGUAGES } from '../../constants/subjects'
 
@@ -220,7 +220,9 @@ export default function PDFExtractorPanel({
             >
               {file ? (
                 <div>
-                  <p className="text-teal-700 font-medium text-sm">📄 {file.name}</p>
+                  <p className="text-teal-700 font-medium text-sm inline-flex items-center gap-1.5">
+                    <FileText className="w-4 h-4" /> {file.name}
+                  </p>
                   <p className="text-xs text-slate-400 mt-1">
                     {(file.size / 1024).toFixed(0)} KB · Click to change
                   </p>
