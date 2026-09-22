@@ -86,16 +86,18 @@ export default function QuestionCard({
         )}
       </div>
 
-      {/* ── Diagram, then question text ──────────────────────── */}
-      <QuestionDiagram
-        questionId={question._id}
-        hasImage={question.hasImage}
-        imageData={question.imageData}
-      />
-
-      <p className="text-slate-800 text-base leading-relaxed mb-6">
+      {/* ── Question text, then its diagram ──────────────────── */}
+      <p className="text-slate-800 text-base leading-relaxed mb-4">
         <MathText text={question.questionText} />
       </p>
+
+      <div className="mb-2">
+        <QuestionDiagram
+          questionId={question._id}
+          hasImage={question.hasImage}
+          imageData={question.imageData}
+        />
+      </div>
 
       {/* ── MCQ options ────────────────────────────────────── */}
       {isMCQ && (
