@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CheckCircle2, XCircle, Clock, BookOpen, ChevronRight } from 'lucide-react'
+import { CheckCircle2, XCircle, Clock, BookOpen, ChevronRight, Lightbulb } from 'lucide-react'
 import MasteryBadge from './MasteryBadge'
 import MathText from './MathText'
 import QuestionDiagram from './QuestionDiagram'
@@ -233,7 +233,7 @@ export default function QuestionCard({
             >
               {isExplaining
                 ? <><span className="spinner" /> Getting explanation…</>
-                : '💡 Explain this'
+                : <><Lightbulb className="w-4 h-4" /> Explain this</>
               }
             </button>
             <button
