@@ -12,6 +12,7 @@ import { bootstrapAdmin } from './utils/bootstrapAdmin.js'
 import authRoutes       from './routes/auth.routes.js'
 import questionRoutes   from './routes/question.routes.js'
 import predictionRoutes from './routes/prediction.routes.js'
+import gradePredictionRoutes from './routes/gradePrediction.routes.js'
 import practiceRoutes   from './routes/practice.routes.js'
 import mockExamRoutes   from './routes/mockExam.routes.js'
 import reportRoutes     from './routes/report.routes.js'
@@ -50,6 +51,7 @@ app.use('/api', limiter)
 app.use('/api/auth',        authRoutes)
 app.use('/api/questions',   questionRoutes)
 app.use('/api/predictions', predictionRoutes)
+app.use('/api/grade-predictions', gradePredictionRoutes)
 app.use('/api/practice',    practiceRoutes)
 app.use('/api/mock-exams',  mockExamRoutes)
 app.use('/api/reports',     reportRoutes)

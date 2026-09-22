@@ -17,7 +17,7 @@ const STUDENT_NAV = [
   { to: '/predict',     icon: TrendingUp,       label: 'Likely Exam Topics' },
   { to: '/mock-exam',   icon: FileText,         label: 'Mock Exam'   },
   { to: '/assignments', icon: ClipboardList,    label: 'Remedial Assignment' },
-  { to: '/analytics',   icon: BarChart2,        label: 'Analytics'   },
+  { to: '/analytics',   icon: BarChart2,        label: 'Analytics and Final Grades Predictions' },
   { to: '/leaderboard', icon: Trophy,           label: 'Leaderboard' },
 ]
 

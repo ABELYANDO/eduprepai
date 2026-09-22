@@ -2,15 +2,16 @@ import { useState, useEffect }  from 'react'
 import { useNavigate }           from 'react-router-dom'
 import AppShell                  from '../../components/layout/AppShell'
 import { analyticsAPI }          from '../../api/analytics.api'
+import { gradePredictionAPI }    from '../../api/gradePrediction.api'
 import StatCard                  from '../../components/analytics/StatCard'
 import AccuracyChart             from '../../components/analytics/AccuracyChart'
 import MasteryHeatmap            from '../../components/analytics/MasteryHeatmap'
 import SubjectRadar              from '../../components/analytics/SubjectRadar'
 import MasteryBadge              from '../../components/MasteryBadge'
-import { gradeBadgeBucket }      from '../../utils/gradeUtils'
+import { gradeBadgeBucket, gradeColour } from '../../utils/gradeUtils'
 import {
   Target, Flame, Award, BarChart2,
-  BookOpen, TrendingUp, Clock, RefreshCw,
+  BookOpen, TrendingUp, TrendingDown, Minus, Clock, RefreshCw,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -19,6 +20,11 @@ export default function AnalyticsPage() {
   const [data,    setData]    = useState(null)
   const [loading, setLoading] = useState(true)
   const [tab,     setTab]     = useState('overview')
+
+  // ── Grade predictions — loaded lazily, only when that tab is opened ─
+  const [gradePredictions,   setGradePredictions]   = useState(null)
+  const [gpLoading,          setGpLoading]          = useState(false)
+  const [refreshingSubject,  setRefreshingSubject]  = useState(null)
 
   const load = async () => {
     setLoading(true)
@@ -34,8 +40,37 @@ export default function AnalyticsPage() {
 
   useEffect(() => { load() }, [])
 
+  const loadGradePredictions = async () => {
+    setGpLoading(true)
+    try {
+      const res = await gradePredictionAPI.getAll()
+      setGradePredictions(res)
+    } catch (err) {
+      toast.error(err.message)
+    } finally {
+      setGpLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (tab === 'grade predictions' && !gradePredictions) loadGradePredictions()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab])
+
+  const handleRefreshSubject = async (subject) => {
+    setRefreshingSubject(subject)
+    try {
+      await gradePredictionAPI.refresh(subject)
+      await loadGradePredictions()
+    } catch (err) {
+      toast.error(err.message)
+    } finally {
+      setRefreshingSubject(null)
+    }
+  }
+
   if (loading) return (
-    <AppShell title="Analytics" subtitle="Your performance insights">
+    <AppShell title="Analytics and Final Grades Predictions" subtitle="Your performance insights">
       <div className="flex items-center justify-center py-20">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" />
@@ -48,13 +83,13 @@ export default function AnalyticsPage() {
   const { overview, weeklyTrend, subjectBreakdown, masteryHeatmap, mockHistory, recentSessions } = data || {}
 
   return (
-    <AppShell title="Analytics" subtitle="Track your progress and identify gaps">
+    <AppShell title="Analytics and Final Grades Predictions" subtitle="Track your progress and identify gaps">
       <div className="max-w-6xl mx-auto space-y-6">
 
         {/* Controls */}
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex gap-1 bg-slate-100 rounded-xl p-1">
-            {['overview', 'mastery', 'mock exams', 'sessions'].map(t => (
+            {['overview', 'mastery', 'mock exams', 'sessions', 'grade predictions'].map(t => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
@@ -250,6 +285,122 @@ export default function AnalyticsPage() {
                 No practice sessions yet
               </div>
             )}
+          </div>
+        )}
+
+        {/* ── Grade predictions tab ──────────────────────────── */}
+        {tab === 'grade predictions' && (
+          <div className="space-y-5">
+            {gpLoading && !gradePredictions && (
+              <div className="flex items-center gap-2 text-sm text-slate-400 py-10 justify-center">
+                <span className="spinner text-teal-500" /> Loading predictions…
+              </div>
+            )}
+
+            {gradePredictions?.aggregate && (
+              <div className={`card border-2 ${
+                gradePredictions.aggregate.isComplete ? 'border-teal-200 bg-teal-50/40' : 'border-dashed border-slate-200'
+              }`}>
+                <h3 className="section-title flex items-center gap-2">
+                  <Award className="w-4 h-4 text-teal-600" /> Predicted BECE aggregate
+                </h3>
+                {gradePredictions.aggregate.isComplete ? (
+                  <>
+                    <div className="flex items-baseline gap-3 mb-3">
+                      <span className="text-4xl font-bold text-slate-900">{gradePredictions.aggregate.aggregate}</span>
+                      <span className="badge-teal text-sm">{gradePredictions.aggregate.band}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {gradePredictions.aggregate.subjectsCounted.map(s => (
+                        <span key={s.subject} className="badge-gray text-xs">{s.subject}: {s.grade}</span>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div>
+                    <p className="text-sm text-slate-500 mb-2">
+                      Generate predictions for these to complete your aggregate (4 core subjects + your best 2 electives):
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {gradePredictions.aggregate.missingCore.map(s => (
+                        <span key={s} className="badge-amber text-xs">{s} (core)</span>
+                      ))}
+                      {gradePredictions.aggregate.missingElectiveCount > 0 && (
+                        <span className="badge-amber text-xs">
+                          {gradePredictions.aggregate.missingElectiveCount} more elective{gradePredictions.aggregate.missingElectiveCount !== 1 ? 's' : ''}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="space-y-3">
+              {gradePredictions?.subjects.map(s => (
+                <div key={s.subject} className="card">
+                  <div className="flex items-start justify-between gap-3 mb-2 flex-wrap">
+                    <div className="flex items-center gap-3">
+                      {!s.notGenerated && (
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg flex-shrink-0 border-2 ${gradeColour(s.predictedGrade, gradePredictions.examType)}`}>
+                          {s.predictedGrade}
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-semibold text-slate-800">{s.subject}</p>
+                        {!s.notGenerated && (
+                          <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                            {s.trend === 'rising'  && <TrendingUp   className="w-3.5 h-3.5 text-green-500" />}
+                            {s.trend === 'falling' && <TrendingDown className="w-3.5 h-3.5 text-red-500" />}
+                            {s.trend === 'stable'  && <Minus        className="w-3.5 h-3.5 text-slate-400" />}
+                            <span className="capitalize">{s.trend}</span>
+                            <span>· {s.confidence}% confidence</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleRefreshSubject(s.subject)}
+                      disabled={refreshingSubject === s.subject}
+                      className="btn-secondary text-xs py-1.5"
+                    >
+                      {refreshingSubject === s.subject
+                        ? <span className="spinner" />
+                        : s.notGenerated ? 'Generate' : 'Refresh'}
+                    </button>
+                  </div>
+
+                  {s.notGenerated && (
+                    <p className="text-sm text-slate-400">
+                      Not generated yet — click Generate for a prediction from your practice, mock exam, and remedial assignment history.
+                    </p>
+                  )}
+
+                  {!s.notGenerated && s.isThinData && (
+                    <p className="text-xs text-amber-600 mb-2">
+                      Based on limited data so far — this will get more reliable with more practice.
+                    </p>
+                  )}
+
+                  {!s.notGenerated && s.aiReasoning && (
+                    <p className="text-sm text-slate-600">{s.aiReasoning}</p>
+                  )}
+
+                  {!s.notGenerated && (
+                    <div className="flex gap-3 mt-2 text-xs text-slate-400">
+                      <span>{s.dataPoints.practiceSessions} practice sessions</span>
+                      <span>{s.dataPoints.mockExams} mock exams</span>
+                      <span>{s.dataPoints.remedialAssignments} remedial assignments</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+              {gradePredictions?.subjects.length === 0 && (
+                <div className="card text-center py-10 text-slate-400 text-sm">
+                  No subjects registered yet.
+                </div>
+              )}
+            </div>
           </div>
         )}
 
