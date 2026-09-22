@@ -79,8 +79,14 @@ const MAX_BOX_AREA_FRACTION = 0.6
 // null for a missing/degenerate/near-full-page box; never throws.
 const cropCanvasToBox = (fullCanvas, boundingBox) => {
   if (!boundingBox) return null
-  const { x, y, width, height } = boundingBox
+  let { x, y, width, height } = boundingBox
   if (![x, y, width, height].every(n => typeof n === 'number' && Number.isFinite(n))) return null
+  // Vision models sometimes answer in a 0-1000 scale instead of the 0-1
+  // fractions the prompt asks for — normalise so a valid figure box isn't
+  // mistaken for a full-page one and discarded.
+  if ([x, y, width, height].some(n => n > 1)) {
+    x /= 1000; y /= 1000; width /= 1000; height /= 1000
+  }
   if (width <= 0 || height <= 0) return null
   if (width * height > MAX_BOX_AREA_FRACTION) return null
 
