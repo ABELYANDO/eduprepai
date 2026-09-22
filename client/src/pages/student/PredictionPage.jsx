@@ -159,7 +159,7 @@ export default function PredictionPage() {
   }
 
   const handleRefresh = () => {
-    toast('Running prediction analysis…', { icon: '🔄' })
+    toast('Running prediction analysis…', { icon: <RefreshCw className="w-4 h-4 text-teal-600" /> })
     loadPredictions(true)
   }
 
