@@ -182,10 +182,10 @@ export default function AssignmentAnswerPage() {
                     <span className="badge-gray">{q.marks} marks</span>
                     {q.topic && <span className="text-xs text-slate-400">{q.topic}</span>}
                   </div>
-                  <QuestionDiagram hasImage={q.hasImage} imageData={q.imageData} />
-                  <p className="text-slate-800 text-sm leading-relaxed font-medium">
+                  <p className="text-slate-800 text-sm leading-relaxed font-medium mb-3">
                     <MathText text={q.questionText} />
                   </p>
+                  <QuestionDiagram hasImage={q.hasImage} imageData={q.imageData} />
                 </div>
               </div>
 
