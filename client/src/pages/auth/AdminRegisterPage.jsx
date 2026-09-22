@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { ShieldCheck, User, Mail, Lock, KeyRound, ArrowRight } from 'lucide-react'
+import { ShieldCheck, User, Mail, Lock, KeyRound, ArrowRight, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 export default function AdminRegisterPage() {
@@ -61,7 +61,7 @@ export default function AdminRegisterPage() {
           {/* Error banner */}
           {error && (
             <div className="flex items-start gap-2 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 mb-5 text-sm">
-              <span className="flex-shrink-0 mt-0.5">⚠</span> {error}
+              <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" /> {error}
             </div>
           )}
 
