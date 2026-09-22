@@ -113,7 +113,7 @@ export default function AssignmentAnswerPage() {
 
   if (loading) {
     return (
-      <AppShell title="Assignment">
+      <AppShell title="Remedial Assignment">
         <div className="max-w-3xl mx-auto text-center py-16 text-slate-400 text-sm">Loading…</div>
       </AppShell>
     )

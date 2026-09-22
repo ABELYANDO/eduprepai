@@ -105,7 +105,7 @@ export default function ExamResultCard({ results, subject, examType, onRetake })
           className="btn-secondary flex flex-col items-center gap-1.5 py-4"
         >
           <TrendingUp className="w-5 h-5" />
-          <span className="text-xs">Predictions</span>
+          <span className="text-xs">Likely Exam Topics</span>
         </button>
         <button
           onClick={() => navigate('/practice')}

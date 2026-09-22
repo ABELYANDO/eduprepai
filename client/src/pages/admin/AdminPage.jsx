@@ -22,7 +22,7 @@ const TABS = [
   { id: 'generate', label: 'AI Generator',  icon: Cpu        },
   { id: 'pdf',      label: 'PDF Extractor', icon: FileSearch },
   { id: 'review',   label: 'Review Queue',  icon: ClipboardCheck },
-  { id: 'predictions', label: 'Predictions', icon: TrendingUp },
+  { id: 'predictions', label: 'Likely Exam Topics', icon: TrendingUp },
   { id: 'physical', label: 'Physical Exam', icon: FileText   },
 ]
 

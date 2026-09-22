@@ -16,7 +16,7 @@ export default function DashboardPage() {
 
   const quickActions = [
     { label: 'Practice Questions', desc: 'Adaptive question sessions', icon: BookOpen,   colour: 'bg-teal-500',   to: '/practice'  },
-    { label: 'View Predictions',   desc: 'AI topic forecasts',         icon: TrendingUp, colour: 'bg-amber-500',  to: '/predict'   },
+    { label: 'Likely Exam Topics', desc: 'AI topic forecasts',         icon: TrendingUp, colour: 'bg-amber-500',  to: '/predict'   },
     { label: 'Take Mock Exam',     desc: 'Full WAEC-standard paper',   icon: FileText,   colour: 'bg-purple-500', to: '/mock-exam' },
     { label: 'View Analytics',     desc: 'Track your progress',        icon: BarChart2,  colour: 'bg-blue-500',   to: '/analytics' },
   ]

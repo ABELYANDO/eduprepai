@@ -211,7 +211,7 @@ export default function PredictionPage() {
 
   return (
     <AppShell
-      title="Topic Predictions"
+      title="Likely Exam Topics"
       subtitle={pageSubtitle}
     >
       <div className="max-w-6xl mx-auto space-y-6">
@@ -448,7 +448,7 @@ export default function PredictionPage() {
               className="font-semibold text-slate-700 mb-1"
               style={{ fontFamily: 'var(--font-heading)' }}
             >
-              Predictions haven't been generated yet
+              Likely Exam Topics haven't been generated yet
             </h3>
             <p className="text-slate-400 text-sm max-w-sm mx-auto">
               Be the first to run the AI analysis for {subject} — it only takes a few seconds.

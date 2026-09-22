@@ -42,7 +42,7 @@ export default function AssignmentsPage() {
   }
 
   return (
-    <AppShell title="Assignments" subtitle="Remedial work your teachers have sent you">
+    <AppShell title="Remedial Assignment" subtitle="Remedial work your teachers have sent you">
       <div className="max-w-4xl mx-auto space-y-5">
 
         {/* Subject filter */}
