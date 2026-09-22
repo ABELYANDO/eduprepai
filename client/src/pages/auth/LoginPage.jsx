@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { GraduationCap, Mail, Lock, ArrowRight, Eye, EyeOff, UserCircle } from 'lucide-react'
+import { GraduationCap, Mail, Lock, ArrowRight, Eye, EyeOff, UserCircle, Check, Trophy, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import examHallBg from '../../assets/exam-hall-bg.jpg'
 
@@ -95,7 +95,7 @@ export default function LoginPage() {
             ].map(feat => (
               <div key={feat} className="flex items-start gap-2.5">
                 <div className="w-4 h-4 rounded-full bg-teal-400/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-teal-300 text-xs">✓</span>
+                  <Check className="w-2.5 h-2.5 text-teal-300" />
                 </div>
                 <p className="text-teal-100/70 text-xs leading-relaxed">{feat}</p>
               </div>
@@ -106,7 +106,7 @@ export default function LoginPage() {
         {/* Bottom badge */}
         <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/6 border border-white/10">
           <div className="w-8 h-8 rounded-lg bg-amber-400/20 flex items-center justify-center">
-            <span className="text-amber-300 text-sm">🏆</span>
+            <Trophy className="w-4 h-4 text-amber-300" />
           </div>
           <div>
             <p className="text-white text-xs font-medium">Designed for Ghana</p>
@@ -145,7 +145,7 @@ export default function LoginPage() {
           {/* Error banner */}
           {error && (
             <div className="flex items-start gap-2.5 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 mb-5 text-sm animate-fade-in">
-              <span className="text-red-500 mt-0.5 flex-shrink-0">⚠</span>
+              <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
               {error}
             </div>
           )}
