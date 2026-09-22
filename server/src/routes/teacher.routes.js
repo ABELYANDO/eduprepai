@@ -4,6 +4,7 @@ import {
   listClasses,
   createAssignment,
   listAssignments,
+  getStudentMastery,
   listPendingReviews,
   getSubmissionForReview,
   publishSubmission,
@@ -28,6 +29,9 @@ router.post('/extract-pdf',        extractFromPDF)
 // ── Assignments ──────────────────────────────────────────────────
 router.post('/assignments', createAssignment)
 router.get('/assignments',  listAssignments)
+
+// ── Struggling-topics view for one student, one subject ──────────
+router.get('/students/:studentId/mastery', getStudentMastery)
 
 // ── Submission review (Phase 2 — scanned answers) ────────────────
 router.get('/submissions',              listPendingReviews)

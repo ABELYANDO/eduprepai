@@ -1,7 +1,11 @@
+import mongoose             from 'mongoose'
 import Class               from '../models/Class.model.js'
 import Assignment          from '../models/Assignment.model.js'
 import AssignmentSubmission from '../models/AssignmentSubmission.model.js'
 import User                from '../models/User.model.js'
+import MasteryProfile      from '../models/MasteryProfile.model.js'
+import MockExam            from '../models/MockExam.model.js'
+import { UNLOCK_THRESHOLD } from '../utils/marking.utils.js'
 import { asyncHandler, AppError } from '../middleware/error.middleware.js'
 
 // ── Join code generation ────────────────────────────────────────
@@ -24,6 +28,14 @@ const generateJoinCode = async (subject) => {
 export const createClass = asyncHandler(async (req, res) => {
   const { name, subject, examType = 'WASSCE' } = req.body
   if (!name || !subject) throw new AppError('Class name and subject are required', 400)
+
+  // A teacher may only run classes in a subject they declared at
+  // registration — this is what keeps a teacher's reach (and, via
+  // getStudentMastery below, their visibility into a student's data)
+  // limited to the subject(s) they actually teach.
+  if (!req.user.subjects.includes(subject)) {
+    throw new AppError('You can only create classes for a subject you teach.', 403)
+  }
 
   const joinCode = await generateJoinCode(subject)
 
@@ -60,7 +72,7 @@ export const listClasses = asyncHandler(async (req, res) => {
 // is visible immediately and a student's pending-count query never
 // needs to join against Assignment/Class at read time.
 export const createAssignment = asyncHandler(async (req, res) => {
-  const { classId, title, dueDate, questions } = req.body
+  const { classId, title, dueDate, questions, studentIds } = req.body
 
   if (!classId || !title) throw new AppError('Class and title are required', 400)
   if (!Array.isArray(questions) || questions.length === 0) {
@@ -69,6 +81,18 @@ export const createAssignment = asyncHandler(async (req, res) => {
 
   const cls = await Class.findOne({ _id: classId, teacherId: req.user._id })
   if (!cls) throw new AppError('Class not found', 404)
+
+  // Remedial assignments target one (or a few) specific students rather
+  // than the whole class — `studentIds`, when given, must be a subset
+  // of the class roster. Omitted entirely, behaviour is unchanged: every
+  // current class member gets it.
+  let targetStudentIds = cls.studentIds
+  if (Array.isArray(studentIds) && studentIds.length > 0) {
+    const rosterIds = new Set(cls.studentIds.map(id => id.toString()))
+    const invalid = studentIds.filter(id => !rosterIds.has(id.toString()))
+    if (invalid.length > 0) throw new AppError('One or more selected students are not in this class.', 400)
+    targetStudentIds = studentIds
+  }
 
   const assignment = await Assignment.create({
     classId:  cls._id,
@@ -93,9 +117,9 @@ export const createAssignment = asyncHandler(async (req, res) => {
 
   const availableMarks = assignment.questions.reduce((sum, q) => sum + (q.marks || 0), 0)
 
-  if (cls.studentIds.length > 0) {
+  if (targetStudentIds.length > 0) {
     await AssignmentSubmission.insertMany(
-      cls.studentIds.map(studentId => ({
+      targetStudentIds.map(studentId => ({
         assignmentId: assignment._id,
         studentId,
         answers: assignment.questions.map(() => ({})),
@@ -107,7 +131,7 @@ export const createAssignment = asyncHandler(async (req, res) => {
 
   res.status(201).json({
     success: true,
-    message: `Assignment created and sent to ${cls.studentIds.length} student${cls.studentIds.length !== 1 ? 's' : ''}`,
+    message: `Assignment created and sent to ${targetStudentIds.length} student${targetStudentIds.length !== 1 ? 's' : ''}`,
     assignment,
   })
 })
@@ -143,6 +167,63 @@ export const listAssignments = asyncHandler(async (req, res) => {
   }))
 
   res.json({ success: true, assignments: withCounts })
+})
+
+// ── GET /api/teacher/students/:studentId/mastery?subject= ───────
+// Struggling-topics view for one student, scoped to a single subject.
+// Combines practice-derived MasteryProfile scores with a fresh
+// aggregation over marked MockExam questions by topic — mock exams
+// never write to MasteryProfile (that pipeline is practice-only), so
+// this is the only place mock performance is read back by topic.
+export const getStudentMastery = asyncHandler(async (req, res) => {
+  const { studentId } = req.params
+  const { subject } = req.query
+  if (!subject) throw new AppError('Subject is required', 400)
+
+  // Ownership + subject scope: a teacher may only view a student's data
+  // for a subject they actually teach that student in — the same
+  // relationship (Class.studentIds) that gates submission review above.
+  const owns = await Class.exists({ teacherId: req.user._id, subject, studentIds: studentId })
+  if (!owns) throw new AppError('Student not found in a class you teach for this subject.', 404)
+
+  const [masteryProfiles, mockTopics] = await Promise.all([
+    MasteryProfile.find({ studentId, subject }).sort({ score: 1 }).lean(),
+    MockExam.aggregate([
+      { $match: { studentId: new mongoose.Types.ObjectId(studentId), subject, status: 'marked' } },
+      { $project: { all: { $concatArrays: ['$sectionA', '$sectionB', '$sectionC'] } } },
+      { $unwind: '$all' },
+      { $match: { 'all.topic': { $nin: [null, ''] } } },
+      { $group: {
+          _id: '$all.topic',
+          marksAwarded:   { $sum: '$all.marksAwarded' },
+          marksAvailable: { $sum: '$all.marks' },
+          attempts:       { $sum: 1 },
+        } },
+    ]),
+  ])
+
+  const masteryHeatmap = masteryProfiles.map(m => ({
+    subject: m.subject, topic: m.topic, score: m.score, difficulty: m.difficulty,
+    attempts: m.totalAttempts, lastPracticed: m.lastPracticed,
+  }))
+
+  const mockTopicAccuracy = mockTopics.map(t => ({
+    topic: t._id,
+    accuracy: t.marksAvailable > 0 ? Math.round((t.marksAwarded / t.marksAvailable) * 100) : 0,
+    attempts: t.attempts,
+  }))
+
+  // "Struggling" = weak by either signal — a low practice mastery score
+  // (below the same UNLOCK_THRESHOLD the adaptive engine itself uses)
+  // or low raw accuracy on marked mock questions for that topic.
+  const struggling = [
+    ...masteryHeatmap.filter(m => m.score < UNLOCK_THRESHOLD)
+      .map(m => ({ topic: m.topic, source: 'practice', score: m.score })),
+    ...mockTopicAccuracy.filter(t => t.accuracy < 50)
+      .map(t => ({ topic: t.topic, source: 'mock', score: t.accuracy })),
+  ].sort((a, b) => a.score - b.score)
+
+  res.json({ success: true, masteryHeatmap, mockTopicAccuracy, strugglingTopics: struggling })
 })
 
 // ── Ownership helper ─────────────────────────────────────────────

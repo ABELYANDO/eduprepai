@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { GraduationCap, User, Mail, Lock, School, ArrowRight, Check, Eye, EyeOff, Users, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { SUBJECTS_WASSCE, SUBJECTS_BECE, getPickerTiles } from '../../constants/subjects'
+import { SUBJECTS_WASSCE, SUBJECTS_BECE, getPickerTiles, getAllSubjects } from '../../constants/subjects'
 
 export default function RegisterPage() {
   const { register, teacherRegister } = useAuth()
@@ -21,11 +21,12 @@ export default function RegisterPage() {
     fullName: '', email: '', password: '', confirmPassword: '',
     school: '', examType: 'WASSCE', subjects: [],
   })
-  const [teacherForm, setTeacherForm] = useState({ fullName: '', email: '', password: '', confirmPassword: '' })
+  const [teacherForm, setTeacherForm] = useState({ fullName: '', email: '', password: '', confirmPassword: '', subjects: [] })
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState('')
   const [step,    setStep]    = useState(1) // 1 = personal details, 2 = exam + subjects
   const [openGroup, setOpenGroup] = useState(null) // which group tile (e.g. 'Ghanaian Language') is expanded
+  const [openTeacherGroup, setOpenTeacherGroup] = useState(null)
   const [showPw,        setShowPw]        = useState(false)
   const [showConfirmPw, setShowConfirmPw] = useState(false)
   const [showTeacherPw,        setShowTeacherPw]        = useState(false)
@@ -36,6 +37,25 @@ export default function RegisterPage() {
     setTeacherForm(p => ({ ...p, [e.target.name]: e.target.value }))
   }
 
+  const teacherSubjectTiles = getPickerTiles(getAllSubjects())
+
+  const toggleTeacherSubject = (s) => {
+    setTeacherForm(p => ({
+      ...p,
+      subjects: p.subjects.includes(s)
+        ? p.subjects.filter(x => x !== s)
+        : [...p.subjects, s],
+    }))
+  }
+
+  const chooseTeacherGroupOption = (groupOptions, choice) => {
+    setTeacherForm(p => ({
+      ...p,
+      subjects: [...p.subjects.filter(x => !groupOptions.includes(x)), choice],
+    }))
+    setOpenTeacherGroup(null)
+  }
+
   const handleTeacherSubmit = async (e) => {
     e.preventDefault()
     if (teacherForm.password.length < 6) {
@@ -43,6 +63,9 @@ export default function RegisterPage() {
     }
     if (teacherForm.password !== teacherForm.confirmPassword) {
       return setError('Passwords do not match')
+    }
+    if (teacherForm.subjects.length === 0) {
+      return setError('Select at least one subject you teach')
     }
     setLoading(true); setError('')
     try {
@@ -227,6 +250,96 @@ export default function RegisterPage() {
                   </button>
                 </div>
               </div>
+              {/* Subject picker — restricts which classes this teacher
+                  can later create, and which students' data they can see */}
+              <div>
+                <label className="label">
+                  Which subject(s) do you teach?
+                  <span className="text-teal-600 font-normal ml-1">
+                    ({teacherForm.subjects.length} selected)
+                  </span>
+                </label>
+                <div className="grid grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1">
+                  {teacherSubjectTiles.map(tile => {
+                    if (tile.type === 'subject') {
+                      const s = tile.label
+                      return (
+                        <button
+                          key={s} type="button"
+                          onClick={() => toggleTeacherSubject(s)}
+                          className={`text-left px-3 py-2.5 rounded-lg text-xs font-medium border-2 transition-all ${
+                            teacherForm.subjects.includes(s)
+                              ? 'bg-teal-50 text-teal-700 border-teal-400'
+                              : 'bg-white text-slate-600 border-slate-200 hover:border-teal-200'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center flex-shrink-0 ${
+                              teacherForm.subjects.includes(s)
+                                ? 'bg-teal-500 border-teal-500'
+                                : 'border-slate-300'
+                            }`}>
+                              {teacherForm.subjects.includes(s) && <Check className="w-2 h-2 text-white" />}
+                            </div>
+                            {s}
+                          </div>
+                        </button>
+                      )
+                    }
+
+                    const selectedOption = tile.options.find(o => teacherForm.subjects.includes(o))
+                    const isOpen = openTeacherGroup === tile.label
+                    return (
+                      <div key={tile.label} className="col-span-2">
+                        <button
+                          type="button"
+                          onClick={() => setOpenTeacherGroup(isOpen ? null : tile.label)}
+                          className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-medium border-2 transition-all ${
+                            selectedOption
+                              ? 'bg-teal-50 text-teal-700 border-teal-400'
+                              : 'bg-white text-slate-600 border-slate-200 hover:border-teal-200'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center flex-shrink-0 ${
+                                selectedOption
+                                  ? 'bg-teal-500 border-teal-500'
+                                  : 'border-slate-300'
+                              }`}>
+                                {selectedOption && <Check className="w-2 h-2 text-white" />}
+                              </div>
+                              {tile.label}
+                            </div>
+                            <span className="text-slate-400 font-normal">
+                              {selectedOption || 'Choose one ›'}
+                            </span>
+                          </div>
+                        </button>
+
+                        {isOpen && (
+                          <div className="mt-1.5 ml-2 pl-2.5 border-l-2 border-teal-200 space-y-1 animate-fade-in">
+                            {tile.options.map(lang => (
+                              <button
+                                key={lang} type="button"
+                                onClick={() => chooseTeacherGroupOption(tile.options, lang)}
+                                className={`w-full text-left px-2.5 py-1.5 rounded-md text-xs transition-colors ${
+                                  selectedOption === lang
+                                    ? 'bg-teal-100 text-teal-800 font-semibold'
+                                    : 'text-slate-600 hover:bg-slate-50'
+                                }`}
+                              >
+                                {lang}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
               <button type="submit" disabled={loading} className="btn-primary w-full py-3">
                 {loading
                   ? <><span className="spinner border-white/40 border-t-white" /> Creating…</>

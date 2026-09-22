@@ -14,6 +14,9 @@ export const teacherAPI = {
   createAssignment: (data)    => api.post('/teacher/assignments', data),
   getAssignments:   (classId) => api.get('/teacher/assignments', { params: classId ? { classId } : {} }),
 
+  // ── Struggling-topics view for one student, one subject ────────
+  getStudentMastery: (studentId, subject) => api.get(`/teacher/students/${studentId}/mastery`, { params: { subject } }),
+
   // ── Submission review (Phase 2 — scanned answers) ─────────────
   getPendingReviews:      ()   => api.get('/teacher/submissions'),
   getSubmissionForReview: (id) => api.get(`/teacher/submissions/${id}`),

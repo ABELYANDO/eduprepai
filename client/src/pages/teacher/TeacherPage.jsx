@@ -5,9 +5,11 @@ import PDFExtractorPanel     from '../../components/admin/PDFExtractorPanel'
 import ManualQuestionForm    from '../../components/ManualQuestionForm'
 import SubmissionReviewPanel from '../../components/teacher/SubmissionReviewPanel'
 import { teacherAPI }       from '../../api/teacher.api'
+import MasteryHeatmap        from '../../components/analytics/MasteryHeatmap'
 import {
   Users, Plus, Cpu, FileSearch, Type, Trash2,
   Copy, ClipboardList, ArrowRight, X, ClipboardCheck, Camera,
+  AlertTriangle, Target,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { getSubjectsForExamType, GHANAIAN_LANGUAGES } from '../../constants/subjects'
@@ -28,6 +30,11 @@ export default function TeacherPage() {
   const [creatingClass, setCreatingClass] = useState(false)
   const [expandedClassId, setExpandedClassId] = useState(null) // which class's roster is shown
 
+  // ── Student insight panel (struggling topics, practice + mock) ─
+  const [viewingStudent,        setViewingStudent]        = useState(null) // { id, fullName, classId, subject }
+  const [studentMastery,        setStudentMastery]        = useState(null)
+  const [studentMasteryLoading, setStudentMasteryLoading] = useState(false)
+
   // ── Assignments overview (per class, shown under Classes tab) ──
   const [assignments,        setAssignments]        = useState([])
   const [assignmentsLoading, setAssignmentsLoading]  = useState(false)
@@ -39,6 +46,9 @@ export default function TeacherPage() {
   const [draftQuestions, setDraftQuestions] = useState([])
   const [activeTool, setActiveTool] = useState(null) // 'ai' | 'pdf' | 'manual' | null
   const [creatingAssignment, setCreatingAssignment] = useState(false)
+  // Set when jumping here from a student's insight panel — restricts
+  // the assignment to just that student instead of the whole class.
+  const [targetStudent, setTargetStudent] = useState(null) // { id, fullName } | null
 
   // ── Review queue ─────────────────────────────────────────────
   const [pendingReviews,  setPendingReviews]  = useState([])
@@ -107,6 +117,28 @@ export default function TeacherPage() {
     toast.success('Join code copied')
   }
 
+  const openStudentInsight = async (cls, student) => {
+    setViewingStudent({ id: student._id, fullName: student.fullName, classId: cls._id, subject: cls.subject })
+    setStudentMastery(null)
+    setStudentMasteryLoading(true)
+    try {
+      const data = await teacherAPI.getStudentMastery(student._id, cls.subject)
+      setStudentMastery(data)
+    } catch (err) {
+      toast.error(err.message)
+    } finally {
+      setStudentMasteryLoading(false)
+    }
+  }
+
+  const startRemedialAssignment = () => {
+    if (!viewingStudent) return
+    setSelectedClassId(viewingStudent.classId)
+    setTargetStudent({ id: viewingStudent.id, fullName: viewingStudent.fullName })
+    setViewingStudent(null)
+    setTab('assignment')
+  }
+
   // Sub-tools each call this once their own QuestionPreviewTable/form
   // approval step runs — merges into the running draft rather than
   // saving anywhere yet. Nothing is persisted until "Create & assign".
@@ -134,12 +166,14 @@ export default function TeacherPage() {
         title,
         dueDate: dueDate || null,
         questions: draftQuestions,
+        studentIds: targetStudent ? [targetStudent.id] : undefined,
       })
       toast.success(data.message)
       setTitle('')
       setDueDate('')
       setDraftQuestions([])
       setSelectedClassId('')
+      setTargetStudent(null)
       setTab('classes')
     } catch (err) {
       toast.error(err.message)
@@ -271,10 +305,14 @@ export default function TeacherPage() {
                       ) : (
                         <div className="space-y-1.5">
                           {c.students.map(s => (
-                            <div key={s._id} className="flex items-center justify-between text-sm">
+                            <button
+                              key={s._id}
+                              onClick={() => openStudentInsight(c, s)}
+                              className="w-full flex items-center justify-between text-sm text-left hover:bg-slate-50 rounded-lg px-2 py-1 -mx-2 transition-colors"
+                            >
                               <span className="text-slate-700">{s.fullName}</span>
                               <span className="text-xs text-slate-400">{s.email}</span>
-                            </div>
+                            </button>
                           ))}
                         </div>
                       )}
@@ -283,6 +321,76 @@ export default function TeacherPage() {
                 </div>
               ))}
             </div>
+
+            {/* Student insight panel — struggling topics from practice + mock */}
+            {viewingStudent && (
+              <div className="card animate-fade-in">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="font-semibold text-slate-800" style={{ fontFamily: 'var(--font-heading)' }}>
+                      {viewingStudent.fullName}
+                    </h3>
+                    <p className="text-xs text-slate-500">{viewingStudent.subject} — practice & mock performance</p>
+                  </div>
+                  <button
+                    onClick={() => setViewingStudent(null)}
+                    className="p-1.5 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {studentMasteryLoading && <p className="text-sm text-slate-400 text-center py-8">Loading…</p>}
+
+                {!studentMasteryLoading && studentMastery && (
+                  <div className="space-y-5">
+                    {studentMastery.strugglingTopics.length > 0 ? (
+                      <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                        <p className="text-xs font-semibold text-amber-800 flex items-center gap-1.5 mb-2">
+                          <AlertTriangle className="w-3.5 h-3.5" /> Struggling topics
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {studentMastery.strugglingTopics.map((t, i) => (
+                            <span key={i} className="badge-gray text-xs bg-white">
+                              {t.topic} <span className="text-slate-400">({t.source === 'mock' ? 'mock' : 'practice'} {t.score}%)</span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-slate-400">No weak topics detected yet — not enough practice/mock data, or performing well across the board.</p>
+                    )}
+
+                    {studentMastery.masteryHeatmap.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold text-slate-600 mb-2">Practice mastery by topic</p>
+                        <MasteryHeatmap data={studentMastery.masteryHeatmap} />
+                      </div>
+                    )}
+
+                    {studentMastery.mockTopicAccuracy.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold text-slate-600 mb-2">Mock exam accuracy by topic</p>
+                        <div className="space-y-1.5">
+                          {studentMastery.mockTopicAccuracy.map((t, i) => (
+                            <div key={i} className="flex items-center justify-between text-sm">
+                              <span className="text-slate-700">{t.topic}</span>
+                              <span className={`text-xs font-semibold ${t.accuracy < 50 ? 'text-red-600' : 'text-slate-500'}`}>
+                                {t.accuracy}% ({t.attempts} question{t.attempts !== 1 ? 's' : ''})
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <button onClick={startRemedialAssignment} className="btn-primary w-full py-2.5">
+                      <Target className="w-4 h-4" /> Create remedial assignment for {viewingStudent.fullName.split(' ')[0]}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Assignments overview */}
             {assignments.length > 0 && (
@@ -316,13 +424,28 @@ export default function TeacherPage() {
               </div>
             ) : (
               <>
+                {targetStudent && (
+                  <div className="flex items-center justify-between gap-3 bg-blue-50 border border-blue-200 rounded-xl px-4 py-2.5">
+                    <p className="text-sm text-blue-800">
+                      <Target className="w-3.5 h-3.5 inline -mt-0.5 mr-1" />
+                      Assigning to <strong>{targetStudent.fullName}</strong> only
+                    </p>
+                    <button
+                      onClick={() => setTargetStudent(null)}
+                      className="text-xs text-blue-600 hover:text-blue-800 underline decoration-dotted underline-offset-2"
+                    >
+                      Assign to whole class instead
+                    </button>
+                  </div>
+                )}
+
                 {/* Class + title + due date */}
                 <div className="card grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <label className="label">Class</label>
                     <select
                       value={selectedClassId}
-                      onChange={e => setSelectedClassId(e.target.value)}
+                      onChange={e => { setSelectedClassId(e.target.value); setTargetStudent(null) }}
                       className="input"
                     >
                       <option value="">Select a class…</option>
@@ -439,7 +562,9 @@ export default function TeacherPage() {
                         >
                           {creatingAssignment
                             ? <><span className="spinner border-white/40 border-t-white" /> Creating…</>
-                            : <>Create & assign to {selectedClass.studentCount} student{selectedClass.studentCount !== 1 ? 's' : ''} <ArrowRight className="w-4 h-4" /></>
+                            : targetStudent
+                              ? <>Create & assign to {targetStudent.fullName} <ArrowRight className="w-4 h-4" /></>
+                              : <>Create & assign to {selectedClass.studentCount} student{selectedClass.studentCount !== 1 ? 's' : ''} <ArrowRight className="w-4 h-4" /></>
                           }
                         </button>
                       </div>

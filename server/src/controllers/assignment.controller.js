@@ -23,6 +23,24 @@ export const joinClass = asyncHandler(async (req, res) => {
     throw new AppError('You have already joined this class', 409)
   }
 
+  // Global cap on how many distinct students one teacher can be
+  // responsible for — counted across ALL of that teacher's classes
+  // (not per-class), since a student in two of the same teacher's
+  // classes should only count once. Configurable via env var so the
+  // number can change without a code change.
+  const cap = parseInt(process.env.MAX_STUDENTS_PER_TEACHER, 10) || 30
+  const teacherClasses = await Class.find({ teacherId: cls.teacherId }).select('studentIds').lean()
+  const distinctStudentIds = new Set(
+    teacherClasses.flatMap(c => c.studentIds.map(id => id.toString()))
+  )
+  // A student already attending one of this teacher's other classes
+  // doesn't add to the headcount by joining another — only block when
+  // this student would be a genuinely new addition past the cap.
+  const isNewStudentForTeacher = !distinctStudentIds.has(req.user._id.toString())
+  if (isNewStudentForTeacher && distinctStudentIds.size >= cap) {
+    throw new AppError('This teacher has reached their maximum number of students. Please contact your school administrator.', 403)
+  }
+
   cls.studentIds.push(req.user._id)
   await cls.save()
 
