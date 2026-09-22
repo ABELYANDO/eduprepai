@@ -286,6 +286,9 @@ export const submitAnswer = asyncHandler(async (req, res) => {
     questionId,
     studentAnswer,
     timeTaken = 0,
+    wasScanned = false,
+    photoData = '',
+    photoMimeType = '',
   } = req.body
 
   if (!questionId || studentAnswer === undefined) {
@@ -372,6 +375,13 @@ export const submitAnswer = asyncHandler(async (req, res) => {
     result: {
       ...markingResult,
       questionId,
+      // Echoed straight back so the client's accumulated results[]
+      // (sent to saveSession below) carries these through to the
+      // Session document without the client having to merge them in
+      // separately — see questionResultSchema in Session.model.js.
+      wasScanned:    !!wasScanned,
+      photoData:     wasScanned ? photoData : '',
+      photoMimeType: wasScanned ? photoMimeType : '',
       topic:         question.topic,
       subject:       question.subject,
       correctAnswer: question.type === 'MCQ' ? question.correctOption : null,

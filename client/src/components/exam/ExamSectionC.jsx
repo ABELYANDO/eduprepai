@@ -1,6 +1,7 @@
 import { CheckCircle2, XCircle, Check } from 'lucide-react'
 import QuestionDiagram from '../QuestionDiagram'
 import PartAnswerEditor from '../PartAnswerEditor'
+import PhotoAnswerInput from '../PhotoAnswerInput'
 
 // ── ExamSectionC ───────────────────────────────────────────────
 // Renders the offered Section C questions. Student answers up to
@@ -28,6 +29,9 @@ export default function ExamSectionC({
   explaining = false,
   sectionLabel = 'C',
   answerHint,        // optional: e.g. 'one from "X" and one from "Y"' — see MockExamPage.jsx
+  requiresPhoto = false,
+  extractPhoto,
+  photos = {},
 }) {
   const marksEach = questions[0]?.marks || 20
   const atCap = selectedIndices.length >= answerCount
@@ -126,26 +130,47 @@ export default function ExamSectionC({
             <QuestionDiagram hasImage={q.hasImage} imageData={q.imageData} />
 
             <div>
-              {!q.parts?.length && <label className="label">{isStructured ? 'Your answer' : 'Your essay'}</label>}
-              <PartAnswerEditor
-                parts={q.parts}
-                value={answer}
-                onChange={text => onAnswerChange(idx, text)}
-                disabled={isReview}
-                isReview={isReview}
-                partResults={marked?.partResults || []}
-                placeholder={isStructured
-                  ? 'Write your answer here. Show your working for each part.'
-                  : 'Write your essay here. Include:&#10;• Introduction — state your position&#10;• Main body — 3-4 paragraphs with evidence&#10;• Conclusion — summarise your argument'
-                }
-              />
-              {!isReview && (
-                <p className="text-xs text-slate-400 mt-1.5 flex justify-between">
-                  <span>{isStructured ? 'Show all working clearly' : 'Use clear paragraphs and WAEC-standard language'}</span>
-                  <span className="tabular-nums">
-                    {answer.trim().split(/\s+/).filter(Boolean).length} words
-                  </span>
-                </p>
+              {isReview && marked?.wasScanned ? (
+                <img
+                  src={`data:${marked.photoMimeType || 'image/jpeg'};base64,${marked.photoData}`}
+                  alt="Student's uploaded answer"
+                  className="max-h-64 rounded-xl border border-slate-200"
+                />
+              ) : requiresPhoto && !isReview ? (
+                <PhotoAnswerInput
+                  extractPhoto={extractPhoto}
+                  questionText={q.questionText}
+                  disabled={isReview}
+                  hasAnswer={!!answer}
+                  photoPreview={photos[idx]}
+                  onCaptured={({ transcribedText, photoBase64, mimeType }) =>
+                    onAnswerChange(idx, transcribedText, { photoData: photoBase64, photoMimeType: mimeType })
+                  }
+                />
+              ) : (
+                <>
+                  {!q.parts?.length && <label className="label">{isStructured ? 'Your answer' : 'Your essay'}</label>}
+                  <PartAnswerEditor
+                    parts={q.parts}
+                    value={answer}
+                    onChange={text => onAnswerChange(idx, text)}
+                    disabled={isReview}
+                    isReview={isReview}
+                    partResults={marked?.partResults || []}
+                    placeholder={isStructured
+                      ? 'Write your answer here. Show your working for each part.'
+                      : 'Write your essay here. Include:&#10;• Introduction — state your position&#10;• Main body — 3-4 paragraphs with evidence&#10;• Conclusion — summarise your argument'
+                    }
+                  />
+                  {!isReview && (
+                    <p className="text-xs text-slate-400 mt-1.5 flex justify-between">
+                      <span>{isStructured ? 'Show all working clearly' : 'Use clear paragraphs and WAEC-standard language'}</span>
+                      <span className="tabular-nums">
+                        {answer.trim().split(/\s+/).filter(Boolean).length} words
+                      </span>
+                    </p>
+                  )}
+                </>
               )}
             </div>
 

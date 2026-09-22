@@ -8,6 +8,9 @@ import {
   listPendingReviews,
   getSubmissionForReview,
   publishSubmission,
+  listPendingMockExams,
+  getMockExamForReview,
+  publishMockExamReview,
 } from '../controllers/teacher.controller.js'
 import { generateQuestions, extractFromPDF } from '../controllers/aiQuestions.controller.js'
 import { protect, restrictTo } from '../middleware/auth.middleware.js'
@@ -37,5 +40,10 @@ router.get('/students/:studentId/mastery', getStudentMastery)
 router.get('/submissions',              listPendingReviews)
 router.get('/submissions/:id',          getSubmissionForReview)
 router.post('/submissions/:id/publish', publishSubmission)
+
+// ── Mock exam review (Section B/C photo-scanned answers) ─────────
+router.get('/mock-exams',               listPendingMockExams)
+router.get('/mock-exams/:id',           getMockExamForReview)
+router.post('/mock-exams/:id/publish',  publishMockExamReview)
 
 export default router

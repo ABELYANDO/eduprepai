@@ -40,6 +40,14 @@ const questionResultSchema = new mongoose.Schema({
       feedback:      String,
     },
   ],
+
+  // Set when the student (in a teacher's class for this subject)
+  // photographed their answer instead of typing it — the photo itself
+  // is kept so the teacher can review the actual handwritten work,
+  // not just the AI's transcription of it.
+  wasScanned:     { type: Boolean, default: false },
+  photoData:      { type: String,  default: '' },  // base64
+  photoMimeType:  { type: String,  default: '' },
 }, { _id: false })
 
 // ── Mastery change record ──────────────────────────────────────

@@ -10,6 +10,10 @@ import {
   getMasteryProfile,
   getRecentSessions,
 } from '../controllers/practice.controller.js'
+// Reused as-is — transcribing an answer photo has no assignment-specific
+// logic, so practice mode mounts the exact same handler rather than
+// duplicating it.
+import { extractAnswerFromPhoto } from '../controllers/assignment.controller.js'
 import { protect } from '../middleware/auth.middleware.js'
 
 const router = Router()
@@ -27,8 +31,9 @@ router.get('/sessions',       getRecentSessions)
 
 // ── Answer submission ──────────────────────────────────────────
 // These are POST because they write data and trigger AI calls
-router.post('/submit',  submitAnswer)
-router.post('/explain', getExplanation)
-router.post('/session', saveSession)
+router.post('/submit',       submitAnswer)
+router.post('/explain',      getExplanation)
+router.post('/session',      saveSession)
+router.post('/extract-photo', extractAnswerFromPhoto)
 
 export default router

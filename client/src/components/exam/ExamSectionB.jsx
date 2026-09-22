@@ -1,11 +1,17 @@
 import { CheckCircle2, XCircle } from 'lucide-react'
 import QuestionDiagram from '../QuestionDiagram'
 import PartAnswerEditor from '../PartAnswerEditor'
+import PhotoAnswerInput from '../PhotoAnswerInput'
 
 // ── ExamSectionB ───────────────────────────────────────────────
 // Renders all 4 structured questions for Section B.
-// Students type their answers in text areas.
-export default function ExamSectionB({ questions, answers, onAnswer, isReview = false, markedQuestions, onExplain, explaining = false }) {
+// Students type their answers in text areas — or, when `requiresPhoto`
+// is set (student is in a teacher's class for this subject), upload a
+// photo of their written answer instead.
+export default function ExamSectionB({
+  questions, answers, onAnswer, isReview = false, markedQuestions, onExplain, explaining = false,
+  requiresPhoto = false, extractPhoto, photos = {},
+}) {
   const totalMarks = questions.reduce((sum, q) => sum + (q.marks || 0), 0)
 
   return (
@@ -58,21 +64,43 @@ export default function ExamSectionB({ questions, answers, onAnswer, isReview = 
               </div>
             </div>
 
-            {/* Answer area — one box per sub-part, or a single textarea */}
+            {/* Answer area — one box per sub-part, a single textarea, or
+               a photo upload/preview when this was (or requires) a scan */}
             <div className="ml-11">
-              <PartAnswerEditor
-                parts={q.parts}
-                value={answer}
-                onChange={text => onAnswer(idx, text)}
-                disabled={isReview}
-                isReview={isReview}
-                partResults={marked?.partResults || []}
-                placeholder="Write your answer here. Label each part clearly: (a) ..., (b) ..., (c) ..."
-              />
-              {!isReview && (
-                <p className="text-xs text-slate-400 mt-1.5 text-right">
-                  {answer.trim().split(/\s+/).filter(Boolean).length} words
-                </p>
+              {isReview && marked?.wasScanned ? (
+                <img
+                  src={`data:${marked.photoMimeType || 'image/jpeg'};base64,${marked.photoData}`}
+                  alt="Student's uploaded answer"
+                  className="max-h-64 rounded-xl border border-slate-200"
+                />
+              ) : requiresPhoto && !isReview ? (
+                <PhotoAnswerInput
+                  extractPhoto={extractPhoto}
+                  questionText={q.questionText}
+                  disabled={isReview}
+                  hasAnswer={!!answer}
+                  photoPreview={photos[idx]}
+                  onCaptured={({ transcribedText, photoBase64, mimeType }) =>
+                    onAnswer(idx, transcribedText, { photoData: photoBase64, photoMimeType: mimeType })
+                  }
+                />
+              ) : (
+                <>
+                  <PartAnswerEditor
+                    parts={q.parts}
+                    value={answer}
+                    onChange={text => onAnswer(idx, text)}
+                    disabled={isReview}
+                    isReview={isReview}
+                    partResults={marked?.partResults || []}
+                    placeholder="Write your answer here. Label each part clearly: (a) ..., (b) ..., (c) ..."
+                  />
+                  {!isReview && (
+                    <p className="text-xs text-slate-400 mt-1.5 text-right">
+                      {answer.trim().split(/\s+/).filter(Boolean).length} words
+                    </p>
+                  )}
+                </>
               )}
             </div>
 

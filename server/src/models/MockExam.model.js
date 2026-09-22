@@ -27,6 +27,13 @@ const examQuestionSchema = new mongoose.Schema({
   // Student's submitted answer
   studentAnswer:  { type: String, default: '' },
 
+  // Set when the student (in a teacher's class for this subject)
+  // photographed their answer instead of typing it — kept so the
+  // teacher can review the actual handwritten work during publish.
+  wasScanned:     { type: Boolean, default: false },
+  photoData:      { type: String,  default: '' },  // base64
+  photoMimeType:  { type: String,  default: '' },
+
   // Marking result — populated after submission
   marksAwarded:   { type: Number, default: null },
   isCorrect:      { type: Boolean, default: null },
@@ -61,7 +68,12 @@ const mockExamSchema = new mongoose.Schema(
     // ── Exam status ────────────────────────────────────────────
     status: {
       type:    String,
-      enum:    ['generated', 'in_progress', 'submitted', 'marked'],
+      // 'pending_review' — reached only when at least one Section B/C
+      // answer was photo-scanned by a student in a teacher's class for
+      // this subject; marks are computed as usual but withheld from
+      // the student until the teacher publishes (mirrors
+      // AssignmentSubmission's identical status).
+      enum:    ['generated', 'in_progress', 'submitted', 'pending_review', 'marked'],
       default: 'generated',
     },
 

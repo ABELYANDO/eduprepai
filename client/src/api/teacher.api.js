@@ -21,4 +21,9 @@ export const teacherAPI = {
   getPendingReviews:      ()   => api.get('/teacher/submissions'),
   getSubmissionForReview: (id) => api.get(`/teacher/submissions/${id}`),
   publishSubmission:      (id, answers) => api.post(`/teacher/submissions/${id}/publish`, { answers }),
+
+  // ── Mock exam review (Section B/C photo-scanned answers) ───────
+  getPendingMockExams:    ()   => api.get('/teacher/mock-exams'),
+  getMockExamForReview:   (id) => api.get(`/teacher/mock-exams/${id}`),
+  publishMockExamReview:  (id, overrides) => api.post(`/teacher/mock-exams/${id}/publish`, { overrides }),
 }

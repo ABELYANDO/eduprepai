@@ -3,6 +3,7 @@ import { useSearchParams }  from 'react-router-dom'
 import { useAuth }          from '../../context/AuthContext'
 import { useNotifications } from '../../context/NotificationContext'
 import { practiceAPI }      from '../../api/practice.api'
+import { assignmentAPI }    from '../../api/assignment.api'
 import AppShell             from '../../components/layout/AppShell'
 import QuestionCard         from '../../components/QuestionCard'
 import ExplanationPanel     from '../../components/ExplanationPanel'
@@ -47,6 +48,15 @@ export default function PracticePage() {
   const [timed,     setTimed]     = useState(false)
   const [topics,    setTopics]    = useState([])
   const [topicsLoading, setTopicsLoading] = useState(false)
+
+  // ── Classes this student has joined ─────────────────────────
+  // Drives whether Structured/Essay questions require a photo instead
+  // of typing — true when a teacher exists for this subject to review it.
+  const [myClasses, setMyClasses] = useState([])
+  useEffect(() => {
+    assignmentAPI.getClasses().then(data => setMyClasses(data.classes || [])).catch(() => {})
+  }, [])
+  const requiresPhoto = myClasses.some(c => c.subject === subject)
 
   // ── Session Path (guided, mastery-gated progression) ────────
   // 'path' is the default, recommended route; 'free' is today's
@@ -160,7 +170,7 @@ export default function PracticePage() {
   }, [])
 
   // ── Handle answer submission ───────────────────────────────
-  const handleSubmit = useCallback(async (answer) => {
+  const handleSubmit = useCallback(async (answer, photoMeta = {}) => {
     // 'next' signal — move to next question
     if (answer === '__next__') {
       clearInterval(timerRef.current)
@@ -193,6 +203,9 @@ export default function PracticePage() {
         timeTaken:     timed && timerSeconds !== null
           ? (question.type === 'Essay' ? 35 * 60 : 90) - timerSeconds
           : 0,
+        wasScanned:    photoMeta.wasScanned || false,
+        photoData:     photoMeta.photoData || '',
+        photoMimeType: photoMeta.photoMimeType || '',
       })
 
       clearInterval(timerRef.current)
@@ -606,6 +619,8 @@ export default function PracticePage() {
               onExplain={handleExplain}
               isExplaining={isExplaining}
               timerSeconds={timed ? timerSeconds : undefined}
+              requiresPhoto={requiresPhoto}
+              extractPhoto={practiceAPI.extractAnswerFromPhoto}
             />
 
             {/* Explanation panel — shown below question card */}

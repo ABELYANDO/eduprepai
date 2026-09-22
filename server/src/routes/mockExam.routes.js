@@ -9,6 +9,7 @@ import {
   getAllResults,
   explainQuestion,
 } from '../controllers/mockExam.controller.js'
+import { extractAnswerFromPhoto } from '../controllers/assignment.controller.js'
 import { protect, restrictTo } from '../middleware/auth.middleware.js'
 
 const router = Router()
@@ -23,6 +24,7 @@ router.post('/:id/start',    startExam)
 router.patch('/:id/answer',  saveAnswer)
 router.post('/:id/submit',   submitExam)
 router.post('/:id/explain',  explainQuestion)
+router.post('/extract-photo', extractAnswerFromPhoto)
 
 // ── Admin routes ───────────────────────────────────────────────
 router.get('/admin/all-results', restrictTo('admin'), getAllResults)

@@ -3,6 +3,7 @@ import { useNavigate }      from 'react-router-dom'
 import { useAuth }          from '../../context/AuthContext'
 import { useNotifications } from '../../context/NotificationContext'
 import { mockExamAPI }      from '../../api/mockExam.api'
+import { assignmentAPI }    from '../../api/assignment.api'
 import AppShell             from '../../components/layout/AppShell'
 import ExamCoverPage        from '../../components/exam/ExamCoverPage'
 import ExamTimer            from '../../components/exam/ExamTimer'
@@ -37,6 +38,15 @@ export default function MockExamPage() {
   const [pastExams,  setPastExams]  = useState([])
   const [generating, setGenerating] = useState(false)
 
+  // ── Classes this student has joined ─────────────────────────
+  // Drives whether Section B/C requires a photo instead of typing —
+  // true when a teacher exists for this subject to review it.
+  const [myClasses, setMyClasses] = useState([])
+  useEffect(() => {
+    assignmentAPI.getClasses().then(data => setMyClasses(data.classes || [])).catch(() => {})
+  }, [])
+  const requiresPhoto = myClasses.some(c => c.subject === subject)
+
   // ── Exam state ─────────────────────────────────────────────
   const [exam,           setExam]           = useState(null)
   const [activeSection,  setActiveSection]  = useState('A')
@@ -49,6 +59,8 @@ export default function MockExamPage() {
   const [answersB, setAnswersB] = useState({})   // { questionIndex: 'text...' }
   const [answerCIndices, setAnswerCIndices] = useState([])  // which essay(s) chosen
   const [answersC,       setAnswersC]       = useState({})  // { questionIndex: 'text...' }
+  const [photosB, setPhotosB] = useState({})  // { questionIndex: { photoData, photoMimeType } }
+  const [photosC, setPhotosC] = useState({})
 
   // ── Results ─────────────────────────────────────────────────
   const [results, setResults] = useState(null)
@@ -78,6 +90,8 @@ export default function MockExamPage() {
       setAnswersB({})
       setAnswerCIndices([])
       setAnswersC({})
+      setPhotosB({})
+      setPhotosC({})
       setScreen('cover')
 
       if (data.resumed) {
@@ -88,12 +102,14 @@ export default function MockExamPage() {
         })
         data.exam.sectionB.forEach((q, i) => {
           if (q.studentAnswer) setAnswersB(p => ({ ...p, [i]: q.studentAnswer }))
+          if (q.wasScanned) setPhotosB(p => ({ ...p, [i]: { photoData: q.photoData, photoMimeType: q.photoMimeType } }))
         })
         data.exam.sectionC.forEach((q, i) => {
           if (q.studentAnswer) {
             setAnswerCIndices(prev => [...prev, i])
             setAnswersC(prev => ({ ...prev, [i]: q.studentAnswer }))
           }
+          if (q.wasScanned) setPhotosC(p => ({ ...p, [i]: { photoData: q.photoData, photoMimeType: q.photoMimeType } }))
         })
       }
     } catch (err) {
@@ -130,9 +146,18 @@ export default function MockExamPage() {
     } catch { /* silent fail — answer stored locally */ }
   }, [exam?._id])
 
-  // ── Auto-save typed answer with debounce ───────────────────
-  const handleAnswerB = useCallback((idx, text) => {
+  // ── Auto-save typed answer with debounce; photo answers save ────
+  // immediately instead — a deliberate action, not a keystroke.
+  const handleAnswerB = useCallback((idx, text, photoMeta) => {
     setAnswersB(prev => ({ ...prev, [idx]: text }))
+    if (photoMeta) {
+      setPhotosB(prev => ({ ...prev, [idx]: photoMeta }))
+      mockExamAPI.saveAnswer(exam._id, {
+        section: 'sectionB', questionIndex: idx, studentAnswer: text,
+        wasScanned: true, photoData: photoMeta.photoData, photoMimeType: photoMeta.photoMimeType,
+      }).catch(() => {})
+      return
+    }
     clearTimeout(autoSaveRef.current)
     autoSaveRef.current = setTimeout(async () => {
       try {
@@ -151,8 +176,16 @@ export default function MockExamPage() {
     )
   }, [])
 
-  const handleAnswerC = useCallback((idx, text) => {
+  const handleAnswerC = useCallback((idx, text, photoMeta) => {
     setAnswersC(prev => ({ ...prev, [idx]: text }))
+    if (photoMeta) {
+      setPhotosC(prev => ({ ...prev, [idx]: photoMeta }))
+      mockExamAPI.saveAnswer(exam._id, {
+        section: 'sectionC', questionIndex: idx, studentAnswer: text,
+        wasScanned: true, photoData: photoMeta.photoData, photoMimeType: photoMeta.photoMimeType,
+      }).catch(() => {})
+      return
+    }
     clearTimeout(autoSaveRef.current)
     autoSaveRef.current = setTimeout(async () => {
       try {
@@ -190,10 +223,14 @@ export default function MockExamPage() {
         timeSpentSeconds: timeSpent,
       })
 
-      toast.success('Paper marked!', { id: 'marking' })
+      if (data.results) {
+        toast.success('Paper marked!', { id: 'marking' })
+      } else {
+        toast.success('Submitted — your teacher will review before results are shown.', { id: 'marking' })
+      }
       addBadgeNotifications(data.newBadges)
 
-      // Reload full exam to get marked version
+      // Reload full exam to get marked (or pending-review) version
       const markedData = await mockExamAPI.getExam(exam._id)
       setMarkedExam(markedData.exam)
       setResults(data.results)
@@ -335,10 +372,13 @@ export default function MockExamPage() {
                           {' · '}
                           <span className={`font-medium ${
                             e.status === 'marked' ? 'text-teal-600' :
+                            e.status === 'pending_review' ? 'text-amber-600' :
                             e.status === 'in_progress' ? 'text-amber-600' : 'text-slate-400'
                           }`}>
                             {e.status === 'marked'
                               ? `${e.results?.waecGrade} — ${e.results?.totalMarks}/100`
+                              : e.status === 'pending_review'
+                              ? 'Awaiting teacher review'
                               : e.status === 'in_progress'
                               ? 'In progress'
                               : 'Generated'
@@ -478,6 +518,9 @@ export default function MockExamPage() {
                 questions={exam.sectionB}
                 answers={answersB}
                 onAnswer={handleAnswerB}
+                requiresPhoto={requiresPhoto}
+                extractPhoto={mockExamAPI.extractAnswerFromPhoto}
+                photos={photosB}
               />
             )}
 
@@ -491,6 +534,9 @@ export default function MockExamPage() {
                 onAnswerChange={handleAnswerC}
                 sectionLabel={sectionCLabel}
                 answerHint={sectionCAnswerHint}
+                requiresPhoto={requiresPhoto}
+                extractPhoto={mockExamAPI.extractAnswerFromPhoto}
+                photos={photosC}
               />
             )}
 
@@ -509,7 +555,21 @@ export default function MockExamPage() {
         )}
 
         {/* ══════════════ RESULTS SCREEN ══════════════════════ */}
-        {screen === 'results' && results && markedExam && (
+        {screen === 'results' && markedExam?.status === 'pending_review' && (
+          <div className="card bg-amber-50 border-amber-200 flex items-start gap-3 max-w-lg mx-auto">
+            <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-semibold text-amber-900">Awaiting your teacher's review</p>
+              <p className="text-sm text-amber-700 mt-1">
+                You submitted a photographed answer — your teacher checks it before your results are shown.
+              </p>
+              <button onClick={() => setScreen('setup')} className="btn-secondary mt-4 text-sm">
+                Back to Mock Exam
+              </button>
+            </div>
+          </div>
+        )}
+        {screen === 'results' && results && markedExam && markedExam.status !== 'pending_review' && (
           <MockExamReview exam={markedExam} onRetake={() => setScreen('setup')} />
         )}
 

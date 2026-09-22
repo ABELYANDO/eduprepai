@@ -4,6 +4,7 @@ import MasteryBadge from './MasteryBadge'
 import MathText from './MathText'
 import QuestionDiagram from './QuestionDiagram'
 import PartAnswerEditor from './PartAnswerEditor'
+import PhotoAnswerInput from './PhotoAnswerInput'
 
 // ── Option button colours ──────────────────────────────────────
 const OPTION_LETTERS = ['A', 'B', 'C', 'D']
@@ -35,9 +36,12 @@ export default function QuestionCard({
   onExplain,         // () => void
   isExplaining,      // true while AI is generating explanation
   timerSeconds,      // optional countdown timer
+  requiresPhoto,     // true when the student is in a teacher's class for this subject
+  extractPhoto,      // (base64, mimeType, questionText) => Promise<{transcribedAnswer}> — required when requiresPhoto
 }) {
   const [selected,     setSelected]     = useState('')
   const [typedAnswer,  setTypedAnswer]  = useState('')
+  const [photoMeta,    setPhotoMeta]    = useState({ wasScanned: false, photoData: '', photoMimeType: '' })
   const [hasSubmitted, setHasSubmitted] = useState(false)
 
   const isMCQ       = question.type === 'MCQ'
@@ -48,7 +52,7 @@ export default function QuestionCard({
     const answer = isMCQ ? selected : typedAnswer
     if (!answer.trim()) return
     setHasSubmitted(true)
-    onSubmit(answer)
+    onSubmit(answer, photoMeta)
   }
 
   return (
@@ -134,24 +138,40 @@ export default function QuestionCard({
         </div>
       )}
 
-      {/* ── Typed answer (Structured + Essay) ─────────────── */}
+      {/* ── Answer input (Structured + Essay) ──────────────── */}
       {!isMCQ && (
         <div className="mb-6">
-          <PartAnswerEditor
-            parts={question.parts}
-            value={typedAnswer}
-            onChange={setTypedAnswer}
-            disabled={isAnswered}
-            placeholder={
-              question.type === 'Structured'
-                ? 'Type your answer here. Address each part (a), (b), (c) clearly...'
-                : 'Write your essay here. Include an introduction, main body, and conclusion...'
-            }
-          />
-          {!isAnswered && typedAnswer.length > 0 && (
-            <p className="text-xs text-slate-400 mt-1.5 text-right">
-              {typedAnswer.trim().split(/\s+/).length} words
-            </p>
+          {requiresPhoto ? (
+            <PhotoAnswerInput
+              extractPhoto={extractPhoto}
+              questionText={question.questionText}
+              disabled={isAnswered}
+              hasAnswer={!!typedAnswer}
+              photoPreview={photoMeta.wasScanned ? photoMeta : null}
+              onCaptured={({ transcribedText, photoBase64, mimeType }) => {
+                setTypedAnswer(transcribedText)
+                setPhotoMeta({ wasScanned: true, photoData: photoBase64, photoMimeType: mimeType })
+              }}
+            />
+          ) : (
+            <>
+              <PartAnswerEditor
+                parts={question.parts}
+                value={typedAnswer}
+                onChange={setTypedAnswer}
+                disabled={isAnswered}
+                placeholder={
+                  question.type === 'Structured'
+                    ? 'Type your answer here. Address each part (a), (b), (c) clearly...'
+                    : 'Write your essay here. Include an introduction, main body, and conclusion...'
+                }
+              />
+              {!isAnswered && typedAnswer.length > 0 && (
+                <p className="text-xs text-slate-400 mt-1.5 text-right">
+                  {typedAnswer.trim().split(/\s+/).length} words
+                </p>
+              )}
+            </>
           )}
         </div>
       )}

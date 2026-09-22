@@ -4,6 +4,7 @@ import AIGeneratorPanel      from '../../components/admin/AIGeneratorPanel'
 import PDFExtractorPanel     from '../../components/admin/PDFExtractorPanel'
 import ManualQuestionForm    from '../../components/ManualQuestionForm'
 import SubmissionReviewPanel from '../../components/teacher/SubmissionReviewPanel'
+import MockExamReviewPanel   from '../../components/teacher/MockExamReviewPanel'
 import { teacherAPI }       from '../../api/teacher.api'
 import MasteryHeatmap        from '../../components/analytics/MasteryHeatmap'
 import {
@@ -50,10 +51,11 @@ export default function TeacherPage() {
   // the assignment to just that student instead of the whole class.
   const [targetStudent, setTargetStudent] = useState(null) // { id, fullName } | null
 
-  // ── Review queue ─────────────────────────────────────────────
-  const [pendingReviews,  setPendingReviews]  = useState([])
+  // ── Review queue — merges Assignment submissions and Mock Exams,
+  // both reached the same way (a student photo-scanned an answer) ───
+  const [pendingReviews,  setPendingReviews]  = useState([]) // [{ type: 'assignment'|'mockExam', id, ... }]
   const [reviewsLoading,  setReviewsLoading]  = useState(false)
-  const [reviewingId,     setReviewingId]     = useState(null) // submissionId currently open, or null for the list
+  const [reviewing,       setReviewing]       = useState(null) // { type, id } currently open, or null for the list
 
   const selectedClass = classes.find(c => c._id === selectedClassId)
 
@@ -64,8 +66,21 @@ export default function TeacherPage() {
   const loadPendingReviews = async () => {
     setReviewsLoading(true)
     try {
-      const data = await teacherAPI.getPendingReviews()
-      setPendingReviews(data.submissions || [])
+      const [assignmentsData, mockExamsData] = await Promise.all([
+        teacherAPI.getPendingReviews(),
+        teacherAPI.getPendingMockExams(),
+      ])
+      const merged = [
+        ...(assignmentsData.submissions || []).map(s => ({
+          type: 'assignment', id: s.submissionId, title: s.title,
+          studentName: s.studentName, subject: s.subject, submittedAt: s.submittedAt,
+        })),
+        ...(mockExamsData.mockExams || []).map(e => ({
+          type: 'mockExam', id: e.examId, title: `${e.subject} Mock Exam`,
+          studentName: e.studentName, subject: e.subject, submittedAt: e.submittedAt,
+        })),
+      ].sort((a, b) => new Date(a.submittedAt) - new Date(b.submittedAt))
+      setPendingReviews(merged)
     } catch (err) {
       toast.error(err.message)
     } finally {
@@ -384,6 +399,35 @@ export default function TeacherPage() {
                       </div>
                     )}
 
+                    {studentMastery.scannedPracticeAnswers?.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold text-slate-600 mb-2">
+                          Scanned practice answers <span className="text-slate-400 font-normal">(read-only — already AI-marked and applied)</span>
+                        </p>
+                        <div className="space-y-3">
+                          {studentMastery.scannedPracticeAnswers.map((a, i) => (
+                            <div key={i} className="border border-slate-200 rounded-xl p-3">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-xs font-medium text-teal-700">{a.topic}</span>
+                                <span className="text-xs text-slate-400">
+                                  {a.marksAwarded}/{a.marksAvailable} marks · {new Date(a.date).toLocaleDateString('en-GB')}
+                                </span>
+                              </div>
+                              {a.photoData ? (
+                                <img
+                                  src={`data:${a.photoMimeType || 'image/jpeg'};base64,${a.photoData}`}
+                                  alt="Student's uploaded answer"
+                                  className="max-h-56 rounded-lg border border-slate-100"
+                                />
+                              ) : (
+                                <p className="text-sm text-slate-600 whitespace-pre-line">{a.studentAnswer}</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     <button onClick={startRemedialAssignment} className="btn-primary w-full py-2.5">
                       <Target className="w-4 h-4" /> Create remedial assignment for {viewingStudent.fullName.split(' ')[0]}
                     </button>
@@ -578,11 +622,17 @@ export default function TeacherPage() {
 
         {/* ── Review Submissions tab ─────────────────────────── */}
         {tab === 'review' && (
-          reviewingId ? (
+          reviewing?.type === 'assignment' ? (
             <SubmissionReviewPanel
-              submissionId={reviewingId}
-              onBack={() => setReviewingId(null)}
-              onPublished={() => { setReviewingId(null); loadPendingReviews() }}
+              submissionId={reviewing.id}
+              onBack={() => setReviewing(null)}
+              onPublished={() => { setReviewing(null); loadPendingReviews() }}
+            />
+          ) : reviewing?.type === 'mockExam' ? (
+            <MockExamReviewPanel
+              examId={reviewing.id}
+              onBack={() => setReviewing(null)}
+              onPublished={() => { setReviewing(null); loadPendingReviews() }}
             />
           ) : (
             <div className="space-y-3 animate-fade-in">
@@ -598,8 +648,8 @@ export default function TeacherPage() {
               )}
               {pendingReviews.map(r => (
                 <button
-                  key={r.submissionId}
-                  onClick={() => setReviewingId(r.submissionId)}
+                  key={`${r.type}-${r.id}`}
+                  onClick={() => setReviewing({ type: r.type, id: r.id })}
                   className="card w-full flex items-center justify-between gap-3 text-left hover:border-blue-300 border-2 border-transparent transition-colors"
                 >
                   <div className="flex items-center gap-3 min-w-0">
@@ -607,7 +657,12 @@ export default function TeacherPage() {
                       <Camera className="w-4 h-4 text-amber-600" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-slate-800 truncate">{r.title}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-medium text-slate-800 truncate">{r.title}</p>
+                        <span className="badge-gray text-[10px] flex-shrink-0">
+                          {r.type === 'mockExam' ? 'Mock Exam' : 'Assignment'}
+                        </span>
+                      </div>
                       <p className="text-xs text-slate-400">{r.studentName} · {r.subject}</p>
                     </div>
                   </div>

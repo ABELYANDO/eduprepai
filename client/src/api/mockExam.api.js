@@ -24,4 +24,8 @@ export const mockExamAPI = {
 
   // Admin
   allResults: (params)            => api.get('/mock-exams/admin/all-results', { params }),
+
+  // Transcribe a photographed Section B/C answer (in-class students)
+  extractAnswerFromPhoto: (imageBase64, mimeType, questionText) =>
+    api.post('/mock-exams/extract-photo', { imageBase64, mimeType, questionText }, { timeout: 60000 }),
 }

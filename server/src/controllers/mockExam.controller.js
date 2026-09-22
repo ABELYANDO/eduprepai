@@ -1,6 +1,7 @@
 import MockExam    from '../models/MockExam.model.js'
 import Session     from '../models/Session.model.js'
 import User        from '../models/User.model.js'
+import Class       from '../models/Class.model.js'
 import { checkAndAwardBadges, updateStreak, getBadgeDetails } from '../utils/badge.utils.js'
 import {
   generatePaper,
@@ -88,7 +89,7 @@ export const startExam = asyncHandler(async (req, res) => {
 // Called periodically as student progresses through the paper.
 // This is important — if the browser crashes, answers are preserved.
 export const saveAnswer = asyncHandler(async (req, res) => {
-  const { section, questionIndex, studentAnswer } = req.body
+  const { section, questionIndex, studentAnswer, wasScanned, photoData, photoMimeType } = req.body
 
   if (!['sectionA', 'sectionB', 'sectionC'].includes(section)) {
     throw new AppError('Invalid section', 400)
@@ -105,6 +106,13 @@ export const saveAnswer = asyncHandler(async (req, res) => {
   // Update the specific question's answer
   if (exam[section][questionIndex] !== undefined) {
     exam[section][questionIndex].studentAnswer = studentAnswer
+    // Sticky once true, same as AssignmentSubmission's saveAnswer —
+    // never cleared even if the answer is resaved without the flag.
+    if (wasScanned) {
+      exam[section][questionIndex].wasScanned    = true
+      exam[section][questionIndex].photoData     = photoData || ''
+      exam[section][questionIndex].photoMimeType = photoMimeType || ''
+    }
     exam.markModified(section)
     await exam.save()
   }
@@ -127,6 +135,9 @@ export const submitExam = asyncHandler(async (req, res) => {
   if (!exam) throw new AppError('Exam not found', 404)
   if (exam.status === 'marked') {
     return res.json({ success: true, message: 'Already marked', exam })
+  }
+  if (exam.status === 'pending_review') {
+    return res.json({ success: true, message: 'Awaiting your teacher\'s review', results: null })
   }
 
   // ── Apply final answers if provided ───────────────────────────
@@ -156,6 +167,17 @@ export const submitExam = asyncHandler(async (req, res) => {
   exam.markModified('sectionC')
   await exam.save()
 
+  // ── Was any Section B/C answer photo-scanned? ──────────────────
+  // Marks are always computed below regardless (same as Assignments —
+  // the AI's read is a starting point either way), but if this student
+  // is in a teacher's class for this subject AND any answer was
+  // scanned, results are withheld until the teacher reviews them.
+  const hasScannedAnswer = [...exam.sectionB, ...exam.sectionC].some(q => q.wasScanned)
+  const inTeacherClass = hasScannedAnswer
+    ? await Class.exists({ subject: exam.subject, studentIds: req.user._id })
+    : false
+  const needsTeacherReview = hasScannedAnswer && !!inTeacherClass
+
   // ── Mark the paper ────────────────────────────────────────────
   const marking = await markFullPaper(exam)
 
@@ -178,7 +200,7 @@ export const submitExam = asyncHandler(async (req, res) => {
   exam.sectionA = marking.markedA
   exam.sectionB = marking.markedB
   exam.sectionC = marking.markedC
-  exam.status   = 'marked'
+  exam.status   = needsTeacherReview ? 'pending_review' : 'marked'
   exam.results  = {
     sectionAMarks:   marking.sectionAMarks,
     sectionBMarks:   marking.sectionBMarks,
@@ -224,8 +246,10 @@ export const submitExam = asyncHandler(async (req, res) => {
   const newBadges = getBadgeDetails(await checkAndAwardBadges(req.user._id))
   res.json({
     success:  true,
-    message:  'Exam marked successfully',
-    results:  exam.results,
+    message:  needsTeacherReview
+      ? 'Submitted — your teacher will review before results are shown.'
+      : 'Exam marked successfully',
+    results:  needsTeacherReview ? null : exam.results,
     examId:   exam._id,
     newBadges,          // ← add this line
   })
@@ -241,8 +265,10 @@ export const getExam = asyncHandler(async (req, res) => {
 
   if (!exam) throw new AppError('Exam not found', 404)
 
-  // Don't send correct answers for in-progress exams
-  const payload = exam.status === 'in_progress'
+  // Don't send correct answers/marks while in progress or awaiting
+  // teacher review — a pending_review exam's marks were computed but
+  // aren't the teacher's final word yet.
+  const payload = ['in_progress', 'pending_review'].includes(exam.status)
     ? sanitiseExam(exam)
     : exam
 
@@ -333,23 +359,29 @@ export const getAllResults = asyncHandler(async (req, res) => {
   res.json({ success: true, exams })
 })
 
-// ── Sanitise exam for in-progress state ───────────────────────
-// Removes correct answers before sending to client.
-// We never want to leak answers while the exam is active.
+// ── Sanitise exam for in-progress / pending-review state ──────
+// Removes correct answers before sending to client. We never want to
+// leak answers while the exam is active, or leak the AI's provisional
+// marks for a pending_review exam before the teacher has signed off.
 const sanitiseExam = (exam) => {
   const obj = exam.toObject ? exam.toObject() : { ...exam }
+  const hideMarks = obj.status === 'pending_review'
 
-  obj.sectionA = obj.sectionA.map(q => ({
+  const stripMarks = (q) => hideMarks
+    ? { ...q, marksAwarded: undefined, isCorrect: undefined, aiFeedback: undefined, partResults: undefined }
+    : q
+
+  obj.sectionA = obj.sectionA.map(q => stripMarks({
     ...q,
     correctOption: undefined,  // hidden during exam
     modelAnswer:   undefined,
   }))
-  obj.sectionB = obj.sectionB.map(q => ({
+  obj.sectionB = obj.sectionB.map(q => stripMarks({
     ...q,
     modelAnswer: undefined,
     parts: q.parts?.map(p => ({ ...p, answer: undefined })),
   }))
-  obj.sectionC = obj.sectionC.map(q => ({
+  obj.sectionC = obj.sectionC.map(q => stripMarks({
     ...q,
     modelAnswer: undefined,
   }))

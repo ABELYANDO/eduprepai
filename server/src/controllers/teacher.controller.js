@@ -5,7 +5,8 @@ import AssignmentSubmission from '../models/AssignmentSubmission.model.js'
 import User                from '../models/User.model.js'
 import MasteryProfile      from '../models/MasteryProfile.model.js'
 import MockExam            from '../models/MockExam.model.js'
-import { UNLOCK_THRESHOLD } from '../utils/marking.utils.js'
+import Session             from '../models/Session.model.js'
+import { UNLOCK_THRESHOLD, calculateGrade } from '../utils/marking.utils.js'
 import { asyncHandler, AppError } from '../middleware/error.middleware.js'
 
 // ── Join code generation ────────────────────────────────────────
@@ -223,7 +224,33 @@ export const getStudentMastery = asyncHandler(async (req, res) => {
       .map(t => ({ topic: t.topic, source: 'mock', score: t.accuracy })),
   ].sort((a, b) => a.score - b.score)
 
-  res.json({ success: true, masteryHeatmap, mockTopicAccuracy, strugglingTopics: struggling })
+  // Scanned practice answers, read-only — see the plan's scope note on
+  // why practice-mode scans don't get a full override/publish flow like
+  // Assignments/Mock Exams do (they've already fed the live adaptive
+  // MasteryProfile by the time a teacher could review them).
+  const scannedSessions = await Session.find({
+    studentId, subject, sessionType: 'practice', 'questions.wasScanned': true,
+  }).select('questions createdAt').sort({ createdAt: -1 }).limit(20).lean()
+
+  const scannedPracticeAnswers = scannedSessions.flatMap(s =>
+    s.questions
+      .filter(q => q.wasScanned)
+      .map(q => ({
+        topic:         q.topic,
+        studentAnswer: q.studentAnswer,
+        photoData:     q.photoData,
+        photoMimeType: q.photoMimeType,
+        marksAwarded:  q.marksAwarded,
+        marksAvailable: q.marksAvailable,
+        isCorrect:     q.isCorrect,
+        date:          s.createdAt,
+      }))
+  )
+
+  res.json({
+    success: true, masteryHeatmap, mockTopicAccuracy,
+    strugglingTopics: struggling, scannedPracticeAnswers,
+  })
 })
 
 // ── Ownership helper ─────────────────────────────────────────────
@@ -332,4 +359,96 @@ export const publishSubmission = asyncHandler(async (req, res) => {
       percent: submission.percent,
     },
   })
+})
+
+// ── Mock exam review — same idea as the Assignment trio above, but
+// MockExam has no classId, so ownership is resolved via subject+roster
+// instead of `findOwnedSubmission`'s classId lookup. ──────────────────
+const ownsMockExam = async (exam, teacherId) =>
+  !!(await Class.exists({ teacherId, subject: exam.subject, studentIds: exam.studentId }))
+
+// ── GET /api/teacher/mock-exams?status=pending_review ────────────
+export const listPendingMockExams = asyncHandler(async (req, res) => {
+  const classes = await Class.find({ teacherId: req.user._id }).select('subject studentIds').lean()
+  if (classes.length === 0) return res.json({ success: true, mockExams: [] })
+
+  const exams = await MockExam.find({
+    status: 'pending_review',
+    $or: classes.map(c => ({ subject: c.subject, studentId: { $in: c.studentIds } })),
+  })
+    .populate('studentId', 'fullName')
+    .select('subject examType studentId submittedAt')
+    .sort({ submittedAt: 1 })
+    .lean()
+
+  res.json({
+    success: true,
+    mockExams: exams.map(e => ({
+      examId:      e._id,
+      studentName: e.studentId?.fullName || 'Unknown student',
+      subject:     e.subject,
+      examType:    e.examType,
+      submittedAt: e.submittedAt,
+    })),
+  })
+})
+
+// ── GET /api/teacher/mock-exams/:id ───────────────────────────────
+export const getMockExamForReview = asyncHandler(async (req, res) => {
+  const exam = await MockExam.findById(req.params.id)
+  if (!exam || exam.status !== 'pending_review' || !(await ownsMockExam(exam, req.user._id))) {
+    throw new AppError('Mock exam not found', 404)
+  }
+  const student = await User.findById(exam.studentId).select('fullName')
+
+  res.json({
+    success: true,
+    exam: {
+      id: exam._id,
+      subject: exam.subject,
+      examType: exam.examType,
+      studentName: student?.fullName || 'Unknown student',
+      sectionB: exam.sectionB,
+      sectionC: exam.sectionC,
+    },
+  })
+})
+
+// ── POST /api/teacher/mock-exams/:id/publish ──────────────────────
+// `overrides` is optional: { sectionB: [{marksAwarded, aiFeedback}, ...], sectionC: [...] },
+// index-aligned with the exam's own sections — same "only send what
+// you're correcting" convention as the Assignment publish endpoint.
+export const publishMockExamReview = asyncHandler(async (req, res) => {
+  const { overrides } = req.body
+  const exam = await MockExam.findById(req.params.id)
+  if (!exam || exam.status !== 'pending_review' || !(await ownsMockExam(exam, req.user._id))) {
+    throw new AppError('Mock exam not found', 404)
+  }
+
+  for (const sectionKey of ['sectionB', 'sectionC']) {
+    const sectionOverrides = overrides?.[sectionKey]
+    if (!Array.isArray(sectionOverrides)) continue
+    sectionOverrides.forEach((override, i) => {
+      if (!override || !exam[sectionKey][i]) return
+      if (override.marksAwarded !== undefined) exam[sectionKey][i].marksAwarded = Number(override.marksAwarded)
+      if (override.aiFeedback   !== undefined) exam[sectionKey][i].aiFeedback   = override.aiFeedback
+    })
+    exam.markModified(sectionKey)
+  }
+
+  const sectionBMarks = exam.sectionB.reduce((sum, q) => sum + (q.marksAwarded || 0), 0)
+  const sectionCMarks = exam.sectionC.reduce((sum, q) => sum + (q.marksAwarded || 0), 0)
+  const totalMarks = exam.results.sectionAMarks + sectionBMarks + sectionCMarks
+  const gradeInfo = calculateGrade(totalMarks, exam.results.availableMarks, exam.examType)
+
+  exam.results.sectionBMarks = sectionBMarks
+  exam.results.sectionCMarks = sectionCMarks
+  exam.results.totalMarks    = totalMarks
+  exam.results.percent       = totalMarks
+  exam.results.waecGrade     = gradeInfo.grade
+  exam.results.gradeLabel    = gradeInfo.label
+  exam.status = 'marked'
+  await exam.save()
+
+  res.json({ success: true, message: 'Results published to student', results: exam.results })
 })
