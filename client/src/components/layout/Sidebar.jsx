@@ -5,7 +5,7 @@ import { assignmentAPI } from '../../api/assignment.api'
 import {
   LayoutDashboard, BookOpen, TrendingUp, FileText,
   BarChart2, Trophy, Settings, LogOut, ClipboardList,
-  ChevronRight, GraduationCap,
+  ChevronRight, ChevronDown, GraduationCap,
 } from 'lucide-react'
 
 // This sidebar only ever renders for students — admins/teachers have
@@ -24,6 +24,12 @@ const STUDENT_NAV = [
 export default function Sidebar({ mobileOpen, onClose }) {
   const { user, logout } = useAuth()
   const navigate          = useNavigate()
+  const [subjectsOpen, setSubjectsOpen] = useState(false)
+
+  const goToSubject = (subject) => {
+    navigate(`/practice?${new URLSearchParams({ subject }).toString()}`)
+    onClose()
+  }
 
   // Fetch once on mount — this app's existing notification-adjacent
   // features (e.g. badge toasts) are all fetch-on-load, not real-time,
@@ -152,21 +158,37 @@ export default function Sidebar({ mobileOpen, onClose }) {
             </NavLink>
           ))}
 
-          {/* Subject quick-links */}
+          {/* Subject dropdown — collapsed by default, click to reveal
+             every subject the student is registered for (not capped
+             to a handful like the old always-open list was). Picking
+             one jumps into Practice pre-filtered to that subject, same
+             query-param convention the command palette already uses. */}
           {user?.subjects?.length > 0 && (
             <div className="mt-4 pt-4 border-t border-white/10">
-              <p className="text-teal-500 text-xs font-medium uppercase tracking-wider px-3 mb-2">
+              <button
+                type="button"
+                onClick={() => setSubjectsOpen(o => !o)}
+                className="w-full flex items-center justify-between px-3 mb-2 text-teal-500 text-xs font-medium uppercase tracking-wider hover:text-teal-300 transition-colors"
+                aria-expanded={subjectsOpen}
+              >
                 My Subjects
-              </p>
-              {user.subjects.slice(0, 4).map(subject => (
-                <div
-                  key={subject}
-                  className="flex items-center gap-2 px-3 py-1.5 text-xs text-teal-200/70 hover:text-teal-100 cursor-pointer transition-colors"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-teal-400/50 flex-shrink-0" />
-                  <span className="truncate">{subject}</span>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${subjectsOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {subjectsOpen && (
+                <div className="space-y-0.5 animate-fade-in">
+                  {user.subjects.map(subject => (
+                    <button
+                      key={subject}
+                      type="button"
+                      onClick={() => goToSubject(subject)}
+                      className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs text-teal-200/70 hover:bg-white/8 hover:text-teal-100 transition-colors text-left"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-teal-400/50 flex-shrink-0" />
+                      <span className="truncate">{subject}</span>
+                    </button>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
           )}
         </nav>
