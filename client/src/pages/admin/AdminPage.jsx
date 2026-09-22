@@ -72,7 +72,7 @@ export default function AdminPage() {
   }
 
   const handlePredRefresh = () => {
-    toast('Running prediction analysis…', { icon: '🔄' })
+    toast('Running prediction analysis…', { icon: <RefreshCw className="w-4 h-4 text-teal-600" /> })
     loadPredictions(true)
   }
 
@@ -115,7 +115,7 @@ export default function AdminPage() {
           <button onClick={loadStats} disabled={statsLoading} className="btn-secondary text-sm">
             {statsLoading
               ? <><span className="spinner" /> Loading…</>
-              : '📊 View bank stats'
+              : <><BarChart2 className="w-4 h-4" /> View bank stats</>
             }
           </button>
         </div>
