@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, Check } from 'lucide-react'
 import { getSubjectsForExamType, GHANAIAN_LANGUAGES } from '../constants/subjects'
 
 const blankFor = (subject, examType) => ({
@@ -211,7 +211,7 @@ export default function ManualQuestionForm({
                       : 'text-slate-400 border-slate-200 hover:text-teal-600'
                   }`}
                 >
-                  ✓
+                  <Check className="w-3.5 h-3.5" />
                 </button>
               </div>
             ))}
