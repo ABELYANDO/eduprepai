@@ -6,13 +6,6 @@ import {
   Flame, Award, ArrowRight, BarChart2,
 } from 'lucide-react'
 
-const SUBJECT_COLOURS = [
-  'bg-teal-100 text-teal-700',
-  'bg-amber-100 text-amber-700',
-  'bg-purple-100 text-purple-700',
-  'bg-blue-100 text-blue-700',
-]
-
 export default function DashboardPage() {
   const { user }   = useAuth()
   const navigate   = useNavigate()
@@ -87,31 +80,6 @@ export default function DashboardPage() {
               </button>
             ))}
           </div>
-        </div>
-
-        {/* ── My subjects ───────────────────────────────────── */}
-        <div className="card">
-          <h2 className="section-title">My Subjects</h2>
-          {user?.subjects?.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {user.subjects.map((subject, i) => (
-                <div
-                  key={subject}
-                  className="flex items-center justify-between p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer group"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${SUBJECT_COLOURS[i % SUBJECT_COLOURS.length]}`}>
-                      {subject.charAt(0)}
-                    </span>
-                    <span className="text-sm font-medium text-slate-700">{subject}</span>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-slate-400 text-center py-6">No subjects selected</p>
-          )}
         </div>
 
         {/* ── Empty state nudge ─────────────────────────────── */}
