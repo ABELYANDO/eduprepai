@@ -1,10 +1,12 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { useAuth } from './AuthContext'
+import { assignmentAPI } from '../api/assignment.api'
 
 const NotificationContext = createContext(null)
 
 const MAX_NOTIFICATIONS = 20
 const storageKey = (userId) => `eduprepai_notifications_${userId}`
+const seenAssignmentsKey = (userId) => `eduprepai_seen_assignments_${userId}`
 
 // ── NotificationProvider ─────────────────────────────────────────
 // Lightweight, client-only notification feed — no backend model.
@@ -41,6 +43,49 @@ export const NotificationProvider = ({ children }) => {
       // still work for the current tab, they just won't survive a refresh.
     }
   }, [notifications, user?.id])
+
+  // ── Notify about assignments posted since we last checked ──────
+  // Same fetch-on-load convention as Sidebar's pending-assignments
+  // badge (see its own comment) — no new polling infrastructure, this
+  // just also happens to feed the bell. Runs once per login/refresh:
+  // fetches the student's current assignment list, diffs it against
+  // the submission IDs already recorded in localStorage, and turns any
+  // unseen ones into a notification before recording them as seen —
+  // so a student never gets notified for the same assignment twice,
+  // even across different tabs/devices' localStorage.
+  useEffect(() => {
+    if (!user?.id || user.role !== 'student') return
+
+    assignmentAPI.getMyAssignments()
+      .then(({ assignments = [] }) => {
+        let seen = []
+        try {
+          seen = JSON.parse(localStorage.getItem(seenAssignmentsKey(user.id)) || '[]')
+        } catch { /* corrupt/missing — treat as first run */ }
+        const seenSet = new Set(seen)
+
+        const unseen = assignments.filter(a => !seenSet.has(String(a.submissionId)))
+        if (unseen.length > 0) {
+          const newOnes = unseen.map(a => ({
+            id:        `assignment_${a.submissionId}`,
+            icon:      '📚',
+            title:     'New assignment posted',
+            message:   `${a.title}${a.className ? ` — ${a.className}` : ''}`,
+            createdAt: new Date().toISOString(),
+            read:      false,
+          }))
+          setNotifications(prev => [...newOnes, ...prev].slice(0, MAX_NOTIFICATIONS))
+        }
+
+        try {
+          localStorage.setItem(
+            seenAssignmentsKey(user.id),
+            JSON.stringify(assignments.map(a => String(a.submissionId)))
+          )
+        } catch { /* localStorage unavailable — next load will just re-check */ }
+      })
+      .catch(() => {}) // silent — same as Sidebar's pending-count fetch
+  }, [user?.id, user?.role])
 
   // ── Add one notification per newly-earned badge ───────────────
   const addBadgeNotifications = useCallback((badges = []) => {
