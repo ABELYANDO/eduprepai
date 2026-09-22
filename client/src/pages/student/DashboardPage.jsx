@@ -89,65 +89,29 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* ── Subjects + checklist ─────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-
-          {/* My subjects */}
-          <div className="card">
-            <h2 className="section-title">My Subjects</h2>
-            {user?.subjects?.length > 0 ? (
-              <div className="space-y-2.5">
-                {user.subjects.map((subject, i) => (
-                  <div
-                    key={subject}
-                    className="flex items-center justify-between p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${SUBJECT_COLOURS[i % SUBJECT_COLOURS.length]}`}>
-                        {subject.charAt(0)}
-                      </span>
-                      <span className="text-sm font-medium text-slate-700">{subject}</span>
-                    </div>
-                    <ArrowRight className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-slate-400 text-center py-6">No subjects selected</p>
-            )}
-          </div>
-
-          {/* Getting started checklist */}
-          <div className="card">
-            <h2 className="section-title">Getting Started</h2>
-            <div className="space-y-3">
-              {[
-                { step: 'Account created',         done: true,                                   to: null         },
-                { step: 'View topic predictions',  done: false,                                   to: '/predict'   },
-                // The only two of these the User model actually tracks today
-                // (mock-exam completion and report downloads aren't recorded
-                // anywhere yet) — derived from real progress instead of a
-                // literal that could never check off.
-                { step: 'Complete first practice', done: (user?.totalQuestionsAnswered || 0) > 0, to: '/practice'  },
-                { step: 'Take a mock exam',        done: false,                                   to: '/mock-exam' },
-                { step: 'Download your report',    done: false,                                   to: null         },
-              ].map(({ step, done, to }) => (
+        {/* ── My subjects ───────────────────────────────────── */}
+        <div className="card">
+          <h2 className="section-title">My Subjects</h2>
+          {user?.subjects?.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {user.subjects.map((subject, i) => (
                 <div
-                  key={step}
-                  onClick={() => to && navigate(to)}
-                  className={`flex items-center gap-3 p-2.5 rounded-lg transition-colors ${to ? 'cursor-pointer hover:bg-teal-50' : ''}`}
+                  key={subject}
+                  className="flex items-center justify-between p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer group"
                 >
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${done ? 'bg-teal-500 border-teal-500' : 'border-slate-300'}`}>
-                    {done && <span className="text-white text-xs">✓</span>}
+                  <div className="flex items-center gap-3">
+                    <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${SUBJECT_COLOURS[i % SUBJECT_COLOURS.length]}`}>
+                      {subject.charAt(0)}
+                    </span>
+                    <span className="text-sm font-medium text-slate-700">{subject}</span>
                   </div>
-                  <span className={`text-sm flex-1 ${done ? 'line-through text-slate-400' : 'text-slate-700'}`}>
-                    {step}
-                  </span>
-                  {!done && to && <ArrowRight className="w-3.5 h-3.5 text-teal-500" />}
+                  <ArrowRight className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
               ))}
             </div>
-          </div>
+          ) : (
+            <p className="text-sm text-slate-400 text-center py-6">No subjects selected</p>
+          )}
         </div>
 
         {/* ── Empty state nudge ─────────────────────────────── */}
