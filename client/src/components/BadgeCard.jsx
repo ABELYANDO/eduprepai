@@ -1,3 +1,5 @@
+import { Lock } from 'lucide-react'
+
 // ── Colour map — badge colour → Tailwind classes ───────────────
 const COLOUR_MAP = {
   teal:   { bg: 'bg-teal-50',   border: 'border-teal-200',   text: 'text-teal-700',   ring: 'ring-teal-300'   },
@@ -25,8 +27,8 @@ export default function BadgeCard({ badge, size = 'md', showDescription = true }
         border-dashed border-slate-200 bg-slate-50 opacity-50
         ${isLarge ? 'p-5' : 'p-3'}
       `}>
-        <div className={`rounded-full bg-slate-200 flex items-center justify-center mb-2 ${isLarge ? 'w-14 h-14 text-2xl' : 'w-10 h-10 text-lg'}`}>
-          🔒
+        <div className={`rounded-full bg-slate-200 flex items-center justify-center mb-2 ${isLarge ? 'w-14 h-14' : 'w-10 h-10'}`}>
+          <Lock className={`text-slate-400 ${isLarge ? 'w-6 h-6' : 'w-4 h-4'}`} />
         </div>
         <p className={`font-semibold text-slate-400 ${isLarge ? 'text-sm' : 'text-xs'}`}>
           {badge.name}
