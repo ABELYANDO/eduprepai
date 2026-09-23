@@ -49,7 +49,7 @@ export default function TopicCard({ prediction, subject, hidePracticeCta = false
 
   return (
     <div className={`
-      bg-white rounded-xl border-2 shadow-sm p-5
+      bg-surface rounded-xl border-2 shadow-sm p-5
       hover:shadow-md hover:-translate-y-0.5
       transition-all duration-200 flex flex-col gap-4
       ${tier.glow}

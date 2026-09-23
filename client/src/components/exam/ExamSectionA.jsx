@@ -79,7 +79,7 @@ export default function ExamSectionA({ questions, answers, onAnswer, isReview = 
                         ${isCorrect  ? 'bg-green-100 border border-green-300 text-green-800 font-medium' :
                           isWrong    ? 'bg-red-100 border border-red-300 text-red-700' :
                           isSelected ? 'bg-teal-100 border border-teal-400 text-teal-800 font-medium' :
-                                       'bg-white border border-slate-200 text-slate-600 hover:border-teal-300'}
+                                       'bg-surface border border-slate-200 text-slate-600 hover:border-teal-300'}
                       `}
                     >
                       {isCorrect ? (

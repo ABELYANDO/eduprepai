@@ -294,7 +294,7 @@ export default function PhysicalExamPanel() {
                 onClick={() => setActiveSection(key)}
                 className={`flex-1 py-2 px-2 rounded-lg text-sm font-medium transition-all ${
                   activeSection === key
-                    ? 'bg-white text-teal-700 shadow-sm'
+                    ? 'bg-surface text-teal-700 shadow-sm'
                     : 'text-slate-500 hover:text-slate-700'
                 }`}
               >
@@ -337,7 +337,7 @@ export default function PhysicalExamPanel() {
                           className={`flex-1 py-1 rounded text-xs font-bold transition-colors ${
                             ans === l
                               ? 'bg-teal-600 text-white'
-                              : 'bg-white border border-slate-200 text-slate-500 hover:border-teal-300'
+                              : 'bg-surface border border-slate-200 text-slate-500 hover:border-teal-300'
                           }`}
                         >
                           {l}
@@ -411,7 +411,7 @@ export default function PhysicalExamPanel() {
                           ? 'bg-purple-600 text-white border-purple-600'
                           : !isSelected && atCap
                           ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed'
-                          : 'bg-white text-slate-600 border-slate-200 hover:border-purple-300'
+                          : 'bg-surface text-slate-600 border-slate-200 hover:border-purple-300'
                       }`}
                     >
                       Question {idx + 1}

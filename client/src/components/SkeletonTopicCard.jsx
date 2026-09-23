@@ -4,7 +4,7 @@
 // when real content swaps in.
 export default function SkeletonTopicCard() {
   return (
-    <div className="bg-white rounded-xl border-2 border-slate-100 shadow-sm p-5 flex flex-col gap-4">
+    <div className="bg-surface rounded-xl border-2 border-slate-100 shadow-sm p-5 flex flex-col gap-4">
 
       {/* Header */}
       <div className="flex items-start justify-between gap-3">

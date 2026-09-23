@@ -87,7 +87,7 @@ export default function CommandPalette({ open, onClose }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden"
+        className="w-full max-w-lg bg-surface rounded-2xl shadow-2xl border border-slate-200 overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
         {/* Input */}

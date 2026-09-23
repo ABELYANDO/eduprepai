@@ -14,7 +14,7 @@ const getOptionStyle = (letter, selected, result) => {
   if (!result) {
     return selected === letter
       ? 'border-teal-500 bg-teal-50 text-teal-800 ring-2 ring-teal-200'
-      : 'border-slate-200 bg-white text-slate-700 hover:border-teal-300 hover:bg-teal-50/50'
+      : 'border-slate-200 bg-surface text-slate-700 hover:border-teal-300 hover:bg-teal-50/50'
   }
   // After answering — reveal correct/incorrect
   if (letter === result.correctAnswer) {

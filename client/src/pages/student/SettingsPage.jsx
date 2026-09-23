@@ -353,7 +353,7 @@ export default function SettingsPage() {
                       flex-1 py-3 rounded-xl text-sm font-semibold border-2 transition-all
                       ${examType === t
                         ? 'bg-teal-600 text-white border-teal-600 shadow-md'
-                        : 'bg-white text-slate-600 border-slate-200 hover:border-teal-300'
+                        : 'bg-surface text-slate-600 border-slate-200 hover:border-teal-300'
                       }
                     `}
                   >
@@ -385,7 +385,7 @@ export default function SettingsPage() {
                           rounded-xl text-sm font-medium border-2 transition-all
                           ${isSelected
                             ? 'bg-teal-50 text-teal-700 border-teal-400'
-                            : 'bg-white text-slate-600 border-slate-200 hover:border-teal-200'
+                            : 'bg-surface text-slate-600 border-slate-200 hover:border-teal-200'
                           }
                         `}
                       >
@@ -416,7 +416,7 @@ export default function SettingsPage() {
                           rounded-xl text-sm font-medium border-2 transition-all
                           ${selectedOption
                             ? 'bg-teal-50 text-teal-700 border-teal-400'
-                            : 'bg-white text-slate-600 border-slate-200 hover:border-teal-200'
+                            : 'bg-surface text-slate-600 border-slate-200 hover:border-teal-200'
                           }
                         `}
                       >

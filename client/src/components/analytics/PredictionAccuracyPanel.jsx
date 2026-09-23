@@ -89,7 +89,7 @@ export default function PredictionAccuracyPanel({ subject, examType, notGenerate
       </button>
 
       {expanded && (
-        <div className="bg-white p-5 space-y-5 animate-fade-in">
+        <div className="bg-surface p-5 space-y-5 animate-fade-in">
 
           {notGenerated ? (
             <p className="text-sm text-slate-500">

@@ -299,7 +299,7 @@ export default function MockExamPage() {
                     className={`py-2.5 px-3 rounded-xl text-sm font-medium border-2 text-left transition-all ${
                       subject === s
                         ? 'bg-teal-600 text-white border-teal-600 shadow-sm'
-                        : 'bg-white text-slate-600 border-slate-200 hover:border-teal-300'
+                        : 'bg-surface text-slate-600 border-slate-200 hover:border-teal-300'
                     }`}
                   >
                     {s}
@@ -413,7 +413,7 @@ export default function MockExamPage() {
           <div className="space-y-5">
 
             {/* Sticky exam toolbar */}
-            <div className="sticky top-16 z-10 bg-white/95 backdrop-blur-md border border-slate-200 rounded-2xl px-4 py-3 shadow-sm flex items-center gap-3 flex-wrap">
+            <div className="sticky top-16 z-10 bg-[var(--color-surface)]/95 backdrop-blur-md border border-slate-200 rounded-2xl px-4 py-3 shadow-sm flex items-center gap-3 flex-wrap">
 
               {/* Section tabs */}
               <div className="flex gap-1 flex-1">

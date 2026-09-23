@@ -95,7 +95,7 @@ export default function AnalyticsPage() {
                 onClick={() => setTab(t)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize ${
                   tab === t
-                    ? 'bg-white text-teal-700 shadow-sm'
+                    ? 'bg-surface text-teal-700 shadow-sm'
                     : 'text-slate-500 hover:text-slate-700'
                 }`}
               >

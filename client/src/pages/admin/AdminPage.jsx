@@ -128,7 +128,7 @@ export default function AdminPage() {
               onClick={() => setTab(id)}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-sm font-medium transition-all duration-200 ${
                 tab === id
-                  ? 'bg-white text-teal-700 shadow-sm'
+                  ? 'bg-surface text-teal-700 shadow-sm'
                   : 'text-slate-500 hover:text-slate-700'
               }`}
             >
@@ -234,7 +234,7 @@ export default function AdminPage() {
                         className={`px-4 py-2.5 rounded-lg text-sm font-medium border-2 transition-all ${
                           predExamType === t
                             ? 'bg-teal-600 text-white border-teal-600'
-                            : 'bg-white text-slate-600 border-slate-200 hover:border-teal-300'
+                            : 'bg-surface text-slate-600 border-slate-200 hover:border-teal-300'
                         }`}
                       >
                         {t}

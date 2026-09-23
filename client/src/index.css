@@ -94,6 +94,13 @@
            bg-transparent text-slate-600 hover:bg-slate-100;
   }
 
+  /* Drop-in replacement for a literal `bg-white` class anywhere a
+     surface should follow the current theme (toggle/tab/picker
+     buttons, modals, tooltips, skeleton cards, ...) — same variable
+     .card uses below. Deliberately-always-light cards use the
+     `.light-surface` class further down instead, not this one. */
+  .bg-surface { background-color: var(--color-surface); }
+
   .card {
     @apply rounded-xl border border-slate-100 shadow-sm p-5;
     background-color: var(--color-surface);

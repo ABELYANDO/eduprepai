@@ -59,7 +59,7 @@ export default function ExamTimer({
         ? 'bg-red-50 border-red-300 text-red-700 animate-pulse-soft'
         : isWarning
         ? 'bg-amber-50 border-amber-300 text-amber-700'
-        : 'bg-white border-slate-200 text-slate-700'
+        : 'bg-surface border-slate-200 text-slate-700'
       }
     `}>
       {isCritical

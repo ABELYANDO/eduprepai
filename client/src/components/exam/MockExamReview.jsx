@@ -119,7 +119,7 @@ export default function MockExamReview({ exam, onRetake }) {
             className={`px-3 py-2 rounded-lg text-sm font-medium border transition-all ${
               activeSection === key
                 ? 'bg-teal-600 text-white border-teal-600'
-                : 'bg-white text-slate-600 border-slate-200 hover:border-teal-300'
+                : 'bg-surface text-slate-600 border-slate-200 hover:border-teal-300'
             }`}
           >
             {label}

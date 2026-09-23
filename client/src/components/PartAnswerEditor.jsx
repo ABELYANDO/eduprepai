@@ -99,7 +99,7 @@ export default function PartAnswerEditor({
   return (
     <div className="space-y-4">
       {unparsed && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+        <div className="light-surface bg-amber-50 border border-amber-200 rounded-xl p-3">
           <p className="text-xs font-semibold text-amber-700 mb-1">Previously saved answer</p>
           <p className="text-sm text-slate-700 whitespace-pre-line">{unparsed}</p>
         </div>
@@ -127,7 +127,7 @@ export default function PartAnswerEditor({
             </div>
 
             {isReview ? (
-              <p className="text-sm text-slate-700 whitespace-pre-line bg-white rounded-lg p-2.5 border border-slate-100">
+              <p className="text-sm text-slate-700 whitespace-pre-line bg-surface rounded-lg p-2.5 border border-slate-100">
                 {answers[part.part] || 'Not answered.'}
               </p>
             ) : (

@@ -22,7 +22,7 @@ export default function TrendSparkline({ data = [], trendDirection }) {
               if (!active || !payload?.length) return null
               const { year, count } = payload[0].payload
               return (
-                <div className="bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs shadow-md">
+                <div className="bg-surface border border-slate-200 rounded-lg px-2 py-1.5 text-xs shadow-md">
                   <span className="font-semibold text-slate-700">{year}:</span>{' '}
                   <span className="text-slate-500">
                     {count > 0 ? `${count} question${count > 1 ? 's' : ''}` : 'not tested'}

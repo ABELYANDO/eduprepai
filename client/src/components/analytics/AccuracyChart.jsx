@@ -7,7 +7,7 @@ import {
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-white border border-slate-200 rounded-xl shadow-lg px-3 py-2.5">
+    <div className="bg-surface border border-slate-200 rounded-xl shadow-lg px-3 py-2.5">
       <p className="text-xs text-slate-500 mb-1">{label}</p>
       <p className="text-sm font-semibold text-teal-700">
         {payload[0].value !== null ? `${payload[0].value}%` : 'No data'}

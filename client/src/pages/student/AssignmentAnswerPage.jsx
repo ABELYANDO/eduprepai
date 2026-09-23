@@ -207,7 +207,7 @@ export default function AssignmentAnswerPage() {
                             isCorrectOpt ? 'border-green-400 bg-green-50 text-green-800'
                             : isWrongSelected ? 'border-red-400 bg-red-50 text-red-700'
                             : isSelected ? 'border-teal-500 bg-teal-50 text-teal-800'
-                            : 'border-slate-200 bg-white text-slate-700 hover:border-teal-300'
+                            : 'border-slate-200 bg-surface text-slate-700 hover:border-teal-300'
                           }`}
                         >
                           <span className={`w-6 h-6 rounded-lg border flex items-center justify-center text-xs font-bold flex-shrink-0 ${isSelected ? 'bg-teal-500 border-teal-500 text-white' : 'border-current'}`}>

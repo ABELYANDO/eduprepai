@@ -51,7 +51,7 @@ export default function AssignmentsPage() {
             <button
               onClick={() => setSubjectFilter('')}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium border-2 transition-colors ${
-                !subjectFilter ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-slate-600 border-slate-200'
+                !subjectFilter ? 'bg-teal-600 text-white border-teal-600' : 'bg-surface text-slate-600 border-slate-200'
               }`}
             >
               All subjects
@@ -61,7 +61,7 @@ export default function AssignmentsPage() {
                 key={s}
                 onClick={() => setSubjectFilter(s)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium border-2 transition-colors ${
-                  subjectFilter === s ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-slate-600 border-slate-200'
+                  subjectFilter === s ? 'bg-teal-600 text-white border-teal-600' : 'bg-surface text-slate-600 border-slate-200'
                 }`}
               >
                 {s}

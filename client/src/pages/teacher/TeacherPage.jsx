@@ -221,7 +221,7 @@ export default function TeacherPage() {
               key={id}
               onClick={() => setTab(id)}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-sm font-medium transition-all duration-200 ${
-                tab === id ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                tab === id ? 'bg-surface text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               <Icon className="w-4 h-4 flex-shrink-0" />
@@ -360,13 +360,13 @@ export default function TeacherPage() {
                 {!studentMasteryLoading && studentMastery && (
                   <div className="space-y-5">
                     {studentMastery.strugglingTopics.length > 0 ? (
-                      <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                      <div className="light-surface bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
                         <p className="text-xs font-semibold text-amber-800 flex items-center gap-1.5 mb-2">
                           <AlertTriangle className="w-3.5 h-3.5" /> Struggling topics
                         </p>
                         <div className="flex flex-wrap gap-1.5">
                           {studentMastery.strugglingTopics.map((t, i) => (
-                            <span key={i} className="badge-gray text-xs bg-white">
+                            <span key={i} className="badge-gray text-xs">
                               {t.topic} <span className="text-slate-400">({t.source === 'mock' ? 'mock' : 'practice'} {t.score}%)</span>
                             </span>
                           ))}

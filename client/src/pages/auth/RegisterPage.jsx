@@ -171,7 +171,7 @@ export default function RegisterPage() {
               type="button"
               onClick={() => { setError(''); setAccountType(key) }}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                accountType === key ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                accountType === key ? 'bg-surface text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               <Icon className="w-4 h-4" /> {label}
@@ -270,7 +270,7 @@ export default function RegisterPage() {
                           className={`text-left px-3 py-2.5 rounded-lg text-xs font-medium border-2 transition-all ${
                             teacherForm.subjects.includes(s)
                               ? 'bg-teal-50 text-teal-700 border-teal-400'
-                              : 'bg-white text-slate-600 border-slate-200 hover:border-teal-200'
+                              : 'bg-surface text-slate-600 border-slate-200 hover:border-teal-200'
                           }`}
                         >
                           <div className="flex items-center gap-2">
@@ -297,7 +297,7 @@ export default function RegisterPage() {
                           className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-medium border-2 transition-all ${
                             selectedOption
                               ? 'bg-teal-50 text-teal-700 border-teal-400'
-                              : 'bg-white text-slate-600 border-slate-200 hover:border-teal-200'
+                              : 'bg-surface text-slate-600 border-slate-200 hover:border-teal-200'
                           }`}
                         >
                           <div className="flex items-center justify-between gap-2">
@@ -487,7 +487,7 @@ export default function RegisterPage() {
                       className={`flex-1 py-3 rounded-xl text-sm font-semibold border-2 transition-all ${
                         form.examType === t
                           ? 'bg-teal-600 text-white border-teal-600 shadow-md'
-                          : 'bg-white text-slate-600 border-slate-200 hover:border-teal-300'
+                          : 'bg-surface text-slate-600 border-slate-200 hover:border-teal-300'
                       }`}
                     >
                       {t}
@@ -515,7 +515,7 @@ export default function RegisterPage() {
                           className={`text-left px-3 py-2.5 rounded-lg text-xs font-medium border-2 transition-all ${
                             form.subjects.includes(s)
                               ? 'bg-teal-50 text-teal-700 border-teal-400'
-                              : 'bg-white text-slate-600 border-slate-200 hover:border-teal-200'
+                              : 'bg-surface text-slate-600 border-slate-200 hover:border-teal-200'
                           }`}
                         >
                           <div className="flex items-center gap-2">
@@ -544,7 +544,7 @@ export default function RegisterPage() {
                           className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-medium border-2 transition-all ${
                             selectedOption
                               ? 'bg-teal-50 text-teal-700 border-teal-400'
-                              : 'bg-white text-slate-600 border-slate-200 hover:border-teal-200'
+                              : 'bg-surface text-slate-600 border-slate-200 hover:border-teal-200'
                           }`}
                         >
                           <div className="flex items-center justify-between gap-2">

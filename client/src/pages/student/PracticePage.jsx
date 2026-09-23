@@ -339,7 +339,7 @@ export default function PracticePage() {
                     className={`py-2.5 px-3 rounded-xl text-sm font-medium border-2 transition-all text-left ${
                       subject === s
                         ? 'bg-teal-600 text-white border-teal-600 shadow-sm'
-                        : 'bg-white text-slate-600 border-slate-200 hover:border-teal-300'
+                        : 'bg-surface text-slate-600 border-slate-200 hover:border-teal-300'
                     }`}
                   >
                     {s}
@@ -364,7 +364,7 @@ export default function PracticePage() {
                   <button
                     onClick={() => setViewMode('path')}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                      viewMode === 'path' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                      viewMode === 'path' ? 'bg-surface text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
                     }`}
                   >
                     <Map className="w-3.5 h-3.5" /> Guided Path
@@ -372,7 +372,7 @@ export default function PracticePage() {
                   <button
                     onClick={() => setViewMode('free')}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                      viewMode === 'free' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                      viewMode === 'free' ? 'bg-surface text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
                     }`}
                   >
                     <List className="w-3.5 h-3.5" /> Free Practice
@@ -407,7 +407,7 @@ export default function PracticePage() {
                                 : topic === s.topic
                                 ? 'bg-teal-50 border-teal-400 text-teal-800'
                                 : s.unlocked
-                                ? 'bg-white border-slate-200 text-slate-600 hover:border-teal-200'
+                                ? 'bg-surface border-slate-200 text-slate-600 hover:border-teal-200'
                                 : 'bg-slate-50 border-slate-100 text-slate-400'
                             }`}
                           >
@@ -461,7 +461,7 @@ export default function PracticePage() {
                     className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl border-2 text-sm transition-all ${
                       !topic
                         ? 'bg-teal-50 border-teal-400 text-teal-800'
-                        : 'bg-white border-slate-200 text-slate-600 hover:border-teal-200'
+                        : 'bg-surface border-slate-200 text-slate-600 hover:border-teal-200'
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -479,7 +479,7 @@ export default function PracticePage() {
                       className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl border-2 text-sm transition-all ${
                         topic === t.topic
                           ? 'bg-teal-50 border-teal-400 text-teal-800'
-                          : 'bg-white border-slate-200 text-slate-600 hover:border-teal-200'
+                          : 'bg-surface border-slate-200 text-slate-600 hover:border-teal-200'
                       }`}
                     >
                       <div className="flex items-center gap-2 min-w-0">
@@ -517,7 +517,7 @@ export default function PracticePage() {
                         className={`py-2 px-3 rounded-lg text-sm font-medium border-2 text-left transition-all ${
                           qType === t
                             ? 'bg-teal-600 text-white border-teal-600'
-                            : 'bg-white text-slate-600 border-slate-200 hover:border-teal-300'
+                            : 'bg-surface text-slate-600 border-slate-200 hover:border-teal-300'
                         }`}
                       >
                         {t}
@@ -537,7 +537,7 @@ export default function PracticePage() {
                         className={`py-2 px-3 rounded-lg text-sm font-medium border-2 text-left transition-all ${
                           qCount === n
                             ? 'bg-teal-600 text-white border-teal-600'
-                            : 'bg-white text-slate-600 border-slate-200 hover:border-teal-300'
+                            : 'bg-surface text-slate-600 border-slate-200 hover:border-teal-300'
                         }`}
                       >
                         {n} questions
@@ -561,7 +561,7 @@ export default function PracticePage() {
                         className={`py-2 px-3 rounded-lg text-sm font-medium border-2 text-left transition-all ${
                           timed === value
                             ? 'bg-teal-600 text-white border-teal-600'
-                            : 'bg-white text-slate-600 border-slate-200 hover:border-teal-300'
+                            : 'bg-surface text-slate-600 border-slate-200 hover:border-teal-300'
                         }`}
                       >
                         {label}

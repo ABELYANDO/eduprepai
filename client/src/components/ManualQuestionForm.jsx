@@ -90,7 +90,7 @@ export default function ManualQuestionForm({
                   className={`flex-1 py-2.5 rounded-lg text-sm font-medium border-2 transition-all ${
                     form.examType === t
                       ? 'bg-teal-600 text-white border-teal-600'
-                      : 'bg-white text-slate-600 border-slate-200 hover:border-teal-300'
+                      : 'bg-surface text-slate-600 border-slate-200 hover:border-teal-300'
                   }`}
                 >
                   {t}
