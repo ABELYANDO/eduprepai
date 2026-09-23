@@ -3,29 +3,27 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { GraduationCap, User, Mail, Lock, School, ArrowRight, Check, Eye, EyeOff, Users, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { SUBJECTS_WASSCE, SUBJECTS_BECE, getPickerTiles, getAllSubjects } from '../../constants/subjects'
+import { getPickerTiles, getAllSubjects } from '../../constants/subjects'
 
 export default function RegisterPage() {
   const { register, teacherRegister } = useAuth()
   const navigate      = useNavigate()
 
-  // Student is the full 2-step wizard below, unchanged. Teacher swaps
-  // in a single short form (see the accountType === 'teacher' branch)
-  // — folded into this one page, along with the old /teacher/register,
-  // so there's a single entry point instead of two separate pages.
-  // Admin account creation stays on its own separate /admin/register
-  // page, deliberately not merged here.
+  // Student is a single short form below — exam type/subjects are chosen
+  // post-signup on the /onboarding page instead. Teacher swaps in its own
+  // single short form (see the accountType === 'teacher' branch) — folded
+  // into this one page, along with the old /teacher/register, so there's
+  // a single entry point instead of two separate pages. Admin account
+  // creation stays on its own separate /admin/register page, deliberately
+  // not merged here.
   const [accountType, setAccountType] = useState('student')
 
   const [form, setForm] = useState({
-    fullName: '', email: '', password: '', confirmPassword: '',
-    school: '', examType: 'WASSCE', subjects: [],
+    fullName: '', email: '', password: '', confirmPassword: '', school: '',
   })
   const [teacherForm, setTeacherForm] = useState({ fullName: '', email: '', password: '', confirmPassword: '', subjects: [] })
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState('')
-  const [step,    setStep]    = useState(1) // 1 = personal details, 2 = exam + subjects
-  const [openGroup, setOpenGroup] = useState(null) // which group tile (e.g. 'Ghanaian Language') is expanded
   const [openTeacherGroup, setOpenTeacherGroup] = useState(null)
   const [showPw,        setShowPw]        = useState(false)
   const [showConfirmPw, setShowConfirmPw] = useState(false)
@@ -80,34 +78,13 @@ export default function RegisterPage() {
     }
   }
 
-  const subjects = form.examType === 'WASSCE' ? SUBJECTS_WASSCE : SUBJECTS_BECE
-  const tiles     = getPickerTiles(subjects)
-
   const handleChange = (e) => {
     setError('')
     setForm(p => ({ ...p, [e.target.name]: e.target.value }))
   }
 
-  const toggleSubject = (s) => {
-    setForm(p => ({
-      ...p,
-      subjects: p.subjects.includes(s)
-        ? p.subjects.filter(x => x !== s)
-        : [...p.subjects, s],
-    }))
-  }
-
-  // Group members (e.g. Ghanaian languages) are single-choice — picking
-  // one replaces any other member of the same group already selected.
-  const chooseGroupOption = (groupOptions, choice) => {
-    setForm(p => ({
-      ...p,
-      subjects: [...p.subjects.filter(x => !groupOptions.includes(x)), choice],
-    }))
-    setOpenGroup(null)
-  }
-
-  const goToStep2 = () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault()
     if (!form.fullName || !form.email || !form.password || !form.confirmPassword) {
       return setError('Please fill in all required fields')
     }
@@ -117,19 +94,12 @@ export default function RegisterPage() {
     if (form.password !== form.confirmPassword) {
       return setError('Passwords do not match')
     }
-    setError('')
-    setStep(2)
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (form.subjects.length === 0) return setError('Select at least one subject')
     setLoading(true); setError('')
     try {
       const { confirmPassword, ...payload } = form
       await register(payload)
       toast.success('Welcome to EduPrepAI!')
-      navigate('/dashboard')
+      navigate('/onboarding')
     } catch (err) {
       setError(err.message)
     } finally {
@@ -350,30 +320,9 @@ export default function RegisterPage() {
           </div>
         )}
 
-        {/* ══════════════ STUDENT FORM (2-step wizard) ═════════ */}
+        {/* ══════════════ STUDENT FORM (single step) ═══════════ */}
         {accountType === 'student' && (
         <>
-        {/* Step indicator */}
-        <div className="flex items-center gap-2 mb-7">
-          {[1, 2].map((s, i) => (
-            <div key={s} className="flex items-center gap-2 flex-1">
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 transition-all ${
-                s < step   ? 'bg-teal-500 text-white'
-                : s === step ? 'bg-teal-600 text-white ring-4 ring-teal-100'
-                : 'bg-slate-100 text-slate-400'
-              }`}>
-                {s < step ? <Check className="w-3.5 h-3.5" /> : s}
-              </div>
-              <span className={`text-xs font-medium ${s === step ? 'text-teal-700' : 'text-slate-400'}`}>
-                {s === 1 ? 'Your details' : 'Your subjects'}
-              </span>
-              {i < 1 && (
-                <div className={`flex-1 h-px ${step > 1 ? 'bg-teal-400' : 'bg-slate-200'} transition-colors`} />
-              )}
-            </div>
-          ))}
-        </div>
-
         <div className="card shadow-md">
 
           {/* Error banner */}
@@ -383,9 +332,7 @@ export default function RegisterPage() {
             </div>
           )}
 
-          {/* ── Step 1: Personal details ─────────────────── */}
-          {step === 1 && (
-            <div className="space-y-4 animate-fade-in">
+          <form onSubmit={handleSubmit} className="space-y-4 animate-fade-in">
               <div>
                 <label className="label">Full name</label>
                 <div className="relative">
@@ -466,149 +413,13 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              <button type="button" onClick={goToStep2} className="btn-primary w-full py-3">
-                Continue <ArrowRight className="w-4 h-4" />
+              <button type="submit" disabled={loading} className="btn-primary w-full py-3">
+                {loading
+                  ? <><span className="spinner border-white/40 border-t-white" /> Creating…</>
+                  : <>Create account <ArrowRight className="w-4 h-4" /></>
+                }
               </button>
-            </div>
-          )}
-
-          {/* ── Step 2: Exam type + subjects ─────────────── */}
-          {step === 2 && (
-            <form onSubmit={handleSubmit} className="space-y-5 animate-fade-in">
-
-              {/* Exam type toggle */}
-              <div>
-                <label className="label">I am preparing for</label>
-                <div className="flex gap-3">
-                  {['WASSCE', 'BECE'].map(t => (
-                    <button
-                      key={t} type="button"
-                      onClick={() => { setForm(p => ({ ...p, examType: t, subjects: [] })); setOpenGroup(null) }}
-                      className={`flex-1 py-3 rounded-xl text-sm font-semibold border-2 transition-all ${
-                        form.examType === t
-                          ? 'bg-teal-600 text-white border-teal-600 shadow-md'
-                          : 'bg-surface text-slate-600 border-slate-200 hover:border-teal-300'
-                      }`}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Subject picker */}
-              <div>
-                <label className="label">
-                  Select your subjects
-                  <span className="text-teal-600 font-normal ml-1">
-                    ({form.subjects.length} selected)
-                  </span>
-                </label>
-                <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1">
-                  {tiles.map(tile => {
-                    if (tile.type === 'subject') {
-                      const s = tile.label
-                      return (
-                        <button
-                          key={s} type="button"
-                          onClick={() => toggleSubject(s)}
-                          className={`text-left px-3 py-2.5 rounded-lg text-xs font-medium border-2 transition-all ${
-                            form.subjects.includes(s)
-                              ? 'bg-teal-50 text-teal-700 border-teal-400'
-                              : 'bg-surface text-slate-600 border-slate-200 hover:border-teal-200'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center flex-shrink-0 ${
-                              form.subjects.includes(s)
-                                ? 'bg-teal-500 border-teal-500'
-                                : 'border-slate-300'
-                            }`}>
-                              {form.subjects.includes(s) && <Check className="w-2 h-2 text-white" />}
-                            </div>
-                            {s}
-                          </div>
-                        </button>
-                      )
-                    }
-
-                    // ── Group tile (e.g. 'Ghanaian Language') — expands
-                    // into a single-choice list of its member subjects.
-                    const selectedOption = tile.options.find(o => form.subjects.includes(o))
-                    const isOpen = openGroup === tile.label
-                    return (
-                      <div key={tile.label} className="col-span-2">
-                        <button
-                          type="button"
-                          onClick={() => setOpenGroup(isOpen ? null : tile.label)}
-                          className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-medium border-2 transition-all ${
-                            selectedOption
-                              ? 'bg-teal-50 text-teal-700 border-teal-400'
-                              : 'bg-surface text-slate-600 border-slate-200 hover:border-teal-200'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2">
-                              <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center flex-shrink-0 ${
-                                selectedOption
-                                  ? 'bg-teal-500 border-teal-500'
-                                  : 'border-slate-300'
-                              }`}>
-                                {selectedOption && <Check className="w-2 h-2 text-white" />}
-                              </div>
-                              {tile.label}
-                            </div>
-                            <span className="text-slate-400 font-normal">
-                              {selectedOption || 'Choose one ›'}
-                            </span>
-                          </div>
-                        </button>
-
-                        {isOpen && (
-                          <div className="mt-1.5 ml-2 pl-2.5 border-l-2 border-teal-200 space-y-1 animate-fade-in">
-                            {tile.options.map(lang => (
-                              <button
-                                key={lang} type="button"
-                                onClick={() => chooseGroupOption(tile.options, lang)}
-                                className={`w-full text-left px-2.5 py-1.5 rounded-md text-xs transition-colors ${
-                                  selectedOption === lang
-                                    ? 'bg-teal-100 text-teal-800 font-semibold'
-                                    : 'text-slate-600 hover:bg-slate-50'
-                                }`}
-                              >
-                                {lang}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* Back + submit */}
-              <div className="flex gap-3 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setStep(1)}
-                  className="btn-secondary flex-1 py-3"
-                >
-                  Back
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading || form.subjects.length === 0}
-                  className="btn-primary flex-1 py-3"
-                >
-                  {loading
-                    ? <><span className="spinner border-white/40 border-t-white" /> Creating…</>
-                    : 'Create account'
-                  }
-                </button>
-              </div>
-            </form>
-          )}
+          </form>
         </div>
         </>
         )}

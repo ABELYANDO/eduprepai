@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { NotificationProvider } from './context/NotificationContext'
@@ -7,6 +7,7 @@ import { ThemeProvider } from './context/ThemeContext'
 import LoginPage         from './pages/auth/LoginPage'
 import RegisterPage      from './pages/auth/RegisterPage'
 import AdminRegisterPage from './pages/auth/AdminRegisterPage'
+import OnboardingPage  from './pages/student/OnboardingPage'
 import DashboardPage   from './pages/student/DashboardPage'
 import PracticePage    from './pages/student/PracticePage'
 import PredictionPage  from './pages/student/PredictionPage'
@@ -35,11 +36,22 @@ const homeFor = (role) => roleHome[role] || '/dashboard'
 // leaderboard, so student-facing pages stay closed to both.
 const PrivateRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth()
+  const location = useLocation()
   if (loading) return <FullScreenSpinner />
   // A single unified /login (role dropdown) now covers every role.
   if (!user) return <Navigate to="/login" replace />
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     return <Navigate to={homeFor(user.role)} replace />
+  }
+  // Students pick their exam type + subjects on /onboarding after signing
+  // up (not on the sign-up form itself) — until they have, every other
+  // student route redirects there instead of rendering.
+  if (
+    user.role === 'student' &&
+    (!user.subjects || user.subjects.length === 0) &&
+    location.pathname !== '/onboarding'
+  ) {
+    return <Navigate to="/onboarding" replace />
   }
   return children
 }
@@ -98,6 +110,7 @@ const AppRoutes = () => (
     <Route path="/teacher/register" element={<Navigate to="/register" replace />} />
 
     {/* Student — require login, closed off to admins and teachers */}
+    <Route path="/onboarding"  element={<PrivateRoute allowedRoles={['student']}><OnboardingPage /></PrivateRoute>} />
     <Route path="/dashboard"   element={<PrivateRoute allowedRoles={['student']}><DashboardPage /></PrivateRoute>} />
     <Route path="/practice"    element={<PrivateRoute allowedRoles={['student']}><PracticePage /></PrivateRoute>} />
     <Route path="/predict"     element={<PrivateRoute allowedRoles={['student']}><PredictionPage /></PrivateRoute>} />
