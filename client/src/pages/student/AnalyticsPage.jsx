@@ -297,6 +297,12 @@ export default function AnalyticsPage() {
               </div>
             )}
 
+            {!gpLoading && gradePredictions && (
+              <p className="text-xs text-slate-400">
+                Predictions aren't fixed — refresh a subject any time to pull in your latest practice, mock exam, and remedial assignment results. Keep refreshing as you go, right up to the real exam.
+              </p>
+            )}
+
             {gradePredictions?.aggregate && (
               <div className={`card border-2 ${
                 gradePredictions.aggregate.isComplete ? 'border-teal-200 bg-teal-50/40' : 'border-dashed border-slate-200'
@@ -306,10 +312,9 @@ export default function AnalyticsPage() {
                 </h3>
                 {gradePredictions.aggregate.isComplete ? (
                   <>
-                    <p className="text-sm text-slate-500 mb-1">You are likely to aggregate</p>
-                    <div className="flex items-baseline gap-3 mb-3">
-                      <span className="text-4xl font-bold text-slate-900">{gradePredictions.aggregate.band}</span>
-                      <span className="text-sm text-slate-400">(computed: {gradePredictions.aggregate.aggregate})</span>
+                    <div className="flex items-baseline gap-2 mb-3">
+                      <span className="text-sm text-slate-500">Likely aggregate:</span>
+                      <span className="text-3xl font-bold text-slate-900">{gradePredictions.aggregate.band}</span>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {gradePredictions.aggregate.subjectsCounted.map(s => (
