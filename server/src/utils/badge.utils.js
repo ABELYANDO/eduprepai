@@ -205,20 +205,20 @@ export const checkAndAwardBadges = async (userId) => {
 // Increments streak if student has been active today or yesterday.
 // Resets to 1 if the last activity was more than 1 day ago.
 export const updateStreak = async (userId) => {
-  const user = await User.findById(userId).select('streak lastActive').lean()
+  const user = await User.findById(userId).select('streak lastStreakDate').lean()
   if (!user) return 0
 
-  const now       = new Date()
-  const lastActive = user.lastActive ? new Date(user.lastActive) : null
-  let newStreak   = user.streak || 0
+  const now           = new Date()
+  const lastStreakDate = user.lastStreakDate ? new Date(user.lastStreakDate) : null
+  let newStreak       = user.streak || 0
 
-  if (lastActive) {
+  if (lastStreakDate) {
     const daysSince = Math.floor(
-      (now.setHours(0,0,0,0) - lastActive.setHours(0,0,0,0)) / (1000 * 60 * 60 * 24)
+      (now.setHours(0,0,0,0) - lastStreakDate.setHours(0,0,0,0)) / (1000 * 60 * 60 * 24)
     )
 
     if (daysSince === 0) {
-      // Already active today — streak unchanged
+      // Already credited today — streak unchanged
     } else if (daysSince === 1) {
       // Active yesterday — increment streak
       newStreak += 1
@@ -227,12 +227,13 @@ export const updateStreak = async (userId) => {
       newStreak = 1
     }
   } else {
+    // First time a streak has ever been credited for this student
     newStreak = 1
   }
 
   await User.findByIdAndUpdate(userId, {
-    streak:     newStreak,
-    lastActive: new Date(),
+    streak:         newStreak,
+    lastStreakDate: new Date(),
   })
 
   return newStreak

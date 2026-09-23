@@ -75,6 +75,16 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+
+    // Separate from lastActive on purpose — lastActive is touched by
+    // every answer submission and login (a general "last seen" signal),
+    // which would mask same-day activity if the streak logic read it
+    // too. Only updateStreak() reads/writes this field, so it reflects
+    // the last calendar day the streak was actually credited.
+    lastStreakDate: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,         // adds createdAt and updatedAt automatically
