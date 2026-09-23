@@ -64,7 +64,7 @@ function TierSummaryCard({ label, sublabel, dot, bg, border, text, ring, count, 
     <button
       onClick={onClick}
       className={`
-        flex flex-col items-center text-center p-4 rounded-xl border-2
+        light-surface flex flex-col items-center text-center p-4 rounded-xl border-2
         transition-all duration-200 hover:shadow-md hover:-translate-y-0.5
         ${bg} ${border}
         ${isActive ? `ring-2 ring-offset-1 ${ring}` : ''}
@@ -218,7 +218,7 @@ export default function PredictionPage() {
 
         {/* ── Focus this week hero ─────────────────────────────── */}
         {!loading && heroTopics.length > 0 && (
-          <div className="card bg-gradient-to-r from-teal-50 to-white border-teal-200 animate-fade-in">
+          <div className="card light-surface bg-gradient-to-r from-teal-50 to-white border-teal-200 animate-fade-in">
             <div className="flex items-center gap-2 mb-3">
               <Sparkles className="w-4 h-4 text-teal-600" />
               <h2 className="font-semibold text-slate-800" style={{ fontFamily: 'var(--font-heading)' }}>
@@ -268,11 +268,12 @@ export default function PredictionPage() {
                     <button
                       key={type}
                       onClick={() => setExamType(type)}
+                      style={examType === type ? undefined : { backgroundColor: 'var(--color-surface)' }}
                       className={`
                         px-4 py-2.5 rounded-lg text-sm font-medium border-2 transition-all
                         ${examType === type
                           ? 'bg-teal-600 text-white border-teal-600'
-                          : 'bg-white text-slate-600 border-slate-200 hover:border-teal-300'
+                          : 'text-slate-600 border-slate-200 hover:border-teal-300'
                         }
                       `}
                     >
@@ -400,12 +401,13 @@ export default function PredictionPage() {
                 <button
                   key={key}
                   onClick={() => setFilterTier(key)}
+                  style={isActive ? undefined : { backgroundColor: 'var(--color-surface)' }}
                   className={`
                     flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs
                     font-medium border transition-all duration-200
                     ${isActive
                       ? 'bg-teal-600 text-white border-teal-600 shadow-sm'
-                      : 'bg-white text-slate-600 border-slate-200 hover:border-teal-300'
+                      : 'text-slate-600 border-slate-200 hover:border-teal-300'
                     }
                   `}
                 >

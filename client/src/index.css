@@ -235,3 +235,28 @@
      sidebar (like the teacher/admin headers) is already dark by design,
      not something that needs to react to light/dark mode. */
 }
+
+/* ── Force-light surfaces ─────────────────────────────────────────
+   Some cards intentionally keep a light colour-tinted background in
+   BOTH themes (e.g. PredictionPage's teal-to-white "Focus this week"
+   hero, and its red/amber/teal tier-summary tiles) — unlike .card,
+   which switches to a dark surface, these use bg-teal-50/bg-white/etc
+   directly and were never meant to invert. Their slate-* text was
+   still inheriting the dark-mode slate ramp above though, which made
+   it unreadable against a background that stayed light — this class
+   re-pins the slate ramp back to its original light values for
+   anything nested inside it, regardless of the page's overall theme.
+   Add it to any card whose background is a light tint that should
+   never go dark, alongside whatever bg-*-50 utility it already uses. */
+.light-surface {
+  --color-slate-50:  #F8FAFC;
+  --color-slate-100: #F1F5F9;
+  --color-slate-200: #E2E8F0;
+  --color-slate-300: #CBD5E1;
+  --color-slate-400: #94A3B8;
+  --color-slate-500: #64748B;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1E293B;
+  --color-slate-900: #0F172A;
+}
