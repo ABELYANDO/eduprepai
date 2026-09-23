@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import AppShell from '../../components/layout/AppShell'
 import { assignmentAPI } from '../../api/assignment.api'
 import { useAuth } from '../../context/AuthContext'
-import { ClipboardList, ChevronRight, CheckCircle2, Clock } from 'lucide-react'
+import { ClipboardList, ChevronRight, CheckCircle2, Clock, CheckCheck } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 const STATUS_LABEL = {
@@ -27,7 +27,13 @@ export default function AssignmentsPage() {
   const [loading,     setLoading]     = useState(true)
   const [subjectFilter, setSubjectFilter] = useState('')
 
+  // Whether the student has joined any class at all — decides which
+  // empty state to show: "join a class" vs "you're in, nothing sent yet".
+  const [inAnyClass,        setInAnyClass]        = useState(false)
+  const [classesLoading,    setClassesLoading]    = useState(true)
+
   useEffect(() => { load() }, [subjectFilter])
+  useEffect(() => { loadClasses() }, [])
 
   const load = async () => {
     setLoading(true)
@@ -38,6 +44,19 @@ export default function AssignmentsPage() {
       toast.error(err.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadClasses = async () => {
+    setClassesLoading(true)
+    try {
+      const data = await assignmentAPI.getClasses()
+      setInAnyClass((data.classes || []).length > 0)
+    } catch {
+      // Silent — this only decides which empty-state copy to show, and
+      // the join-a-class guidance is the safe default if it fails to load.
+    } finally {
+      setClassesLoading(false)
     }
   }
 
@@ -70,16 +89,32 @@ export default function AssignmentsPage() {
           </div>
         )}
 
-        {loading && <p className="text-sm text-slate-400 text-center py-10">Loading assignments…</p>}
+        {(loading || classesLoading) && <p className="text-sm text-slate-400 text-center py-10">Loading assignments…</p>}
 
-        {!loading && assignments.length === 0 && (
-          <div className="card text-center py-14 border-dashed border-2 border-slate-200">
-            <ClipboardList className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500 text-sm">No assignments yet.</p>
-            <p className="text-xs text-slate-400 mt-1">
-              Ask your teacher for a class join code, then add it in Settings → Classes.
-            </p>
-          </div>
+        {!loading && !classesLoading && assignments.length === 0 && (
+          inAnyClass ? (
+            <div className="card text-center py-14 border-dashed border-2 border-slate-200">
+              <CheckCheck className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-500 text-sm">You're all caught up.</p>
+              <p className="text-xs text-slate-400 mt-1">
+                Nothing assigned yet — remedial work will show up here once a teacher sends it.
+              </p>
+            </div>
+          ) : (
+            <div className="card text-center py-14 border-dashed border-2 border-slate-200">
+              <ClipboardList className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-500 text-sm">No assignments yet.</p>
+              <p className="text-xs text-slate-400 mt-1">
+                Remedial assignments come from a teacher's class — ask your teacher for a join code, then add it below.
+              </p>
+              <Link
+                to="/settings?tab=classes"
+                className="btn-primary inline-flex mt-4 px-4 py-2"
+              >
+                Join a class
+              </Link>
+            </div>
+          )
         )}
 
         <div className="space-y-3">
