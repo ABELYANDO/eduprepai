@@ -10,7 +10,7 @@ import BadgeCard                 from '../../components/BadgeCard'
 import {
   User, Lock, BookOpen, Award, Users,
   Save, Flame, Target, BarChart2,
-  CheckCircle2, AlertCircle, LogIn,
+  CheckCircle2, AlertCircle, LogIn, LogOut,
   Sun, Moon, Monitor,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -86,6 +86,17 @@ export default function SettingsPage() {
       toast.error(err.message)
     } finally {
       setJoining(false)
+    }
+  }
+
+  const handleLeaveClass = async (cls) => {
+    if (!window.confirm(`Leave ${cls.name}? You'll keep access to work already assigned, but won't receive anything new from this class.`)) return
+    try {
+      await assignmentAPI.leaveClass(cls._id)
+      toast.success(`Left ${cls.name}`)
+      loadClasses()
+    } catch (err) {
+      toast.error(err.message)
     }
   }
 
@@ -521,6 +532,12 @@ export default function SettingsPage() {
                       <p className="text-sm font-medium text-slate-700">{c.name}</p>
                       <p className="text-xs text-slate-400">{c.subject} · {c.examType} · Taught by {c.teacherId?.fullName || 'a teacher'}</p>
                     </div>
+                    <button
+                      onClick={() => handleLeaveClass(c)}
+                      className="flex items-center gap-1 text-xs text-slate-400 hover:text-red-500 transition-colors flex-shrink-0"
+                    >
+                      <LogOut className="w-3.5 h-3.5" /> Leave
+                    </button>
                   </div>
                 ))}
               </div>

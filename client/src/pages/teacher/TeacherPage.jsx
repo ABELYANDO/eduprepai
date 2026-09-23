@@ -13,7 +13,7 @@ import { settingsAPI } from '../../api/settings.api'
 import {
   Users, Plus, Cpu, FileSearch, Type, Trash2,
   Copy, ClipboardList, ArrowRight, X, ClipboardCheck, Camera,
-  AlertTriangle, Target, BookOpen,
+  AlertTriangle, Target, BookOpen, UserMinus,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { getSubjectsForExamType, GHANAIAN_LANGUAGES } from '../../constants/subjects'
@@ -167,6 +167,18 @@ export default function TeacherPage() {
       toast.error(err.message)
     } finally {
       setStudentMasteryLoading(false)
+    }
+  }
+
+  const handleRemoveStudent = async (cls, student) => {
+    if (!window.confirm(`Remove ${student.fullName} from ${cls.name}? They'll keep access to work already assigned, but won't receive anything new from this class.`)) return
+    try {
+      await teacherAPI.removeStudent(cls._id, student._id)
+      toast.success(`${student.fullName} removed from ${cls.name}`)
+      if (viewingStudent?.id === student._id) setViewingStudent(null)
+      loadClasses()
+    } catch (err) {
+      toast.error(err.message)
     }
   }
 
@@ -344,14 +356,26 @@ export default function TeacherPage() {
                       ) : (
                         <div className="space-y-1.5">
                           {c.students.map(s => (
-                            <button
+                            <div
                               key={s._id}
-                              onClick={() => openStudentInsight(c, s)}
-                              className="w-full flex items-center justify-between text-sm text-left hover:bg-slate-50 rounded-lg px-2 py-1 -mx-2 transition-colors"
+                              className="flex items-center gap-1 hover:bg-slate-50 rounded-lg px-2 py-1 -mx-2 transition-colors"
                             >
-                              <span className="text-slate-700">{s.fullName}</span>
-                              <span className="text-xs text-slate-400">{s.email}</span>
-                            </button>
+                              <button
+                                onClick={() => openStudentInsight(c, s)}
+                                className="flex-1 flex items-center justify-between text-sm text-left min-w-0"
+                              >
+                                <span className="text-slate-700 truncate">{s.fullName}</span>
+                                <span className="text-xs text-slate-400 flex-shrink-0 ml-2">{s.email}</span>
+                              </button>
+                              <button
+                                onClick={() => handleRemoveStudent(c, s)}
+                                className="p-1 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors flex-shrink-0"
+                                aria-label={`Remove ${s.fullName} from ${c.name}`}
+                                title="Remove from class"
+                              >
+                                <UserMinus className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           ))}
                         </div>
                       )}

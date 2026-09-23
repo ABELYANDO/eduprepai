@@ -2,6 +2,7 @@ import { Router } from 'express'
 import {
   joinClass,
   getMyClasses,
+  leaveClass,
   listMyAssignments,
   getPendingCount,
   getSubmission,
@@ -18,6 +19,7 @@ router.use(restrictTo('student'))
 
 router.post('/join',           joinClass)
 router.get('/classes',         getMyClasses)
+router.post('/classes/:classId/leave', leaveClass)
 router.post('/extract-photo',  extractAnswerFromPhoto)
 
 router.get('/',                listMyAssignments)

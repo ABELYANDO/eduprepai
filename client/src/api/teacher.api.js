@@ -4,6 +4,7 @@ export const teacherAPI = {
   // ── Classes ──────────────────────────────────────────────────
   createClass: (data) => api.post('/teacher/classes', data),
   getClasses:  ()     => api.get('/teacher/classes'),
+  removeStudent: (classId, studentId) => api.delete(`/teacher/classes/${classId}/students/${studentId}`),
 
   // ── Question tools — same endpoints/behaviour as the admin panel,
   // just mounted under /teacher and scoped to the teacher's own use ──

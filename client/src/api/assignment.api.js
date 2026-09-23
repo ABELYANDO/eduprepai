@@ -3,6 +3,7 @@ import api from './client'
 export const assignmentAPI = {
   joinClass:  (joinCode) => api.post('/assignments/join', { joinCode }),
   getClasses: ()         => api.get('/assignments/classes'),
+  leaveClass: (classId)  => api.post(`/assignments/classes/${classId}/leave`),
 
   getMyAssignments: (subject) => api.get('/assignments', { params: subject ? { subject } : {} }),
   getPendingCount:  ()        => api.get('/assignments/pending-count'),

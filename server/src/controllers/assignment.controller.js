@@ -59,6 +59,22 @@ export const getMyClasses = asyncHandler(async (req, res) => {
   res.json({ success: true, classes })
 })
 
+// ── POST /api/assignments/classes/:classId/leave ─────────────────
+// Already-created assignment submissions from this class are untouched
+// (see joinClass's note above — access is purely studentId-based), so
+// leaving only stops future assignments from this class reaching them.
+export const leaveClass = asyncHandler(async (req, res) => {
+  const { classId } = req.params
+
+  const cls = await Class.findOne({ _id: classId, studentIds: req.user._id })
+  if (!cls) throw new AppError("You're not in this class", 404)
+
+  cls.studentIds = cls.studentIds.filter(id => !id.equals(req.user._id))
+  await cls.save()
+
+  res.json({ success: true, message: 'Left class' })
+})
+
 // ── GET /api/assignments ────────────────────────────────────────
 // My submissions, joined with assignment/class info for display.
 export const listMyAssignments = asyncHandler(async (req, res) => {

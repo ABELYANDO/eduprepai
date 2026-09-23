@@ -2,6 +2,7 @@ import { Router } from 'express'
 import {
   createClass,
   listClasses,
+  removeStudent,
   createAssignment,
   listAssignments,
   getStudentMastery,
@@ -23,6 +24,7 @@ router.use(restrictTo('teacher'))
 // ── Classes ──────────────────────────────────────────────────────
 router.post('/classes', createClass)
 router.get('/classes',  listClasses)
+router.delete('/classes/:classId/students/:studentId', removeStudent)
 
 // ── Question tools — same side-effect-free preview generators the
 // admin PDF Extractor / AI Generator already use, reused unmodified ──

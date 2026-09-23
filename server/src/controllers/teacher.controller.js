@@ -67,6 +67,27 @@ export const listClasses = asyncHandler(async (req, res) => {
   res.json({ success: true, classes: withCounts })
 })
 
+// ── DELETE /api/teacher/classes/:classId/students/:studentId ────
+// A student's already-created assignment submissions are untouched —
+// they authorize purely off studentId, never live class membership —
+// so removal only affects future assignments and this teacher's
+// visibility into the student's mastery data from here on.
+export const removeStudent = asyncHandler(async (req, res) => {
+  const { classId, studentId } = req.params
+
+  const cls = await Class.findOne({ _id: classId, teacherId: req.user._id })
+  if (!cls) throw new AppError('Class not found', 404)
+
+  if (!cls.studentIds.some(id => id.equals(studentId))) {
+    throw new AppError('Student not in this class', 404)
+  }
+
+  cls.studentIds = cls.studentIds.filter(id => !id.equals(studentId))
+  await cls.save()
+
+  res.json({ success: true, message: 'Student removed from class' })
+})
+
 // ── POST /api/teacher/assignments ──────────────────────────────
 // Creates the assignment, then eagerly creates one AssignmentSubmission
 // per student currently in the class — so progress ("0/25 submitted")
