@@ -14,9 +14,9 @@ import {
 const STUDENT_NAV = [
   { to: '/dashboard',   icon: LayoutDashboard, label: 'Dashboard'   },
   { to: '/practice',    icon: BookOpen,         label: 'Practice'    },
-  { to: '/predict',     icon: TrendingUp,       label: 'Likely Exam Topics' },
   { to: '/mock-exam',   icon: FileText,         label: 'Mock Exam'   },
   { to: '/assignments', icon: ClipboardList,    label: 'Remedial Assignment' },
+  { to: '/predict',     icon: TrendingUp,       label: 'Likely Exam Topics' },
   { to: '/analytics',   icon: BarChart2,        label: 'Analytics and Final Grades Predictions' },
   { to: '/leaderboard', icon: Trophy,           label: 'Star Board' },
 ]
