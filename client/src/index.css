@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap');
 @import "tailwindcss";
 
 @layer base {
@@ -18,7 +18,7 @@
     --color-border:         #E2E8F0;
     --sidebar-width:        260px;
     --topbar-height:        64px;
-    --font-heading:         'Poppins', system-ui, sans-serif;
+    --font-heading:         'Lora', Georgia, serif;
     --font-body:            'Inter', system-ui, sans-serif;
   }
 
@@ -102,12 +102,12 @@
   .bg-surface { background-color: var(--color-surface); }
 
   .card {
-    @apply rounded-xl border border-slate-100 shadow-sm p-5;
+    @apply rounded-lg border border-slate-100 shadow-sm p-5;
     background-color: var(--color-surface);
   }
 
   .card-hover {
-    @apply rounded-xl border border-slate-100 shadow-sm p-5
+    @apply rounded-lg border border-slate-100 shadow-sm p-5
            transition-all duration-200 hover:shadow-md hover:-translate-y-0.5
            cursor-pointer;
     background-color: var(--color-surface);
