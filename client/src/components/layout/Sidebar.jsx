@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { useTheme } from '../../context/ThemeContext'
 import { assignmentAPI } from '../../api/assignment.api'
 import {
   LayoutDashboard, BookOpen, TrendingUp, FileText,
@@ -23,8 +24,17 @@ const STUDENT_NAV = [
 
 export default function Sidebar({ mobileOpen, onClose }) {
   const { user, logout } = useAuth()
+  const { theme } = useTheme()
   const navigate          = useNavigate()
   const [subjectsOpen, setSubjectsOpen] = useState(false)
+
+  // Dark mode drops the navy gradient for the same near-black + charcoal
+  // tone the rest of the app uses in dark mode ( --color-bg/--color-surface
+  // in index.css), so the sidebar no longer looks like a separate, always-
+  // navy surface once dark mode is on.
+  const sidebarBg = theme === 'dark'
+    ? 'linear-gradient(180deg, #17171C 0%, #0A0A0D 100%)'
+    : 'linear-gradient(180deg, #0F2A4D 0%, #081527 100%)'
 
   const goToSubject = (subject) => {
     navigate(`/practice?${new URLSearchParams({ subject }).toString()}`)
@@ -72,7 +82,7 @@ export default function Sidebar({ mobileOpen, onClose }) {
         `}
         style={{
           width: 'var(--sidebar-width)',
-          background: 'linear-gradient(180deg, #0F2A4D 0%, #081527 100%)',
+          background: sidebarBg,
         }}
         aria-label="Main navigation"
       >

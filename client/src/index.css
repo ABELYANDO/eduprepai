@@ -264,9 +264,12 @@
   --color-text:           #F1F5F9;
   --color-text-secondary: #94A3B8;
   --color-border:         #26262C;
-  /* --color-sidebar stays the same dark teal in both themes — the
-     sidebar (like the teacher/admin headers) is already dark by design,
-     not something that needs to react to light/dark mode. */
+  /* The student Sidebar's background isn't driven by a CSS variable —
+     it picks its own gradient directly in Sidebar.jsx based on
+     useTheme(), switching from the navy brand gradient to a near-black
+     one that matches --color-bg/--color-surface above. TeacherShell/
+     AdminShell headers stay their own fixed dark navy/indigo regardless
+     of theme, by design — only the student sidebar reacts. */
 }
 
 /* ── Force-light surfaces ─────────────────────────────────────────
