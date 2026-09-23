@@ -198,7 +198,7 @@ export default function AIGeneratorPanel({
               <label className="label">Year style</label>
               <input
                 type="number" name="year" value={config.year}
-                onChange={handleChange} min={2010} max={2025} className="input"
+                onChange={handleChange} min={2010} className="input"
               />
             </div>
             <div>

@@ -107,7 +107,7 @@ export default function ManualQuestionForm({
             {form.questionSource === 'practice' ? 'Year (reference only)' : 'Year'}
           </label>
           <input type="number" name="year" value={form.year}
-            onChange={handleChange} min={2010} max={2025} className="input" />
+            onChange={handleChange} min={2010} className="input" />
         </div>
         <div>
           <label className="label">Type</label>

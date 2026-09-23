@@ -167,7 +167,7 @@ export default function PDFExtractorPanel({
               <input
                 type="number" value={meta.year}
                 onChange={e => setMeta(p => ({ ...p, year: e.target.value }))}
-                min={2010} max={2025} className="input"
+                min={2010} className="input"
               />
             </div>
           </div>
