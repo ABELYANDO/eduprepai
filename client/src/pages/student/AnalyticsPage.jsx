@@ -306,9 +306,10 @@ export default function AnalyticsPage() {
                 </h3>
                 {gradePredictions.aggregate.isComplete ? (
                   <>
+                    <p className="text-sm text-slate-500 mb-1">You are likely to aggregate</p>
                     <div className="flex items-baseline gap-3 mb-3">
-                      <span className="text-4xl font-bold text-slate-900">{gradePredictions.aggregate.aggregate}</span>
-                      <span className="badge-teal text-sm">{gradePredictions.aggregate.band}</span>
+                      <span className="text-4xl font-bold text-slate-900">{gradePredictions.aggregate.band}</span>
+                      <span className="text-sm text-slate-400">(computed: {gradePredictions.aggregate.aggregate})</span>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {gradePredictions.aggregate.subjectsCounted.map(s => (

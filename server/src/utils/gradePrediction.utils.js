@@ -92,19 +92,25 @@ export const isThinData = (sessions, mockExams, assignments) =>
 
 // ── BECE aggregate bands ──────────────────────────────────────────
 // Standard commonly-cited reference table, not pulled from any
-// official source in this codebase — flagged to the user as
-// something to correct once seen live, not treated as authoritative.
+// official source in this codebase. Contiguous, non-overlapping ranges
+// spanning the full possible aggregate (6 = best possible across 6
+// subjects, 54 = worst) — the prediction shows which range a student
+// is likely to land in rather than a single falsely-precise number.
 export const AGGREGATE_BANDS = [
-  { max: 9,        label: 'Excellent' },
-  { max: 15,       label: 'Very Good' },
-  { max: 20,       label: 'Credit' },
-  { max: 30,       label: 'Pass' },
-  { max: 36,       label: 'Weak' },
-  { max: Infinity, label: 'Very Weak' },
+  { max: 9,  label: '6-9'   },
+  { max: 15, label: '10-15' },
+  { max: 19, label: '16-19' },
+  { max: 24, label: '20-24' },
+  { max: 29, label: '25-29' },
+  { max: 34, label: '30-34' },
+  { max: 39, label: '35-39' },
+  { max: 44, label: '40-44' },
+  { max: 49, label: '45-49' },
+  { max: 54, label: '50-54' },
 ]
 
 export const getAggregateBand = (aggregate) =>
-  AGGREGATE_BANDS.find(b => aggregate <= b.max)?.label || 'Very Weak'
+  AGGREGATE_BANDS.find(b => aggregate <= b.max)?.label || '50-54'
 
 // ── BECE core subjects for the aggregate ──────────────────────────
 export const BECE_CORE_SUBJECTS = ['Mathematics', 'Science', 'Social Studies', 'English Language']
