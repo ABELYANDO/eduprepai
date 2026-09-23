@@ -259,11 +259,11 @@
   --color-slate-800: #F1F5F9;
   --color-slate-900: #F8FAFC;
 
-  --color-bg:             #0B1120;
-  --color-surface:        #1E293B;
+  --color-bg:             #0B0B0F;
+  --color-surface:        #18181D;
   --color-text:           #F1F5F9;
   --color-text-secondary: #94A3B8;
-  --color-border:         #334155;
+  --color-border:         #26262C;
   /* --color-sidebar stays the same dark teal in both themes — the
      sidebar (like the teacher/admin headers) is already dark by design,
      not something that needs to react to light/dark mode. */
