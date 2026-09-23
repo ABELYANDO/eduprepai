@@ -18,7 +18,7 @@ const STUDENT_NAV = [
   { to: '/mock-exam',   icon: FileText,         label: 'Mock Exam'   },
   { to: '/assignments', icon: ClipboardList,    label: 'Remedial Assignment' },
   { to: '/analytics',   icon: BarChart2,        label: 'Analytics and Final Grades Predictions' },
-  { to: '/leaderboard', icon: Trophy,           label: 'Leaderboard' },
+  { to: '/leaderboard', icon: Trophy,           label: 'Star Board' },
 ]
 
 export default function Sidebar({ mobileOpen, onClose }) {

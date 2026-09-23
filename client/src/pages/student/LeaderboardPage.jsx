@@ -43,7 +43,7 @@ export default function LeaderboardPage() {
   }, [])
 
   if (loading) return (
-    <AppShell title="Leaderboard" subtitle="Top students">
+    <AppShell title="Star Board" subtitle="Top students">
       <div className="flex items-center justify-center py-20">
         <div className="w-10 h-10 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" />
       </div>
@@ -54,7 +54,7 @@ export default function LeaderboardPage() {
   const rest  = data.slice(3)
 
   return (
-    <AppShell title="Leaderboard" subtitle="Top students by questions answered and accuracy">
+    <AppShell title="Star Board" subtitle="Top students by questions answered and accuracy">
       <div className="max-w-3xl mx-auto space-y-6">
 
         {/* My rating banner */}
@@ -154,7 +154,7 @@ export default function LeaderboardPage() {
 
           {data.length === 0 && (
             <div className="text-center py-12 text-slate-400 text-sm">
-              No students on the leaderboard yet. Be the first to complete practice sessions!
+              No students on the star board yet. Be the first to complete practice sessions!
             </div>
           )}
         </div>
