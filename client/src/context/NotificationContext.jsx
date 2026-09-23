@@ -73,6 +73,7 @@ export const NotificationProvider = ({ children }) => {
             message:   `${a.title}${a.className ? ` — ${a.className}` : ''}`,
             createdAt: new Date().toISOString(),
             read:      false,
+            link:      `/assignments/${a.submissionId}`,
           }))
           setNotifications(prev => [...newOnes, ...prev].slice(0, MAX_NOTIFICATIONS))
         }
@@ -97,12 +98,17 @@ export const NotificationProvider = ({ children }) => {
       message:   badge.name,
       createdAt: new Date().toISOString(),
       read:      false,
+      link:      '/settings?tab=badges',
     }))
     setNotifications(prev => [...newOnes, ...prev].slice(0, MAX_NOTIFICATIONS))
   }, [])
 
   const markAllRead = useCallback(() => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })))
+  }, [])
+
+  const markRead = useCallback((id) => {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
   }, [])
 
   const clearAll = useCallback(() => {
@@ -113,7 +119,7 @@ export const NotificationProvider = ({ children }) => {
 
   return (
     <NotificationContext.Provider
-      value={{ notifications, unreadCount, addBadgeNotifications, markAllRead, clearAll }}
+      value={{ notifications, unreadCount, addBadgeNotifications, markAllRead, markRead, clearAll }}
     >
       {children}
     </NotificationContext.Provider>

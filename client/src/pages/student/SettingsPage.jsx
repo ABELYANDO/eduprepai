@@ -1,4 +1,5 @@
 import { useState, useEffect }  from 'react'
+import { useSearchParams }       from 'react-router-dom'
 import { useAuth }               from '../../context/AuthContext'
 import { useNotifications }      from '../../context/NotificationContext'
 import { useTheme }              from '../../context/ThemeContext'
@@ -30,7 +31,13 @@ export default function SettingsPage() {
   const { addBadgeNotifications } = useNotifications()
   const { theme, setTheme } = useTheme()
 
-  const [tab,     setTab]     = useState('profile')
+  // Deep-link support (e.g. a badge notification linking to
+  // /settings?tab=badges) — falls back to Profile for anything invalid.
+  const [searchParams] = useSearchParams()
+  const requestedTab = searchParams.get('tab')
+  const [tab, setTab] = useState(
+    TABS.some(t => t.id === requestedTab) ? requestedTab : 'profile'
+  )
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving,  setSaving]  = useState(false)

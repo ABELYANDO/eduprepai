@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Menu, Bell, Search, CheckCheck } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useNotifications } from '../../context/NotificationContext'
@@ -22,9 +22,16 @@ const timeAgo = (iso) => {
 // Offset from the left by the sidebar width on desktop.
 export default function TopBar({ onMenuClick, onOpenSearch, title, subtitle }) {
   const { user } = useAuth()
-  const { notifications, unreadCount, markAllRead } = useNotifications()
+  const { notifications, unreadCount, markAllRead, markRead } = useNotifications()
+  const navigate = useNavigate()
   const [panelOpen, setPanelOpen] = useState(false)
   const panelRef = useRef(null)
+
+  const handleNotificationClick = (n) => {
+    markRead(n.id)
+    setPanelOpen(false)
+    if (n.link) navigate(n.link)
+  }
 
   // ── Close the notification panel on outside click / Escape ───
   useEffect(() => {
@@ -128,10 +135,11 @@ export default function TopBar({ onMenuClick, onOpenSearch, title, subtitle }) {
                 </p>
               ) : (
                 notifications.map(n => (
-                  <div
+                  <button
                     key={n.id}
-                    className={`flex items-start gap-3 px-4 py-3 border-b border-slate-50 last:border-0 ${
-                      n.read ? '' : 'bg-teal-50/40'
+                    onClick={() => handleNotificationClick(n)}
+                    className={`w-full flex items-start gap-3 px-4 py-3 border-b border-slate-50 last:border-0 text-left transition-colors hover:bg-slate-50 ${
+                      n.read ? '' : 'bg-teal-500/10'
                     }`}
                   >
                     <span className="text-lg flex-shrink-0" role="img" aria-hidden="true">{n.icon}</span>
@@ -143,7 +151,7 @@ export default function TopBar({ onMenuClick, onOpenSearch, title, subtitle }) {
                     {!n.read && (
                       <span className="w-2 h-2 rounded-full bg-teal-500 flex-shrink-0 mt-1.5" />
                     )}
-                  </div>
+                  </button>
                 ))
               )}
             </div>
