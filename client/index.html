@@ -5,6 +5,19 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>client</title>
+    <script>
+      // Runs before the app bundle loads so the page never flashes the
+      // wrong theme — mirrors ThemeContext.jsx's own initial-theme logic.
+      (function () {
+        try {
+          var stored = localStorage.getItem('eduprepai_theme')
+          var theme = (stored === 'light' || stored === 'dark')
+            ? stored
+            : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          document.documentElement.dataset.theme = theme
+        } catch (e) { /* localStorage unavailable — default light applies via CSS */ }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -3,6 +3,7 @@ import Sidebar from './Sidebar'
 import TopBar  from './TopBar'
 import CommandPalette from '../CommandPalette'
 import examHallBg from '../../assets/exam-hall-bg.jpg'
+import { useTheme } from '../../context/ThemeContext'
 
 // ── AppShell ───────────────────────────────────────────────────
 // The authenticated layout wrapper.
@@ -20,6 +21,12 @@ import examHallBg from '../../assets/exam-hall-bg.jpg'
 export default function AppShell({ children, title, subtitle, bgOpacity = 0.93 }) {
   const [mobileOpen,  setMobileOpen]  = useState(false)
   const [paletteOpen, setPaletteOpen] = useState(false)
+  const { theme } = useTheme()
+  // Light mode washes the photo with the light teal --color-bg
+  // (240,253,250 = #F0FDFA); dark mode washes it with the dark
+  // --color-bg (11,17,32 = #0B1120) instead of literally the same
+  // light wash, which would otherwise stay light regardless of theme.
+  const washRGB = theme === 'dark' ? '11,17,32' : '240,253,250'
 
   // Global ⌘K / Ctrl+K shortcut — works from any authenticated page
   useEffect(() => {
@@ -40,7 +47,7 @@ export default function AppShell({ children, title, subtitle, bgOpacity = 0.93 }
         // A faint wash of the page's own background colour over the photo
         // keeps every card/text element exactly as readable as before —
         // the image should read as texture, not compete with content.
-        backgroundImage: `linear-gradient(rgba(240,253,250,${bgOpacity}), rgba(240,253,250,${bgOpacity})), url(${examHallBg})`,
+        backgroundImage: `linear-gradient(rgba(${washRGB},${bgOpacity}), rgba(${washRGB},${bgOpacity})), url(${examHallBg})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed',

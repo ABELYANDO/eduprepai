@@ -2,6 +2,8 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { Users, LogOut } from 'lucide-react'
 import examHallBg from '../../assets/exam-hall-bg.jpg'
+import { useTheme } from '../../context/ThemeContext'
+import ThemeToggle from '../ThemeToggle'
 
 // ── TeacherShell ───────────────────────────────────────────────
 // The teacher portal's own layout — mirrors AdminShell.jsx's approach
@@ -10,6 +12,8 @@ import examHallBg from '../../assets/exam-hall-bg.jpg'
 export default function TeacherShell({ children }) {
   const { user, logout } = useAuth()
   const navigate           = useNavigate()
+  const { theme } = useTheme()
+  const washRGB = theme === 'dark' ? '11,17,32' : '241,245,249'
 
   const handleLogout = () => {
     logout()
@@ -20,7 +24,7 @@ export default function TeacherShell({ children }) {
     <div
       className="min-h-screen"
       style={{
-        backgroundImage: `linear-gradient(rgba(241,245,249,0.93), rgba(241,245,249,0.93)), url(${examHallBg})`,
+        backgroundImage: `linear-gradient(rgba(${washRGB},0.93), rgba(${washRGB},0.93)), url(${examHallBg})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed',
@@ -51,6 +55,8 @@ export default function TeacherShell({ children }) {
             {user?.fullName}
           </span>
         </div>
+
+        <ThemeToggle className="text-blue-200 hover:bg-white/10 hover:text-white" />
 
         <button
           onClick={handleLogout}

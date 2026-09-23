@@ -1,6 +1,7 @@
 import { useState, useEffect }  from 'react'
 import { useAuth }               from '../../context/AuthContext'
 import { useNotifications }      from '../../context/NotificationContext'
+import { useTheme }              from '../../context/ThemeContext'
 import { settingsAPI }           from '../../api/settings.api'
 import { assignmentAPI }         from '../../api/assignment.api'
 import AppShell                  from '../../components/layout/AppShell'
@@ -9,22 +10,25 @@ import {
   User, Lock, BookOpen, Award, Users,
   Save, Flame, Target, BarChart2,
   CheckCircle2, AlertCircle, LogIn,
+  Sun, Moon, Monitor,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { SUBJECTS_WASSCE, SUBJECTS_BECE, getPickerTiles } from '../../constants/subjects'
 
 // ── Settings tabs ──────────────────────────────────────────────
 const TABS = [
-  { id: 'profile',  label: 'Profile',  icon: User  },
-  { id: 'subjects', label: 'Subjects', icon: BookOpen },
-  { id: 'classes',  label: 'Classes',  icon: Users },
-  { id: 'password', label: 'Password', icon: Lock  },
-  { id: 'badges',   label: 'Badges',   icon: Award },
+  { id: 'profile',    label: 'Profile',    icon: User  },
+  { id: 'subjects',   label: 'Subjects',   icon: BookOpen },
+  { id: 'classes',    label: 'Classes',    icon: Users },
+  { id: 'password',   label: 'Password',   icon: Lock  },
+  { id: 'badges',     label: 'Badges',     icon: Award },
+  { id: 'appearance', label: 'Appearance', icon: Sun },
 ]
 
 export default function SettingsPage() {
   const { user, updateUser } = useAuth()
   const { addBadgeNotifications } = useNotifications()
+  const { theme, setTheme } = useTheme()
 
   const [tab,     setTab]     = useState('profile')
   const [profile, setProfile] = useState(null)
@@ -255,11 +259,12 @@ export default function SettingsPage() {
             <button
               key={id}
               onClick={() => setTab(id)}
+              style={tab === id ? { backgroundColor: 'var(--color-surface)' } : undefined}
               className={`
                 flex-1 flex items-center justify-center gap-2
                 py-2.5 px-3 rounded-lg text-sm font-medium transition-all duration-200
                 ${tab === id
-                  ? 'bg-white text-teal-700 shadow-sm'
+                  ? 'text-teal-700 shadow-sm'
                   : 'text-slate-500 hover:text-slate-700'
                 }
               `}
@@ -674,6 +679,58 @@ export default function SettingsPage() {
                 </p>
               </div>
             )}
+          </div>
+        )}
+
+        {/* ══════════════ APPEARANCE TAB ═════════════════════ */}
+        {tab === 'appearance' && (
+          <div className="card space-y-5 animate-fade-in">
+            <h3 className="section-title flex items-center gap-2">
+              <Sun className="w-4 h-4 text-teal-600" />
+              Theme
+            </h3>
+            <p className="text-sm text-slate-500 -mt-3">
+              Choose how EduPrepAI looks. "System" follows your device's own light/dark setting automatically.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {[
+                { value: 'light',  label: 'Light',  icon: Sun,     desc: 'Always light' },
+                { value: 'dark',   label: 'Dark',    icon: Moon,    desc: 'Always dark' },
+                { value: 'system', label: 'System',  icon: Monitor, desc: 'Match device' },
+              ].map(({ value, label, icon: Icon, desc }) => {
+                const isSelected = value === 'system'
+                  ? false // "System" is an action (re-sync to OS), not a persisted state we track separately
+                  : theme === value
+                return (
+                  <button
+                    key={value}
+                    onClick={() => {
+                      if (value === 'system') {
+                        const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches
+                        setTheme(prefersDark ? 'dark' : 'light')
+                        try { localStorage.removeItem('eduprepai_theme_explicit') } catch { /* ignore */ }
+                      } else {
+                        setTheme(value)
+                      }
+                    }}
+                    className={`flex flex-col items-center gap-2 py-5 rounded-xl border-2 text-sm font-medium transition-all ${
+                      isSelected
+                        ? 'bg-teal-50 border-teal-400 text-teal-800'
+                        : 'border-slate-200 text-slate-600 hover:border-teal-200'
+                    }`}
+                  >
+                    <Icon className="w-5 h-5" />
+                    {label}
+                    <span className="text-xs font-normal text-slate-400">{desc}</span>
+                  </button>
+                )
+              })}
+            </div>
+
+            <p className="text-xs text-slate-400">
+              Currently: <strong className="text-slate-600 capitalize">{theme}</strong> mode
+            </p>
           </div>
         )}
 

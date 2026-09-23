@@ -2,6 +2,8 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { ShieldCheck, LogOut } from 'lucide-react'
 import examHallBg from '../../assets/exam-hall-bg.jpg'
+import { useTheme } from '../../context/ThemeContext'
+import ThemeToggle from '../ThemeToggle'
 
 // ── AdminShell ───────────────────────────────────────────────────
 // The admin panel's own layout — deliberately separate from AppShell.
@@ -17,6 +19,8 @@ import examHallBg from '../../assets/exam-hall-bg.jpg'
 export default function AdminShell({ children }) {
   const { user, logout } = useAuth()
   const navigate           = useNavigate()
+  const { theme } = useTheme()
+  const washRGB = theme === 'dark' ? '11,17,32' : '241,245,249'
 
   const handleLogout = () => {
     logout()
@@ -30,7 +34,7 @@ export default function AdminShell({ children }) {
         // More visible than the student AppShell's default wash, per
         // request — the admin console's cards are all solid white, so a
         // clearer background image doesn't hurt readability here.
-        backgroundImage: `linear-gradient(rgba(241,245,249,0.75), rgba(241,245,249,0.75)), url(${examHallBg})`,
+        backgroundImage: `linear-gradient(rgba(${washRGB},0.75), rgba(${washRGB},0.75)), url(${examHallBg})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed',
@@ -61,6 +65,8 @@ export default function AdminShell({ children }) {
             {user?.fullName}
           </span>
         </div>
+
+        <ThemeToggle className="text-indigo-200 hover:bg-white/10 hover:text-white" />
 
         <button
           onClick={handleLogout}

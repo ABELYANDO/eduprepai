@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Menu, Bell, Search, CheckCheck } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useNotifications } from '../../context/NotificationContext'
+import ThemeToggle from '../ThemeToggle'
 
 // ── timeAgo ────────────────────────────────────────────────────
 // Small relative-time formatter for the notification list — no
@@ -48,7 +49,7 @@ export default function TopBar({ onMenuClick, onOpenSearch, title, subtitle }) {
 
   return (
     <header
-      className="fixed top-0 right-0 left-0 lg:left-[var(--sidebar-width)] z-20 flex items-center gap-4 px-5 bg-white/90 backdrop-blur-md border-b border-slate-100"
+      className="fixed top-0 right-0 left-0 lg:left-[var(--sidebar-width)] z-20 flex items-center gap-4 px-5 bg-[var(--color-surface)]/90 backdrop-blur-md border-b border-slate-100"
       style={{
         height: 'var(--topbar-height)',
       }}
@@ -86,8 +87,10 @@ export default function TopBar({ onMenuClick, onOpenSearch, title, subtitle }) {
       >
         <Search className="w-3.5 h-3.5 text-slate-400" />
         <span className="text-xs text-slate-400">Search...</span>
-        <kbd className="ml-auto text-xs text-slate-300 bg-white border border-slate-200 rounded px-1">⌘K</kbd>
+        <kbd className="ml-auto text-xs text-slate-300 border border-slate-200 rounded px-1" style={{ backgroundColor: 'var(--color-surface)' }}>⌘K</kbd>
       </button>
+
+      <ThemeToggle />
 
       {/* Notification bell */}
       <div className="relative" ref={panelRef}>
@@ -104,7 +107,7 @@ export default function TopBar({ onMenuClick, onOpenSearch, title, subtitle }) {
         </button>
 
         {panelOpen && (
-          <div className="absolute top-full right-0 mt-2 w-80 max-w-[90vw] bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden">
+          <div className="absolute top-full right-0 mt-2 w-80 max-w-[90vw] border border-slate-200 rounded-xl shadow-lg overflow-hidden" style={{ backgroundColor: 'var(--color-surface)' }}>
             <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
               <p className="text-sm font-semibold text-slate-800">Notifications</p>
               {unreadCount > 0 && (

@@ -42,9 +42,10 @@
 @layer components {
 
   .input {
-    @apply w-full rounded-lg px-3.5 py-2.5 text-sm border border-slate-200 bg-white
+    @apply w-full rounded-lg px-3.5 py-2.5 text-sm border border-slate-200
            text-slate-800 placeholder-slate-400 transition-all duration-200
            focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500;
+    background-color: var(--color-surface);
   }
 
   .label { @apply block text-sm font-medium text-slate-700 mb-1.5; }
@@ -64,8 +65,9 @@
            text-sm font-medium transition-all duration-200 cursor-pointer
            focus:outline-none focus:ring-2 focus:ring-offset-1
            disabled:opacity-50 disabled:cursor-not-allowed
-           bg-white text-slate-700 border border-slate-200
+           text-slate-700 border border-slate-200
            hover:bg-slate-50 hover:border-slate-300 focus:ring-slate-400;
+    background-color: var(--color-surface);
   }
 
   .btn-accent {
@@ -93,13 +95,15 @@
   }
 
   .card {
-    @apply bg-white rounded-xl border border-slate-100 shadow-sm p-5;
+    @apply rounded-xl border border-slate-100 shadow-sm p-5;
+    background-color: var(--color-surface);
   }
 
   .card-hover {
-    @apply bg-white rounded-xl border border-slate-100 shadow-sm p-5
+    @apply rounded-xl border border-slate-100 shadow-sm p-5
            transition-all duration-200 hover:shadow-md hover:-translate-y-0.5
            cursor-pointer;
+    background-color: var(--color-surface);
   }
 
   .badge        { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border; }
@@ -185,4 +189,49 @@
   --color-teal-700: #4338CA;
   --color-teal-800: #3730A3;
   --color-teal-900: #312E81;
+}
+
+/* ── Dark mode ─────────────────────────────────────────────────────
+   Same variable-override trick as .admin-theme above, applied to the
+   whole app via [data-theme="dark"] on <html> (set by ThemeContext.jsx).
+   Every Tailwind colour utility here (bg-slate-100, text-slate-700, ...)
+   already compiles to var(--color-slate-N) — redeclaring the slate ramp
+   is what retints nearly the entire app with no component edits, the
+   same way .admin-theme retints the whole admin panel from just its
+   teal-ramp override. The ramp below is a straight mirror of Tailwind's
+   own default slate scale (50↔900, 100↔800, 200↔700, 300↔600, 400↔500)
+   so anything that paired "light background + dark text" in light mode
+   automatically becomes "dark background + light text" in dark mode.
+
+   --color-white is deliberately NOT touched here — see the plan/context
+   for why (it's shared between "card background" and "white text on a
+   colored button", which need to move in opposite directions). Places
+   that used bg-white for a *surface* (.card, .input, .btn-secondary,
+   TopBar's header/notification panel) were switched to var(--color-surface)
+   instead, which IS overridden below.
+
+   Colour ramps used purely as light-tinted status chips (badge-teal,
+   badge-green, badge-red, badge-amber, etc. — bg-{color}-50 + text-{color}-700)
+   are also left alone: they read as pastel chips floating on a dark
+   surface, which is a normal, legible dark-UI pattern, not a bug. */
+:root[data-theme="dark"] {
+  --color-slate-50:  #0F172A;
+  --color-slate-100: #1E293B;
+  --color-slate-200: #334155;
+  --color-slate-300: #475569;
+  --color-slate-400: #64748B;
+  --color-slate-500: #94A3B8;
+  --color-slate-600: #CBD5E1;
+  --color-slate-700: #E2E8F0;
+  --color-slate-800: #F1F5F9;
+  --color-slate-900: #F8FAFC;
+
+  --color-bg:             #0B1120;
+  --color-surface:        #1E293B;
+  --color-text:           #F1F5F9;
+  --color-text-secondary: #94A3B8;
+  --color-border:         #334155;
+  /* --color-sidebar stays the same dark teal in both themes — the
+     sidebar (like the teacher/admin headers) is already dark by design,
+     not something that needs to react to light/dark mode. */
 }

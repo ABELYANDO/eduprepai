@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { NotificationProvider } from './context/NotificationContext'
+import { ThemeProvider } from './context/ThemeContext'
 
 import LoginPage         from './pages/auth/LoginPage'
 import RegisterPage      from './pages/auth/RegisterPage'
@@ -124,26 +125,28 @@ const AppRoutes = () => (
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <NotificationProvider>
-          <AppRoutes />
-        </NotificationProvider>
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              fontFamily: 'var(--font-body)',
-              fontSize: '14px',
-              borderRadius: '10px',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-            },
-            success: { iconTheme: { primary: '#0D9488', secondary: '#fff' } },
-            error:   { iconTheme: { primary: '#EF4444', secondary: '#fff' } },
-          }}
-        />
-      </AuthProvider>
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <NotificationProvider>
+            <AppRoutes />
+          </NotificationProvider>
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                fontFamily: 'var(--font-body)',
+                fontSize: '14px',
+                borderRadius: '10px',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+              },
+              success: { iconTheme: { primary: '#0D9488', secondary: '#fff' } },
+              error:   { iconTheme: { primary: '#EF4444', secondary: '#fff' } },
+            }}
+          />
+        </AuthProvider>
+      </BrowserRouter>
+    </ThemeProvider>
   )
 }
