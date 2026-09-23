@@ -7,10 +7,13 @@ import SubmissionReviewPanel from '../../components/teacher/SubmissionReviewPane
 import MockExamReviewPanel   from '../../components/teacher/MockExamReviewPanel'
 import { teacherAPI }       from '../../api/teacher.api'
 import MasteryHeatmap        from '../../components/analytics/MasteryHeatmap'
+import SubjectLevelPicker    from '../../components/teacher/SubjectLevelPicker'
+import { useAuth } from '../../context/AuthContext'
+import { settingsAPI } from '../../api/settings.api'
 import {
   Users, Plus, Cpu, FileSearch, Type, Trash2,
   Copy, ClipboardList, ArrowRight, X, ClipboardCheck, Camera,
-  AlertTriangle, Target,
+  AlertTriangle, Target, BookOpen,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { getSubjectsForExamType, GHANAIAN_LANGUAGES } from '../../constants/subjects'
@@ -19,10 +22,31 @@ const TABS = [
   { id: 'classes',    label: 'My Classes',    icon: Users },
   { id: 'assignment', label: 'New Assignment', icon: ClipboardList },
   { id: 'review',     label: 'Review Submissions', icon: ClipboardCheck },
+  { id: 'subjects',   label: 'My Subjects',   icon: BookOpen },
 ]
 
 export default function TeacherPage() {
+  const { user, updateUser } = useAuth()
   const [tab, setTab] = useState('classes')
+
+  // ── My Subjects (level + what I teach — editable any time) ─────
+  const [myLevel,    setMyLevel]    = useState(user?.examType || 'WASSCE')
+  const [mySubjects, setMySubjects] = useState(user?.subjects || [])
+  const [savingSubjects, setSavingSubjects] = useState(false)
+
+  const handleSaveSubjects = async () => {
+    if (mySubjects.length === 0) return toast.error('Select at least one subject')
+    setSavingSubjects(true)
+    try {
+      await settingsAPI.updateProfile({ examType: myLevel, subjects: mySubjects })
+      updateUser({ examType: myLevel, subjects: mySubjects })
+      toast.success('Subjects updated')
+    } catch (err) {
+      toast.error(err.message)
+    } finally {
+      setSavingSubjects(false)
+    }
+  }
 
   // ── Classes ──────────────────────────────────────────────────
   const [classes,       setClasses]       = useState([])
@@ -673,6 +697,33 @@ export default function TeacherPage() {
               ))}
             </div>
           )
+        )}
+
+        {/* ── My Subjects tab ─────────────────────────────────── */}
+        {tab === 'subjects' && (
+          <div className="card max-w-lg animate-fade-in">
+            <h3 className="section-title flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-blue-600" /> My subjects
+            </h3>
+            <p className="text-xs text-slate-500 mb-4">
+              Choose your school level and the subjects you teach — this decides which subjects
+              you can create classes for.
+            </p>
+            <SubjectLevelPicker
+              level={myLevel} setLevel={setMyLevel}
+              subjects={mySubjects} setSubjects={setMySubjects}
+            />
+            <button
+              onClick={handleSaveSubjects}
+              disabled={savingSubjects}
+              className="btn-primary w-full py-3 mt-5"
+            >
+              {savingSubjects
+                ? <span className="spinner border-white/40 border-t-white" />
+                : 'Save changes'
+              }
+            </button>
+          </div>
         )}
       </div>
     </TeacherShell>

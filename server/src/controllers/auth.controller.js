@@ -176,15 +176,12 @@ export const teacherLogin = asyncHandler(async (req, res) => {
 
 // ── POST /api/auth/teacher-register ────────────────────────────
 // Open teacher self-registration — no invite code required.
-// `subjects` here means "subjects I teach" (same field students use
-// for "subjects I'm studying") — it's what createClass checks against
-// so a teacher can only run classes in a subject they declared here.
+// Subjects and school level (examType) are chosen after sign-up, on
+// /teacher/onboarding, not here — `subjects` starts empty and is what
+// createClass checks against so a teacher can only run classes in a
+// subject they've declared, via PUT /api/settings/profile.
 export const teacherRegister = asyncHandler(async (req, res) => {
-  const { fullName, email, password, subjects } = req.body
-
-  if (!Array.isArray(subjects) || subjects.length === 0) {
-    throw new AppError('Select at least one subject you teach.', 400)
-  }
+  const { fullName, email, password } = req.body
 
   const existing = await User.findOne({ email })
   if (existing) throw new AppError('Email already registered.', 409)
@@ -194,7 +191,6 @@ export const teacherRegister = asyncHandler(async (req, res) => {
     email,
     password,
     role: 'teacher',
-    subjects,
   })
 
   const token = generateToken(user._id, user.role)

@@ -8,6 +8,7 @@ import LoginPage         from './pages/auth/LoginPage'
 import RegisterPage      from './pages/auth/RegisterPage'
 import AdminRegisterPage from './pages/auth/AdminRegisterPage'
 import OnboardingPage  from './pages/student/OnboardingPage'
+import TeacherOnboardingPage from './pages/teacher/TeacherOnboardingPage'
 import DashboardPage   from './pages/student/DashboardPage'
 import PracticePage    from './pages/student/PracticePage'
 import PredictionPage  from './pages/student/PredictionPage'
@@ -27,6 +28,11 @@ import TeacherPage     from './pages/teacher/TeacherPage'
 const roleHome = { student: '/dashboard', admin: '/admin', teacher: '/teacher' }
 const homeFor = (role) => roleHome[role] || '/dashboard'
 
+// Roles that must pick subjects (and, for teachers, a school level)
+// before using the rest of the app — checked by PrivateRoute below.
+// Admins have no entry, so they're never redirected to an onboarding page.
+const onboardingPathFor = { student: '/onboarding', teacher: '/teacher/onboarding' }
+
 // ── Route guards ───────────────────────────────────────────────
 // PrivateRoute: only logged-in users can access.
 // `allowedRoles` restricts a route to specific roles (e.g. ['admin'],
@@ -43,15 +49,17 @@ const PrivateRoute = ({ children, allowedRoles }) => {
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     return <Navigate to={homeFor(user.role)} replace />
   }
-  // Students pick their exam type + subjects on /onboarding after signing
-  // up (not on the sign-up form itself) — until they have, every other
-  // student route redirects there instead of rendering.
+  // Students and teachers each pick their exam type/level + subjects on
+  // their own onboarding page after signing up (not on the sign-up form
+  // itself) — until they have, every other route for that role redirects
+  // there instead of rendering.
+  const onboardingPath = onboardingPathFor[user.role]
   if (
-    user.role === 'student' &&
+    onboardingPath &&
     (!user.subjects || user.subjects.length === 0) &&
-    location.pathname !== '/onboarding'
+    location.pathname !== onboardingPath
   ) {
-    return <Navigate to="/onboarding" replace />
+    return <Navigate to={onboardingPath} replace />
   }
   return children
 }
@@ -129,6 +137,7 @@ const AppRoutes = () => (
     <Route path="/admin"       element={<PrivateRoute allowedRoles={['admin']}><AdminPage /></PrivateRoute>} />
 
     {/* Teacher — classes + assignment creation */}
+    <Route path="/teacher/onboarding" element={<PrivateRoute allowedRoles={['teacher']}><TeacherOnboardingPage /></PrivateRoute>} />
     <Route path="/teacher"     element={<PrivateRoute allowedRoles={['teacher']}><TeacherPage /></PrivateRoute>} />
 
     {/* Catch-all — role-aware, same as "/" */}

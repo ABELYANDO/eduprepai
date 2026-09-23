@@ -23,11 +23,6 @@ export const SUBJECTS_BECE = [
 export const getSubjectsForExamType = (examType) =>
   examType === 'BECE' ? SUBJECTS_BECE : SUBJECTS_WASSCE
 
-// A teacher isn't tied to one exam type the way a student is — they
-// might run a WASSCE class and a BECE class in the same subject — so
-// teacher signup picks from the union of both lists, deduplicated.
-export const getAllSubjects = () => [...new Set([...SUBJECTS_WASSCE, ...SUBJECTS_BECE])]
-
 // ── Subject groups ────────────────────────────────────────────
 // A group is a picker-only category standing in for several concrete
 // subjects. 'Ghanaian Language' never appears as a stored subject
