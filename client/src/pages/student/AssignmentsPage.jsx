@@ -108,7 +108,7 @@ export default function AssignmentsPage() {
                 Remedial assignments come from a teacher's class — ask your teacher for a join code, then add it below.
               </p>
               <Link
-                to="/settings?tab=classes"
+                to="/dashboard#classes"
                 className="btn-primary inline-flex mt-4 px-4 py-2"
               >
                 Join a class

@@ -4,23 +4,22 @@ import { useAuth }               from '../../context/AuthContext'
 import { useNotifications }      from '../../context/NotificationContext'
 import { useTheme }              from '../../context/ThemeContext'
 import { settingsAPI }           from '../../api/settings.api'
-import { assignmentAPI }         from '../../api/assignment.api'
 import AppShell                  from '../../components/layout/AppShell'
 import BadgeCard                 from '../../components/BadgeCard'
 import {
-  User, Lock, BookOpen, Award, Users,
+  User, Lock, Award,
   Save, Flame, Target, BarChart2,
-  CheckCircle2, AlertCircle, LogIn, LogOut,
+  CheckCircle2, AlertCircle,
   Sun, Moon, Monitor,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { SUBJECTS_WASSCE, SUBJECTS_BECE, getPickerTiles } from '../../constants/subjects'
 
 // ── Settings tabs ──────────────────────────────────────────────
+// Subjects and Classes moved to the Dashboard so they're immediately
+// visible/accessible without navigating into Settings — see
+// DashboardPage.jsx's "Your Subjects"/"Your Classes" sections.
 const TABS = [
   { id: 'profile',    label: 'Profile',    icon: User  },
-  { id: 'subjects',   label: 'Subjects',   icon: BookOpen },
-  { id: 'classes',    label: 'Classes',    icon: Users },
   { id: 'password',   label: 'Password',   icon: Lock  },
   { id: 'badges',     label: 'Badges',     icon: Award },
   { id: 'appearance', label: 'Appearance', icon: Sun },
@@ -42,7 +41,9 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
   const [saving,  setSaving]  = useState(false)
 
-  // ── Profile form state ─────────────────────────────────────
+  // ── Profile form state (examType/subjects are edited on the
+  // Dashboard now, not here — kept as pass-through state so saving
+  // the Profile tab doesn't clobber them) ─────────────────────
   const [fullName,  setFullName]  = useState('')
   const [school,    setSchool]    = useState('')
   const [examType,  setExamType]  = useState('WASSCE')
@@ -53,57 +54,6 @@ export default function SettingsPage() {
   const [newPw,     setNewPw]     = useState('')
   const [confirmPw, setConfirmPw] = useState('')
   const [pwError,   setPwError]   = useState('')
-  const [openGroup, setOpenGroup] = useState(null) // which group tile (e.g. 'Ghanaian Language') is expanded
-
-  // ── Classes (teacher join codes) ────────────────────────────
-  const [joinedClasses, setJoinedClasses] = useState([])
-  const [classesLoading, setClassesLoading] = useState(false)
-  const [joinCodeInput, setJoinCodeInput] = useState('')
-  const [joining, setJoining] = useState(false)
-
-  const loadClasses = async () => {
-    setClassesLoading(true)
-    try {
-      const data = await assignmentAPI.getClasses()
-      setJoinedClasses(data.classes || [])
-    } catch (err) {
-      toast.error(err.message)
-    } finally {
-      setClassesLoading(false)
-    }
-  }
-
-  const handleJoinClass = async (e) => {
-    e.preventDefault()
-    if (!joinCodeInput.trim()) return
-    setJoining(true)
-    try {
-      const data = await assignmentAPI.joinClass(joinCodeInput.trim())
-      toast.success(data.message)
-      setJoinCodeInput('')
-      loadClasses()
-    } catch (err) {
-      toast.error(err.message)
-    } finally {
-      setJoining(false)
-    }
-  }
-
-  const handleLeaveClass = async (cls) => {
-    if (!window.confirm(`Leave ${cls.name}? You'll keep access to work already assigned, but won't receive anything new from this class.`)) return
-    try {
-      await assignmentAPI.leaveClass(cls._id)
-      toast.success(`Left ${cls.name}`)
-      loadClasses()
-    } catch (err) {
-      toast.error(err.message)
-    }
-  }
-
-  useEffect(() => {
-    if (tab === 'classes' && joinedClasses.length === 0) loadClasses()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab])
 
   // ── Load profile ───────────────────────────────────────────
   useEffect(() => {
@@ -134,34 +84,6 @@ export default function SettingsPage() {
       updateUser({ fullName, school, examType, subjects })
       setProfile(prev => ({ ...prev, fullName, school, examType, subjects }))
       toast.success('Profile updated!')
-    } catch (err) {
-      toast.error(err.message)
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  // ── Save subjects ──────────────────────────────────────────
-  const toggleSubject = (s) => {
-    setSubjects(prev =>
-      prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]
-    )
-  }
-
-  // Group members (e.g. Ghanaian languages) are single-choice — picking
-  // one replaces any other member of the same group already selected.
-  const chooseGroupOption = (groupOptions, choice) => {
-    setSubjects(prev => [...prev.filter(x => !groupOptions.includes(x)), choice])
-    setOpenGroup(null)
-  }
-
-  const handleSaveSubjects = async () => {
-    if (subjects.length === 0) return toast.error('Select at least one subject')
-    setSaving(true)
-    try {
-      await settingsAPI.updateProfile({ subjects, examType })
-      updateUser({ subjects, examType })
-      toast.success('Subjects updated!')
     } catch (err) {
       toast.error(err.message)
     } finally {
@@ -222,8 +144,6 @@ export default function SettingsPage() {
       </div>
     </AppShell>
   )
-
-  const subjectList = examType === 'WASSCE' ? SUBJECTS_WASSCE : SUBJECTS_BECE
 
   return (
     <AppShell title="Settings" subtitle="Manage your account and preferences">
@@ -348,200 +268,6 @@ export default function SettingsPage() {
                 : <><Save className="w-4 h-4" /> Save profile</>
               }
             </button>
-          </div>
-        )}
-
-        {/* ══════════════ SUBJECTS TAB ═══════════════════════ */}
-        {tab === 'subjects' && (
-          <div className="card space-y-5 animate-fade-in">
-            <h3 className="section-title flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-teal-600" />
-              Examination type and subjects
-            </h3>
-
-            {/* Exam type */}
-            <div>
-              <label className="label">I am preparing for</label>
-              <div className="flex gap-3">
-                {['WASSCE', 'BECE'].map(t => (
-                  <button
-                    key={t}
-                    onClick={() => { setExamType(t); setSubjects([]); setOpenGroup(null) }}
-                    className={`
-                      flex-1 py-3 rounded-xl text-sm font-semibold border-2 transition-all
-                      ${examType === t
-                        ? 'bg-teal-600 text-white border-teal-600 shadow-md'
-                        : 'bg-surface text-slate-600 border-slate-200 hover:border-teal-300'
-                      }
-                    `}
-                  >
-                    {t}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Subject grid */}
-            <div>
-              <label className="label">
-                My subjects
-                <span className="text-teal-600 font-normal ml-1">
-                  ({subjects.length} selected)
-                </span>
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                {getPickerTiles(subjectList).map(tile => {
-                  if (tile.type === 'subject') {
-                    const s = tile.label
-                    const isSelected = subjects.includes(s)
-                    return (
-                      <button
-                        key={s}
-                        onClick={() => toggleSubject(s)}
-                        className={`
-                          flex items-center gap-2 text-left px-3 py-2.5
-                          rounded-xl text-sm font-medium border-2 transition-all
-                          ${isSelected
-                            ? 'bg-teal-50 text-teal-700 border-teal-400'
-                            : 'bg-surface text-slate-600 border-slate-200 hover:border-teal-200'
-                          }
-                        `}
-                      >
-                        <div className={`
-                          w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0
-                          ${isSelected
-                            ? 'bg-teal-500 border-teal-500'
-                            : 'border-slate-300'
-                          }
-                        `}>
-                          {isSelected && <CheckCircle2 className="w-3 h-3 text-white" />}
-                        </div>
-                        {s}
-                      </button>
-                    )
-                  }
-
-                  // ── Group tile (e.g. 'Ghanaian Language') — expands
-                  // into a single-choice list of its member subjects.
-                  const selectedOption = tile.options.find(o => subjects.includes(o))
-                  const isOpen = openGroup === tile.label
-                  return (
-                    <div key={tile.label} className="col-span-2">
-                      <button
-                        onClick={() => setOpenGroup(isOpen ? null : tile.label)}
-                        className={`
-                          w-full flex items-center justify-between gap-2 text-left px-3 py-2.5
-                          rounded-xl text-sm font-medium border-2 transition-all
-                          ${selectedOption
-                            ? 'bg-teal-50 text-teal-700 border-teal-400'
-                            : 'bg-surface text-slate-600 border-slate-200 hover:border-teal-200'
-                          }
-                        `}
-                      >
-                        <div className="flex items-center gap-2">
-                          <div className={`
-                            w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0
-                            ${selectedOption
-                              ? 'bg-teal-500 border-teal-500'
-                              : 'border-slate-300'
-                            }
-                          `}>
-                            {selectedOption && <CheckCircle2 className="w-3 h-3 text-white" />}
-                          </div>
-                          {tile.label}
-                        </div>
-                        <span className="text-xs text-slate-400 font-normal">
-                          {selectedOption || 'Choose one ›'}
-                        </span>
-                      </button>
-
-                      {isOpen && (
-                        <div className="mt-1.5 ml-2 pl-2.5 border-l-2 border-teal-200 space-y-1 animate-fade-in">
-                          {tile.options.map(lang => (
-                            <button
-                              key={lang}
-                              onClick={() => chooseGroupOption(tile.options, lang)}
-                              className={`w-full text-left px-2.5 py-1.5 rounded-md text-sm transition-colors ${
-                                selectedOption === lang
-                                  ? 'bg-teal-100 text-teal-800 font-semibold'
-                                  : 'text-slate-600 hover:bg-slate-50'
-                              }`}
-                            >
-                              {lang}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-
-            <button
-              onClick={handleSaveSubjects}
-              disabled={saving || subjects.length === 0}
-              className="btn-primary w-full py-3"
-            >
-              {saving
-                ? <><span className="spinner border-white/40 border-t-white" /> Saving…</>
-                : <><Save className="w-4 h-4" /> Save subjects</>
-              }
-            </button>
-          </div>
-        )}
-
-        {/* ══════════════ CLASSES TAB ════════════════════════ */}
-        {tab === 'classes' && (
-          <div className="space-y-5 animate-fade-in">
-            <div className="card">
-              <h3 className="section-title flex items-center gap-2">
-                <LogIn className="w-4 h-4 text-teal-600" />
-                Join a class
-              </h3>
-              <p className="text-sm text-slate-500 mb-4">
-                Enter the join code your teacher shared to receive their assignments.
-              </p>
-              <form onSubmit={handleJoinClass} className="flex gap-3">
-                <input
-                  type="text"
-                  value={joinCodeInput}
-                  onChange={e => setJoinCodeInput(e.target.value.toUpperCase())}
-                  placeholder="e.g. MATH-7K2Q"
-                  className="input flex-1"
-                />
-                <button type="submit" disabled={joining} className="btn-primary px-5">
-                  {joining ? <span className="spinner border-white/40 border-t-white" /> : 'Join'}
-                </button>
-              </form>
-            </div>
-
-            <div className="card">
-              <h3 className="section-title flex items-center gap-2">
-                <Users className="w-4 h-4 text-teal-600" />
-                Your classes
-              </h3>
-              {classesLoading && <p className="text-sm text-slate-400 text-center py-6">Loading…</p>}
-              {!classesLoading && joinedClasses.length === 0 && (
-                <p className="text-sm text-slate-400 text-center py-6">You haven't joined any classes yet.</p>
-              )}
-              <div className="space-y-2">
-                {joinedClasses.map(c => (
-                  <div key={c._id} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
-                    <div>
-                      <p className="text-sm font-medium text-slate-700">{c.name}</p>
-                      <p className="text-xs text-slate-400">{c.subject} · {c.examType} · Taught by {c.teacherId?.fullName || 'a teacher'}</p>
-                    </div>
-                    <button
-                      onClick={() => handleLeaveClass(c)}
-                      className="flex items-center gap-1 text-xs text-slate-400 hover:text-red-500 transition-colors flex-shrink-0"
-                    >
-                      <LogOut className="w-3.5 h-3.5" /> Leave
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         )}
 
