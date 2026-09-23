@@ -22,11 +22,11 @@ export default function AppShell({ children, title, subtitle, bgOpacity = 0.93 }
   const [mobileOpen,  setMobileOpen]  = useState(false)
   const [paletteOpen, setPaletteOpen] = useState(false)
   const { theme } = useTheme()
-  // Light mode washes the photo with the light teal --color-bg
-  // (240,253,250 = #F0FDFA); dark mode washes it with the dark
+  // Light mode washes the photo with the light navy --color-bg
+  // (238,243,250 = #EEF3FA); dark mode washes it with the dark
   // --color-bg (11,17,32 = #0B1120) instead of literally the same
   // light wash, which would otherwise stay light regardless of theme.
-  const washRGB = theme === 'dark' ? '11,17,32' : '240,253,250'
+  const washRGB = theme === 'dark' ? '11,17,32' : '238,243,250'
 
   // Global ⌘K / Ctrl+K shortcut — works from any authenticated page
   useEffect(() => {

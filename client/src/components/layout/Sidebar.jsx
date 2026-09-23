@@ -72,7 +72,7 @@ export default function Sidebar({ mobileOpen, onClose }) {
         `}
         style={{
           width: 'var(--sidebar-width)',
-          background: 'linear-gradient(180deg, #134E4A 0%, #0D3B37 100%)',
+          background: 'linear-gradient(180deg, #0F2A4D 0%, #081527 100%)',
         }}
         aria-label="Main navigation"
       >

@@ -63,10 +63,10 @@ export default function AccuracyChart({ data = [] }) {
           <Line
             type="monotone"
             dataKey="accuracyDisplay"
-            stroke="#0D9488"
+            stroke="#1F4E8C"
             strokeWidth={2.5}
-            dot={{ fill: '#0D9488', r: 4, strokeWidth: 0 }}
-            activeDot={{ r: 6, fill: '#0D9488' }}
+            dot={{ fill: '#1F4E8C', r: 4, strokeWidth: 0 }}
+            activeDot={{ r: 6, fill: '#1F4E8C' }}
             connectNulls={false}
           />
         </LineChart>

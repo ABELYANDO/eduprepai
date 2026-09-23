@@ -37,8 +37,8 @@ export default function SubjectRadar({ data = [] }) {
           <Radar
             name="accuracy"
             dataKey="accuracy"
-            stroke="#0D9488"
-            fill="#0D9488"
+            stroke="#1F4E8C"
+            fill="#1F4E8C"
             fillOpacity={0.15}
             strokeWidth={2}
           />

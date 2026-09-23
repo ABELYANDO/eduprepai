@@ -3,17 +3,17 @@
 
 @layer base {
   :root {
-    --color-primary:        #0D9488;
-    --color-primary-dark:   #0F766E;
-    --color-primary-light:  #2DD4BF;
-    --color-primary-50:     #F0FDFA;
+    --color-primary:        #1F4E8C;
+    --color-primary-dark:   #163E70;
+    --color-primary-light:  #5C87C4;
+    --color-primary-50:     #EEF3FA;
     --color-accent:         #D97706;
     --color-success:        #10B981;
     --color-danger:         #EF4444;
-    --color-bg:             #F0FDFA;
+    --color-bg:             #EEF3FA;
     --color-surface:        #FFFFFF;
-    --color-sidebar:        #134E4A;
-    --color-text:           #134E4A;
+    --color-sidebar:        #0B2141;
+    --color-text:           #15304F;
     --color-text-secondary: #64748B;
     --color-border:         #E2E8F0;
     --sidebar-width:        260px;
@@ -168,6 +168,32 @@
   50%       { opacity: 0.6; }
 }
 .animate-pulse-soft { animation: pulse-soft 1.5s ease-in-out infinite; }
+
+/* ── Brand retint: teal → deep navy ────────────────────────────────
+   Every Tailwind teal-* utility across the whole app (bg-teal-600,
+   text-teal-700, badge-teal, .btn-primary, progress bars, sidebar
+   active states, ...) compiles to var(--color-teal-N) — same fact
+   .admin-theme below already relies on to retint the admin portal
+   from teal to indigo with zero component edits. This block does the
+   same thing at the root, for the whole student/teacher surface: a
+   deliberately un-generic deep navy in place of the very common
+   teal/emerald "AI app" default, without touching any component file.
+   Placed unlayered (outside @layer, like .admin-theme and the dark-mode
+   block below) so it reliably wins over Tailwind's own layered theme
+   defaults — @layer base's own :root block above is NOT where Tailwind's
+   defaults get overridden; this plain :root rule is. */
+:root {
+  --color-teal-50:  #EEF3FA;
+  --color-teal-100: #DCE7F5;
+  --color-teal-200: #B9CFEB;
+  --color-teal-300: #8FB0DC;
+  --color-teal-400: #5C87C4;
+  --color-teal-500: #3A66A8;
+  --color-teal-600: #1F4E8C;
+  --color-teal-700: #163E70;
+  --color-teal-800: #102F57;
+  --color-teal-900: #0B2141;
+}
 
 /* ── Admin portal theme ───────────────────────────────────────────
    Every admin panel component (buttons, badges, cards, inputs) reuses
