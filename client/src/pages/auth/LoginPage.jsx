@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { GraduationCap, Mail, Lock, ArrowRight, Eye, EyeOff, UserCircle, Check, Trophy, AlertTriangle } from 'lucide-react'
@@ -24,6 +24,17 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState('')
   const [showPw,  setShowPw]  = useState(false)
+  const errorRef = useRef(null)
+
+  // The mobile browser's own "Save password?" prompt can pop up right
+  // over this banner the moment the form is submitted, making it easy
+  // to miss even though it's still on screen — a toast (separate,
+  // top-of-screen, stays for a few seconds) backs it up, and scrolling
+  // the inline banner into view handles it being pushed off-screen by
+  // the on-screen keyboard closing.
+  useEffect(() => {
+    if (error) errorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [error])
 
   const handleChange  = (e) => { setError(''); setForm({ ...form, [e.target.name]: e.target.value }) }
 
@@ -37,6 +48,7 @@ export default function LoginPage() {
       navigate(home)
     } catch (err) {
       setError(err.message)
+      toast.error(err.message)
     } finally {
       setLoading(false)
     }
@@ -144,7 +156,10 @@ export default function LoginPage() {
 
           {/* Error banner */}
           {error && (
-            <div className="flex items-start gap-2.5 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 mb-5 text-sm animate-fade-in">
+            <div
+              ref={errorRef}
+              className="flex items-start gap-2.5 bg-red-50 border-2 border-red-300 text-red-700 rounded-xl px-4 py-3 mb-5 text-sm font-medium animate-fade-in"
+            >
               <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
               {error}
             </div>
