@@ -14,19 +14,19 @@ import { useTheme } from '../../context/ThemeContext'
 //     <YourPageContent />
 //   </AppShell>
 //
-// `bgOpacity` (0-1) controls how much of the background photo shows
-// through the page-colour wash — defaults to a subtle texture; pass a
-// lower value (e.g. from DashboardPage) to make it more visible on a
-// specific page without changing every other page under this shell.
-export default function AppShell({ children, title, subtitle, bgOpacity = 0.93 }) {
+// The background photo wash (colour + opacity) is fixed at the same
+// value used everywhere else the photo appears — TeacherShell,
+// AdminShell, and every pre-login page — so it reads as one
+// consistent app-wide texture rather than varying per page.
+export default function AppShell({ children, title, subtitle }) {
   const [mobileOpen,  setMobileOpen]  = useState(false)
   const [paletteOpen, setPaletteOpen] = useState(false)
   const { theme } = useTheme()
   // Light mode washes the photo with the light navy --color-bg
   // (238,243,250 = #EEF3FA); dark mode washes it with the dark
-  // --color-bg (11,17,32 = #0B1120) instead of literally the same
+  // --color-bg (11,11,15 = #0B0B0F) instead of literally the same
   // light wash, which would otherwise stay light regardless of theme.
-  const washRGB = theme === 'dark' ? '11,17,32' : '238,243,250'
+  const washRGB = theme === 'dark' ? '11,11,15' : '238,243,250'
 
   // Global ⌘K / Ctrl+K shortcut — works from any authenticated page
   useEffect(() => {
@@ -51,7 +51,7 @@ export default function AppShell({ children, title, subtitle, bgOpacity = 0.93 }
         // iOS Safari renders fixed backgrounds incorrectly, making them
         // visibly jump/shift during scroll. Scrolling with the page is
         // the correct, glitch-free behavior on every browser.
-        backgroundImage: `linear-gradient(rgba(${washRGB},${bgOpacity}), rgba(${washRGB},${bgOpacity})), url(${examHallBg})`,
+        backgroundImage: `linear-gradient(rgba(${washRGB},0.85), rgba(${washRGB},0.85)), url(${examHallBg})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',

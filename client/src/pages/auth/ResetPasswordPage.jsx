@@ -4,9 +4,15 @@ import { GraduationCap, Lock, ArrowRight, Eye, EyeOff, AlertTriangle } from 'luc
 import toast from 'react-hot-toast'
 import { authAPI } from '../../api/auth.api'
 import ThemeToggle from '../../components/ThemeToggle'
+import { useTheme } from '../../context/ThemeContext'
+import examHallBg from '../../assets/exam-hall-bg.jpg'
 
 export default function ResetPasswordPage() {
   const navigate = useNavigate()
+  const { theme } = useTheme()
+  // Same wash colour/opacity used everywhere else the background photo
+  // appears, so it reads consistently across every page in the app.
+  const washRGB = theme === 'dark' ? '11,11,15' : '238,243,250'
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token')
 
@@ -39,7 +45,12 @@ export default function ResetPasswordPage() {
   return (
     <div
       className="min-h-screen flex items-center justify-center p-5 relative"
-      style={{ background: 'var(--color-bg)' }}
+      style={{
+        backgroundImage: `linear-gradient(rgba(${washRGB},0.85), rgba(${washRGB},0.85)), url(${examHallBg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }}
     >
       <div className="absolute top-4 right-4 z-10">
         <ThemeToggle className="text-slate-500 hover:bg-slate-100 hover:text-slate-700" />

@@ -13,7 +13,9 @@ export default function TeacherShell({ children }) {
   const { user, logout } = useAuth()
   const navigate           = useNavigate()
   const { theme } = useTheme()
-  const washRGB = theme === 'dark' ? '11,17,32' : '241,245,249'
+  // Same wash colour/opacity as AppShell/AdminShell/every pre-login
+  // page, so the background photo reads consistently app-wide.
+  const washRGB = theme === 'dark' ? '11,11,15' : '238,243,250'
 
   const handleLogout = () => {
     logout()
@@ -27,7 +29,7 @@ export default function TeacherShell({ children }) {
         // backgroundAttachment: 'fixed' is deliberately NOT used here —
         // iOS Safari renders fixed backgrounds incorrectly, making them
         // visibly jump/shift during scroll.
-        backgroundImage: `linear-gradient(rgba(${washRGB},0.93), rgba(${washRGB},0.93)), url(${examHallBg})`,
+        backgroundImage: `linear-gradient(rgba(${washRGB},0.85), rgba(${washRGB},0.85)), url(${examHallBg})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',

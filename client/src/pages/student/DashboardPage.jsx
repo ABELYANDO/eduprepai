@@ -97,7 +97,6 @@ export default function DashboardPage() {
     <AppShell
       title={`Welcome back, ${user?.fullName?.split(' ')[0] || 'Student'} 👋`}
       subtitle={`${user?.examType || 'WASSCE'} preparation dashboard`}
-      bgOpacity={0.75}
     >
       <div className="max-w-5xl mx-auto space-y-7">
 

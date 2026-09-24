@@ -5,6 +5,7 @@ import { GraduationCap, Mail, Lock, ArrowRight, Eye, EyeOff, UserCircle, Check, 
 import toast from 'react-hot-toast'
 import examHallBg from '../../assets/exam-hall-bg.jpg'
 import ThemeToggle from '../../components/ThemeToggle'
+import { useTheme } from '../../context/ThemeContext'
 
 // One page for all three roles instead of three separate login pages
 // (which is exactly what caused sessions to silently overwrite each
@@ -19,6 +20,10 @@ const ROLES = {
 export default function LoginPage() {
   const auth     = useAuth()
   const navigate = useNavigate()
+  const { theme } = useTheme()
+  // Same wash colour/opacity used everywhere else the background photo
+  // appears, so it reads consistently across every page in the app.
+  const washRGB = theme === 'dark' ? '11,11,15' : '238,243,250'
 
   const [role,    setRole]    = useState('student')
   const [form,    setForm]    = useState({ email: '', password: '' })
@@ -59,7 +64,15 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex relative" style={{ background: 'var(--color-bg)' }}>
+    <div
+      className="min-h-screen flex relative"
+      style={{
+        backgroundImage: `linear-gradient(rgba(${washRGB},0.85), rgba(${washRGB},0.85)), url(${examHallBg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
 
       {/* Pre-login pages have no shell/TopBar of their own, so without
          this the theme is stuck following whatever the device's system
