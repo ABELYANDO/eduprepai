@@ -34,10 +34,12 @@ export default function AdminShell({ children }) {
         // More visible than the student AppShell's default wash, per
         // request — the admin console's cards are all solid white, so a
         // clearer background image doesn't hurt readability here.
+        // backgroundAttachment: 'fixed' is deliberately NOT used here —
+        // iOS Safari renders fixed backgrounds incorrectly, making them
+        // visibly jump/shift during scroll.
         backgroundImage: `linear-gradient(rgba(${washRGB},0.75), rgba(${washRGB},0.75)), url(${examHallBg})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundAttachment: 'fixed',
         backgroundRepeat: 'no-repeat',
       }}
     >

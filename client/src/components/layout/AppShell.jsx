@@ -47,10 +47,13 @@ export default function AppShell({ children, title, subtitle, bgOpacity = 0.93 }
         // A faint wash of the page's own background colour over the photo
         // keeps every card/text element exactly as readable as before —
         // the image should read as texture, not compete with content.
+        // backgroundAttachment: 'fixed' is deliberately NOT used here —
+        // iOS Safari renders fixed backgrounds incorrectly, making them
+        // visibly jump/shift during scroll. Scrolling with the page is
+        // the correct, glitch-free behavior on every browser.
         backgroundImage: `linear-gradient(rgba(${washRGB},${bgOpacity}), rgba(${washRGB},${bgOpacity})), url(${examHallBg})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundAttachment: 'fixed',
         backgroundRepeat: 'no-repeat',
       }}
     >

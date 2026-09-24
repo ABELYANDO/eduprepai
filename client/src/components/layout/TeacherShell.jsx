@@ -24,10 +24,12 @@ export default function TeacherShell({ children }) {
     <div
       className="min-h-screen"
       style={{
+        // backgroundAttachment: 'fixed' is deliberately NOT used here —
+        // iOS Safari renders fixed backgrounds incorrectly, making them
+        // visibly jump/shift during scroll.
         backgroundImage: `linear-gradient(rgba(${washRGB},0.93), rgba(${washRGB},0.93)), url(${examHallBg})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundAttachment: 'fixed',
         backgroundRepeat: 'no-repeat',
       }}
     >
