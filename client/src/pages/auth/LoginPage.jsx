@@ -48,7 +48,10 @@ export default function LoginPage() {
       navigate(home)
     } catch (err) {
       setError(err.message)
-      toast.error(err.message)
+      // Longer than the app's default 4s — the browser's own
+      // "Save password?" prompt often competes for attention right
+      // after a failed login, so this needs more time to be noticed.
+      toast.error(err.message, { duration: 8000 })
     } finally {
       setLoading(false)
     }
