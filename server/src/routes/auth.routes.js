@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import rateLimit from 'express-rate-limit'
-import { register, login, getMe, adminLogin, adminRegister, teacherLogin, teacherRegister } from '../controllers/auth.controller.js'
+import { register, login, getMe, adminLogin, adminRegister, teacherLogin, teacherRegister, forgotPassword, resetPassword } from '../controllers/auth.controller.js'
 import { protect } from '../middleware/auth.middleware.js'
 
 const router = Router()
@@ -15,9 +15,19 @@ const adminAuthLimiter = rateLimit({
   message:  { success: false, message: 'Too many attempts. Please try again later.' },
 })
 
+// Stricter limiter for password-reset requests — arbitrary emails can
+// be submitted repeatedly, and it triggers an outbound email each time.
+const forgotPasswordLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max:      5,
+  message:  { success: false, message: 'Too many attempts. Please try again later.' },
+})
+
 // Public routes — no token needed
 router.post('/register', register)
 router.post('/login',    login)
+router.post('/forgot-password', forgotPasswordLimiter, forgotPassword)
+router.post('/reset-password',  forgotPasswordLimiter, resetPassword)
 
 // Admin — separate from student register/login entirely
 router.post('/admin-login',    adminAuthLimiter, adminLogin)

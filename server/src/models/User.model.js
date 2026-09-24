@@ -85,6 +85,21 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+
+    // ── Password reset ──────────────────────────────────────────
+    // Only a SHA-256 hash of the reset token is ever stored here (the
+    // raw token only exists in the emailed link) — same "never store
+    // the usable secret" convention as `password` above, hence the
+    // matching select: false.
+    passwordResetToken: {
+      type: String,
+      select: false,
+    },
+
+    passwordResetExpires: {
+      type: Date,
+      select: false,
+    },
   },
   {
     timestamps: true,         // adds createdAt and updatedAt automatically

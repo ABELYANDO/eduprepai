@@ -204,6 +204,11 @@ export default function LoginPage() {
                   {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
+              <div className="flex justify-end mt-1.5">
+                <Link to="/forgot-password" className="text-xs text-teal-600 hover:text-teal-700 transition-colors">
+                  Forgot password?
+                </Link>
+              </div>
             </div>
 
             <button type="submit" disabled={loading} className="btn-primary w-full py-3 text-base">

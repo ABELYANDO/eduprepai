@@ -1,5 +1,7 @@
+import crypto from 'crypto'
 import User from '../models/User.model.js'
 import { generateToken } from '../utils/jwt.js'
+import { sendPasswordResetEmail } from '../utils/email.utils.js'
 import { asyncHandler, AppError } from '../middleware/error.middleware.js'
 
 // ── POST /api/auth/register ────────────────────────────────────
@@ -142,6 +144,63 @@ export const adminRegister = asyncHandler(async (req, res) => {
     message: 'Admin account created successfully!',
     token,
     user: user.toSafeObject(),
+  })
+})
+
+// ── POST /api/auth/forgot-password ─────────────────────────────
+// Always responds with the same generic message whether or not the
+// email is registered — same "identical response regardless of
+// cause" convention login/adminLogin use, so this can't be used to
+// check which emails have an account.
+export const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body
+  if (!email) throw new AppError('Email is required.', 400)
+
+  const user = await User.findOne({ email })
+
+  if (user) {
+    const rawToken = crypto.randomBytes(32).toString('hex')
+    user.passwordResetToken   = crypto.createHash('sha256').update(rawToken).digest('hex')
+    user.passwordResetExpires = Date.now() + 30 * 60 * 1000 // 30 minutes
+    await user.save({ validateBeforeSave: false })
+
+    const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password?token=${rawToken}`
+    await sendPasswordResetEmail(user.email, resetUrl)
+  }
+
+  res.json({
+    success: true,
+    message: "If that email is registered, we've sent a reset link.",
+  })
+})
+
+// ── POST /api/auth/reset-password ──────────────────────────────
+export const resetPassword = asyncHandler(async (req, res) => {
+  const { token, newPassword } = req.body
+  if (!token || !newPassword) {
+    throw new AppError('Token and new password are required.', 400)
+  }
+  if (newPassword.length < 6) {
+    throw new AppError('Password must be at least 6 characters', 400)
+  }
+
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex')
+
+  const user = await User.findOne({
+    passwordResetToken:   hashedToken,
+    passwordResetExpires: { $gt: Date.now() },
+  }).select('+password +passwordResetToken +passwordResetExpires')
+
+  if (!user) throw new AppError('This reset link is invalid or has expired.', 400)
+
+  user.password             = newPassword // re-hashed by the pre('save') hook
+  user.passwordResetToken   = undefined
+  user.passwordResetExpires = undefined
+  await user.save()
+
+  res.json({
+    success: true,
+    message: 'Password reset successfully — you can now log in.',
   })
 })
 

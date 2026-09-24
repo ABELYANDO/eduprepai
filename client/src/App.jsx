@@ -7,6 +7,8 @@ import { ThemeProvider } from './context/ThemeContext'
 import LoginPage         from './pages/auth/LoginPage'
 import RegisterPage      from './pages/auth/RegisterPage'
 import AdminRegisterPage from './pages/auth/AdminRegisterPage'
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
+import ResetPasswordPage  from './pages/auth/ResetPasswordPage'
 import OnboardingPage  from './pages/student/OnboardingPage'
 import TeacherOnboardingPage from './pages/teacher/TeacherOnboardingPage'
 import DashboardPage   from './pages/student/DashboardPage'
@@ -104,6 +106,8 @@ const AppRoutes = () => (
     {/* Public — redirect to the right landing page if already logged in */}
     <Route path="/login"       element={<PublicRoute><LoginPage /></PublicRoute>} />
     <Route path="/register"    element={<PublicRoute><RegisterPage /></PublicRoute>} />
+    <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
+    <Route path="/reset-password"  element={<PublicRoute><ResetPasswordPage /></PublicRoute>} />
 
     {/* Admin — separate entry point, never linked from student pages.
        Admin registration stays its own dedicated invite-gated page,
