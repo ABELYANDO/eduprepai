@@ -45,11 +45,11 @@ export const login = asyncHandler(async (req, res) => {
 
   // 2. Find user — we need password so we explicitly select it back
   const user = await User.findOne({ email }).select('+password')
-  if (!user) throw new AppError('Invalid email or password.', 401)
+  if (!user) throw new AppError('Invalid email or password. Please try again.', 401)
 
   // 3. Check password
   const isMatch = await user.comparePassword(password)
-  if (!isMatch) throw new AppError('Invalid email or password.', 401)
+  if (!isMatch) throw new AppError('Invalid email or password. Please try again.', 401)
 
   // 4. Update last active
   user.lastActive = new Date()
@@ -95,7 +95,7 @@ export const adminLogin = asyncHandler(async (req, res) => {
   const isMatch = user ? await user.comparePassword(password) : false
 
   if (!user || !isMatch || user.role !== 'admin') {
-    throw new AppError('Invalid email or password.', 401)
+    throw new AppError('Invalid email or password. Please try again.', 401)
   }
 
   user.lastActive = new Date()
@@ -217,7 +217,7 @@ export const teacherLogin = asyncHandler(async (req, res) => {
   const isMatch = user ? await user.comparePassword(password) : false
 
   if (!user || !isMatch || user.role !== 'teacher') {
-    throw new AppError('Invalid email or password.', 401)
+    throw new AppError('Invalid email or password. Please try again.', 401)
   }
 
   user.lastActive = new Date()
