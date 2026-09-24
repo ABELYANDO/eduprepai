@@ -64,15 +64,19 @@ export default function LoginPage() {
   }
 
   return (
-    <div
-      className="min-h-screen flex relative"
-      style={{
-        backgroundImage: `linear-gradient(rgba(${washRGB},0.85), rgba(${washRGB},0.85)), url(${examHallBg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-      }}
-    >
+    <div className="min-h-screen flex relative">
+      {/* A real position:fixed element, not background-attachment:
+         fixed — iOS Safari renders that CSS property incorrectly
+         (stretches/shifts on scroll as the address bar hides). */}
+      <div
+        className="fixed inset-0 -z-10 pointer-events-none"
+        style={{
+          backgroundImage: `linear-gradient(rgba(${washRGB},0.85), rgba(${washRGB},0.85)), url(${examHallBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }}
+      />
 
       {/* Pre-login pages have no shell/TopBar of their own, so without
          this the theme is stuck following whatever the device's system

@@ -41,22 +41,26 @@ export default function AppShell({ children, title, subtitle }) {
   }, [])
 
   return (
-    <div
-      className="min-h-screen"
-      style={{
-        // A faint wash of the page's own background colour over the photo
-        // keeps every card/text element exactly as readable as before —
-        // the image should read as texture, not compete with content.
-        // backgroundAttachment: 'fixed' is deliberately NOT used here —
-        // iOS Safari renders fixed backgrounds incorrectly, making them
-        // visibly jump/shift during scroll. Scrolling with the page is
-        // the correct, glitch-free behavior on every browser.
-        backgroundImage: `linear-gradient(rgba(${washRGB},0.85), rgba(${washRGB},0.85)), url(${examHallBg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-      }}
-    >
+    <div className="min-h-screen">
+      {/* A real position:fixed element, not the CSS background-attachment:
+         fixed property — iOS Safari renders THAT incorrectly (the image
+         stretches/shifts as the address bar hides on scroll, since it
+         recalculates against a resizing 100vh container). A fixed
+         element's box is anchored to the viewport correctly everywhere,
+         so this stays perfectly still and doesn't distort. */}
+      <div
+        className="fixed inset-0 -z-10 pointer-events-none"
+        style={{
+          // A faint wash of the page's own background colour over the photo
+          // keeps every card/text element exactly as readable as before —
+          // the image should read as texture, not compete with content.
+          backgroundImage: `linear-gradient(rgba(${washRGB},0.85), rgba(${washRGB},0.85)), url(${examHallBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }}
+      />
+
       <Sidebar
         mobileOpen={mobileOpen}
         onClose={() => setMobileOpen(false)}

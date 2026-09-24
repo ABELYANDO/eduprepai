@@ -92,15 +92,19 @@ export default function RegisterPage() {
   }
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center p-5 relative"
-      style={{
-        backgroundImage: `linear-gradient(rgba(${washRGB},0.85), rgba(${washRGB},0.85)), url(${examHallBg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-      }}
-    >
+    <div className="min-h-screen flex items-center justify-center p-5 relative">
+      {/* A real position:fixed element, not background-attachment:
+         fixed — iOS Safari renders that CSS property incorrectly
+         (stretches/shifts on scroll as the address bar hides). */}
+      <div
+        className="fixed inset-0 -z-10 pointer-events-none"
+        style={{
+          backgroundImage: `linear-gradient(rgba(${washRGB},0.85), rgba(${washRGB},0.85)), url(${examHallBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }}
+      />
       <div className="absolute top-4 right-4 z-10">
         <ThemeToggle className="text-slate-500 hover:bg-slate-100 hover:text-slate-700" />
       </div>
