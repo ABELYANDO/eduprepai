@@ -30,6 +30,11 @@
     color: var(--color-text);
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
+    /* Safety net — a flex/grid row somewhere that doesn't shrink
+       properly on a narrow phone should wrap or get clipped, not force
+       the whole page to scroll sideways. This doesn't fix a mis-sized
+       row itself, just stops it from taking the whole viewport with it. */
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {

@@ -250,18 +250,23 @@ export default function TeacherPage() {
           </div>
         </div>
 
-        {/* Tab bar */}
+        {/* Tab bar — min-w-0 lets these shrink below their label's natural
+           width; without it, flex items refuse to shrink past their
+           content size, so 4 tabs (one as long as "Review Submissions")
+           force the whole row (and page) wider than a narrow phone
+           screen. Labels hide below sm, leaving icon-only tabs, same
+           convention as TeacherShell's Sign out button. */}
         <div className="flex gap-1 bg-slate-100/80 rounded-xl p-1">
           {TABS.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               onClick={() => setTab(id)}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+              className={`flex-1 min-w-0 flex items-center justify-center gap-1.5 py-2.5 px-2 sm:px-3 rounded-lg text-sm font-medium transition-all duration-200 ${
                 tab === id ? 'bg-surface text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               <Icon className="w-4 h-4 flex-shrink-0" />
-              {label}
+              <span className="hidden sm:inline truncate">{label}</span>
             </button>
           ))}
         </div>
@@ -490,12 +495,12 @@ export default function TeacherPage() {
                 <h3 className="section-title">Assignments given</h3>
                 <div className="space-y-2">
                   {assignments.map(a => (
-                    <div key={a._id} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
-                      <div>
-                        <p className="text-sm font-medium text-slate-700">{a.title}</p>
+                    <div key={a._id} className="flex items-center justify-between gap-3 py-2 border-b border-slate-100 last:border-0">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-slate-700 truncate">{a.title}</p>
                         <p className="text-xs text-slate-400">{a.subject} · {a.questionCount} question{a.questionCount !== 1 ? 's' : ''}</p>
                       </div>
-                      <span className="badge-blue text-xs">{a.submittedCount}/{a.totalStudents} submitted</span>
+                      <span className="badge-blue text-xs flex-shrink-0">{a.submittedCount}/{a.totalStudents} submitted</span>
                     </div>
                   ))}
                 </div>
