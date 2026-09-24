@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { GraduationCap, Mail, Lock, ArrowRight, Eye, EyeOff, UserCircle, Check, Trophy, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import examHallBg from '../../assets/exam-hall-bg.jpg'
+import ThemeToggle from '../../components/ThemeToggle'
 
 // One page for all three roles instead of three separate login pages
 // (which is exactly what caused sessions to silently overwrite each
@@ -58,7 +59,14 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex" style={{ background: 'var(--color-bg)' }}>
+    <div className="min-h-screen flex relative" style={{ background: 'var(--color-bg)' }}>
+
+      {/* Pre-login pages have no shell/TopBar of their own, so without
+         this the theme is stuck following whatever the device's system
+         setting happens to be, with no way to switch it manually. */}
+      <div className="absolute top-4 right-4 z-10">
+        <ThemeToggle className="text-slate-500 hover:bg-slate-100 hover:text-slate-700" />
+      </div>
 
       {/* ── Left branding panel — desktop only ───────────── */}
       {/* Photo sits behind the dark gradient here, not the form side —

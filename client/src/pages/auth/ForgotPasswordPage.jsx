@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { GraduationCap, Mail, ArrowRight, AlertTriangle, MailCheck } from 'lucide-react'
 import { authAPI } from '../../api/auth.api'
+import ThemeToggle from '../../components/ThemeToggle'
 
 export default function ForgotPasswordPage() {
   const [email,   setEmail]   = useState('')
@@ -24,9 +25,13 @@ export default function ForgotPasswordPage() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-5"
+      className="min-h-screen flex items-center justify-center p-5 relative"
       style={{ background: 'var(--color-bg)' }}
     >
+      <div className="absolute top-4 right-4 z-10">
+        <ThemeToggle className="text-slate-500 hover:bg-slate-100 hover:text-slate-700" />
+      </div>
+
       <div className="w-full max-w-md animate-fade-in">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-teal-600 mb-4">

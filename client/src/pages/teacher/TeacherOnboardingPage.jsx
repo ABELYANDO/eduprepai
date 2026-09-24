@@ -5,6 +5,7 @@ import { Users, ArrowRight } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { settingsAPI } from '../../api/settings.api'
 import SubjectLevelPicker from '../../components/teacher/SubjectLevelPicker'
+import ThemeToggle from '../../components/ThemeToggle'
 
 // ── TeacherOnboardingPage ────────────────────────────────────────
 // Shown right after a teacher signs up (and to any teacher who hasn't
@@ -39,9 +40,13 @@ export default function TeacherOnboardingPage() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-5"
+      className="min-h-screen flex items-center justify-center p-5 relative"
       style={{ background: 'var(--color-bg)' }}
     >
+      <div className="absolute top-4 right-4 z-10">
+        <ThemeToggle className="text-slate-500 hover:bg-slate-100 hover:text-slate-700" />
+      </div>
+
       <div className="w-full max-w-lg animate-fade-in">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-teal-600 mb-4">

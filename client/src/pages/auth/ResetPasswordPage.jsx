@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { GraduationCap, Lock, ArrowRight, Eye, EyeOff, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { authAPI } from '../../api/auth.api'
+import ThemeToggle from '../../components/ThemeToggle'
 
 export default function ResetPasswordPage() {
   const navigate = useNavigate()
@@ -37,9 +38,13 @@ export default function ResetPasswordPage() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-5"
+      className="min-h-screen flex items-center justify-center p-5 relative"
       style={{ background: 'var(--color-bg)' }}
     >
+      <div className="absolute top-4 right-4 z-10">
+        <ThemeToggle className="text-slate-500 hover:bg-slate-100 hover:text-slate-700" />
+      </div>
+
       <div className="w-full max-w-md animate-fade-in">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-teal-600 mb-4">

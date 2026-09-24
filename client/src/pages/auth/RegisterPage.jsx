@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { GraduationCap, User, Mail, Lock, School, ArrowRight, Eye, EyeOff, Users, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
+import ThemeToggle from '../../components/ThemeToggle'
 
 export default function RegisterPage() {
   const { register, teacherRegister } = useAuth()
@@ -86,9 +87,13 @@ export default function RegisterPage() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-5"
+      className="min-h-screen flex items-center justify-center p-5 relative"
       style={{ background: 'var(--color-bg)' }}
     >
+      <div className="absolute top-4 right-4 z-10">
+        <ThemeToggle className="text-slate-500 hover:bg-slate-100 hover:text-slate-700" />
+      </div>
+
       <div className="w-full max-w-lg animate-fade-in">
 
         {/* Header */}

@@ -5,6 +5,7 @@ import { GraduationCap, ArrowRight } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { settingsAPI } from '../../api/settings.api'
 import SubjectPicker from '../../components/student/SubjectPicker'
+import ThemeToggle from '../../components/ThemeToggle'
 
 // ── OnboardingPage ────────────────────────────────────────────
 // Shown right after a student signs up (and to any student who
@@ -36,9 +37,13 @@ export default function OnboardingPage() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-5"
+      className="min-h-screen flex items-center justify-center p-5 relative"
       style={{ background: 'var(--color-bg)' }}
     >
+      <div className="absolute top-4 right-4 z-10">
+        <ThemeToggle className="text-slate-500 hover:bg-slate-100 hover:text-slate-700" />
+      </div>
+
       <div className="w-full max-w-lg animate-fade-in">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-teal-600 mb-4">
