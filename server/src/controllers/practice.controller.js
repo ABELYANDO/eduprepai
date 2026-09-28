@@ -286,8 +286,7 @@ export const submitAnswer = asyncHandler(async (req, res) => {
     studentAnswer,
     timeTaken = 0,
     wasScanned = false,
-    photoData = '',
-    photoMimeType = '',
+    scannedFiles = [],
   } = req.body
 
   if (!questionId || studentAnswer === undefined) {
@@ -377,8 +376,7 @@ export const submitAnswer = asyncHandler(async (req, res) => {
       // Session document without the client having to merge them in
       // separately — see questionResultSchema in Session.model.js.
       wasScanned:    !!wasScanned,
-      photoData:     wasScanned ? photoData : '',
-      photoMimeType: wasScanned ? photoMimeType : '',
+      scannedFiles:  wasScanned ? scannedFiles : [],
       topic:         question.topic,
       subject:       question.subject,
       correctAnswer: question.type === 'MCQ' ? question.correctOption : null,

@@ -194,7 +194,9 @@ export const getSubmission = asyncHandler(async (req, res) => {
     submission: {
       id:      submission._id,
       status:  submission.status,
-      answers: showResults ? submission.answers : submission.answers.map(a => ({ studentAnswer: a.studentAnswer })),
+      answers: showResults ? submission.answers : submission.answers.map(a => ({
+        studentAnswer: a.studentAnswer, wasScanned: a.wasScanned, scannedFiles: a.scannedFiles,
+      })),
       totalMarks: showResults ? submission.totalMarks : null,
       availableMarks: showResults ? submission.availableMarks : null,
       percent: showResults ? submission.percent : null,
@@ -222,7 +224,7 @@ export const getSubmission = asyncHandler(async (req, res) => {
 // Save one answer without submitting — mirrors mockExam.controller.js's
 // saveAnswer, so the browser crashing doesn't lose progress.
 export const saveAnswer = asyncHandler(async (req, res) => {
-  const { questionIndex, studentAnswer, wasScanned } = req.body
+  const { questionIndex, studentAnswer, wasScanned, scannedFiles } = req.body
 
   const submission = await AssignmentSubmission.findOne({
     _id: req.params.submissionId,
@@ -235,10 +237,13 @@ export const saveAnswer = asyncHandler(async (req, res) => {
 
   if (!submission.answers[questionIndex]) throw new AppError('Invalid question index', 400)
   submission.answers[questionIndex].studentAnswer = studentAnswer || ''
-  // Sticky once true — a submission is flagged for teacher review if
+  // wasScanned is sticky — a submission is flagged for teacher review if
   // scanning was used anywhere in it, even if the student edits the
-  // transcribed text afterward.
+  // transcribed text afterward. scannedFiles, though, always mirrors
+  // whatever is currently attached client-side, empty included, so
+  // removing every page doesn't leave stale evidence behind on reload.
   if (wasScanned) submission.answers[questionIndex].wasScanned = true
+  if (Array.isArray(scannedFiles)) submission.answers[questionIndex].scannedFiles = scannedFiles
   submission.markModified('answers')
   await submission.save()
 
@@ -332,25 +337,33 @@ export const submitSubmission = asyncHandler(async (req, res) => {
 })
 
 // ── POST /api/assignments/extract-photo ─────────────────────────
-// Transcribes a photo of a handwritten/typed answer into text, using
-// the vision-capable AI call (generateAIJSONWithImages) — unlike the
-// existing extract-photo endpoint on the admin Physical Exam panel,
-// which accepts imageBase64 but never actually sends it to the AI.
-// Pure preview: nothing is saved here. The student reviews/edits the
-// transcription before it's saved as their real answer via saveAnswer.
+// Transcribes a scanned answer into text, using the vision-capable AI
+// call (generateAIJSONWithImages) — unlike the existing extract-photo
+// endpoint on the admin Physical Exam panel, which accepts imageBase64
+// but never actually sends it to the AI. Pure preview: nothing is
+// saved here. The student reviews/edits the transcription before it's
+// saved as their real answer via saveAnswer.
+//
+// `files`: [{ data (base64), mimeType }, ...] — either one or more
+// photos (multi-page answers), or a single entry with
+// mimeType 'application/pdf' when the student uploaded a PDF instead.
 export const extractAnswerFromPhoto = asyncHandler(async (req, res) => {
-  const { imageBase64, mimeType, questionText } = req.body
-  if (!imageBase64) throw new AppError('No photo received', 400)
+  const { files, questionText } = req.body
+  if (!Array.isArray(files) || files.length === 0) {
+    throw new AppError('No files received', 400)
+  }
 
-  const systemPrompt = `You transcribe a student's handwritten or typed exam answer from a
-photo into plain text, exactly as written. Do not correct, grade, or
-comment on the answer — just transcribe it.
+  const isPdf = files.length === 1 && files[0].mimeType === 'application/pdf'
+
+  const systemPrompt = `You transcribe a student's handwritten or typed exam answer from
+${isPdf ? 'a scanned PDF document' : 'one or more photos'} into plain text, exactly as written.
+Do not correct, grade, or comment on the answer — just transcribe it.
 Respond with valid JSON only. No markdown. No preamble.`
 
   const prompt = `The question being answered:
 ${questionText || '(not provided)'}
 
-Transcribe the student's answer shown in the photo. If the answer is
+Transcribe the student's answer shown${files.length > 1 ? `, across these ${files.length} pages in order,` : ''}. If the answer is
 labelled in parts — e.g. (a)(i), (a)(ii), (b) — preserve those exact
 labels at the start of each part's text, each on its own line, so the
 structure is clear. If there are no part labels, just transcribe the
@@ -359,9 +372,10 @@ answer as continuous text.
 Return this exact JSON structure:
 { "transcribedAnswer": "..." }`
 
-  const result = await generateAIJSONWithImages(prompt, systemPrompt, [
-    { mimeType: mimeType || 'image/jpeg', data: imageBase64 },
-  ])
+  const result = await generateAIJSONWithImages(
+    prompt, systemPrompt,
+    files.map(f => ({ mimeType: f.mimeType || 'image/jpeg', data: f.data }))
+  )
 
   res.json({ success: true, transcribedAnswer: result.transcribedAnswer || '' })
 })

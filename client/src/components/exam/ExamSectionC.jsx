@@ -2,6 +2,7 @@ import { CheckCircle2, XCircle, Check } from 'lucide-react'
 import QuestionDiagram from '../QuestionDiagram'
 import PartAnswerEditor from '../PartAnswerEditor'
 import PhotoAnswerInput from '../PhotoAnswerInput'
+import ScannedFilesViewer from '../ScannedFilesViewer'
 
 // ── ExamSectionC ───────────────────────────────────────────────
 // Renders the offered Section C questions. Student answers up to
@@ -131,20 +132,16 @@ export default function ExamSectionC({
 
             <div>
               {isReview && marked?.wasScanned ? (
-                <img
-                  src={`data:${marked.photoMimeType || 'image/jpeg'};base64,${marked.photoData}`}
-                  alt="Student's uploaded answer"
-                  className="max-h-64 rounded-xl border border-slate-200"
-                />
+                <ScannedFilesViewer files={marked.scannedFiles} />
               ) : requiresPhoto && !isReview ? (
                 <PhotoAnswerInput
                   extractPhoto={extractPhoto}
                   questionText={q.questionText}
                   disabled={isReview}
                   hasAnswer={!!answer}
-                  photoPreview={photos[idx]}
-                  onCaptured={({ transcribedText, photoBase64, mimeType }) =>
-                    onAnswerChange(idx, transcribedText, { photoData: photoBase64, photoMimeType: mimeType })
+                  filesPreview={photos[idx]?.scannedFiles || []}
+                  onCaptured={({ transcribedText, files }) =>
+                    onAnswerChange(idx, transcribedText, { wasScanned: files.length > 0, scannedFiles: files })
                   }
                 />
               ) : (

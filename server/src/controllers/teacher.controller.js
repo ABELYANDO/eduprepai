@@ -512,8 +512,7 @@ export const getStudentMastery = asyncHandler(async (req, res) => {
       .map(q => ({
         topic:         q.topic,
         studentAnswer: q.studentAnswer,
-        photoData:     q.photoData,
-        photoMimeType: q.photoMimeType,
+        scannedFiles:  q.scannedFiles,
         marksAwarded:  q.marksAwarded,
         marksAvailable: q.marksAvailable,
         isCorrect:     q.isCorrect,

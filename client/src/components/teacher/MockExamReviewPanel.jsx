@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { teacherAPI } from '../../api/teacher.api'
 import MathText from '../MathText'
+import ScannedFilesViewer from '../ScannedFilesViewer'
 import { Camera, ArrowLeft, Send } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -30,12 +31,8 @@ const questionsList = (questions, overrides, setOverrides, sectionLetter) =>
             </span>
           )}
         </div>
-        {q.wasScanned && q.photoData ? (
-          <img
-            src={`data:${q.photoMimeType || 'image/jpeg'};base64,${q.photoData}`}
-            alt="Student's uploaded answer"
-            className="max-h-72 rounded-xl border border-slate-200"
-          />
+        {q.wasScanned && q.scannedFiles?.length > 0 ? (
+          <ScannedFilesViewer files={q.scannedFiles} />
         ) : (
           <p className="text-sm text-slate-700 whitespace-pre-line">{q.studentAnswer || 'Not answered.'}</p>
         )}

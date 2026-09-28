@@ -37,11 +37,11 @@ export default function QuestionCard({
   isExplaining,      // true while AI is generating explanation
   timerSeconds,      // optional countdown timer
   requiresPhoto,     // true when the student is in a teacher's class for this subject
-  extractPhoto,      // (base64, mimeType, questionText) => Promise<{transcribedAnswer}> — required when requiresPhoto
+  extractPhoto,      // (files, questionText) => Promise<{transcribedAnswer}> — required when requiresPhoto
 }) {
   const [selected,     setSelected]     = useState('')
   const [typedAnswer,  setTypedAnswer]  = useState('')
-  const [photoMeta,    setPhotoMeta]    = useState({ wasScanned: false, photoData: '', photoMimeType: '' })
+  const [photoMeta,    setPhotoMeta]    = useState({ wasScanned: false, scannedFiles: [] })
   const [hasSubmitted, setHasSubmitted] = useState(false)
 
   const isMCQ       = question.type === 'MCQ'
@@ -147,10 +147,10 @@ export default function QuestionCard({
               questionText={question.questionText}
               disabled={isAnswered}
               hasAnswer={!!typedAnswer}
-              photoPreview={photoMeta.wasScanned ? photoMeta : null}
-              onCaptured={({ transcribedText, photoBase64, mimeType }) => {
+              filesPreview={photoMeta.scannedFiles}
+              onCaptured={({ transcribedText, files }) => {
                 setTypedAnswer(transcribedText)
-                setPhotoMeta({ wasScanned: true, photoData: photoBase64, photoMimeType: mimeType })
+                setPhotoMeta({ wasScanned: files.length > 0, scannedFiles: files })
               }}
             />
           ) : (

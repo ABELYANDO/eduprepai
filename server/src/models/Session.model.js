@@ -42,12 +42,16 @@ const questionResultSchema = new mongoose.Schema({
   ],
 
   // Set when the student (in a teacher's class for this subject)
-  // photographed their answer instead of typing it — the photo itself
-  // is kept so the teacher can review the actual handwritten work,
-  // not just the AI's transcription of it.
+  // photographed or PDF-scanned their answer instead of typing it —
+  // the file(s) are kept so the teacher can review the actual
+  // handwritten work, not just the AI's transcription of it. Multiple
+  // entries means multiple photo pages; a single entry with
+  // mimeType 'application/pdf' means a PDF was submitted instead.
   wasScanned:     { type: Boolean, default: false },
-  photoData:      { type: String,  default: '' },  // base64
-  photoMimeType:  { type: String,  default: '' },
+  scannedFiles: [{
+    data:     String,  // base64
+    mimeType: String,
+  }],
 }, { _id: false })
 
 // ── Mastery change record ──────────────────────────────────────

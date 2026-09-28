@@ -29,7 +29,7 @@ export const practiceAPI = {
   // Save completed session
   saveSession:   (data)    => api.post('/practice/session', data),
 
-  // Transcribe a photographed answer (Structured/Essay, in-class students)
-  extractAnswerFromPhoto: (imageBase64, mimeType, questionText) =>
-    api.post('/practice/extract-photo', { imageBase64, mimeType, questionText }, { timeout: 60000 }),
+  // Transcribe a scanned answer — photo(s) or a PDF (Essay, in-class students)
+  extractAnswerFromPhoto: (files, questionText) =>
+    api.post('/practice/extract-photo', { files, questionText }, { timeout: 90000 }),
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { teacherAPI } from '../../api/teacher.api'
 import MathText from '../MathText'
+import ScannedFilesViewer from '../ScannedFilesViewer'
 import { Camera, ArrowLeft, Send } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -99,6 +100,9 @@ export default function SubmissionReviewPanel({ submissionId, onBack, onPublishe
                   </span>
                 )}
               </div>
+              {answer?.wasScanned && answer?.scannedFiles?.length > 0 && (
+                <ScannedFilesViewer files={answer.scannedFiles} className="mb-2" />
+              )}
               <p className="text-sm text-slate-700 whitespace-pre-line">{answer?.studentAnswer || 'Not answered.'}</p>
             </div>
 

@@ -9,12 +9,13 @@ export const assignmentAPI = {
   getAnnouncements: () => api.get('/assignments/announcements'),
   getPendingCount:  ()        => api.get('/assignments/pending-count'),
   getSubmission:    (submissionId) => api.get(`/assignments/${submissionId}`),
-  saveAnswer:       (submissionId, questionIndex, studentAnswer, wasScanned = false) =>
-    api.patch(`/assignments/${submissionId}/answer`, { questionIndex, studentAnswer, wasScanned }),
+  saveAnswer:       (submissionId, questionIndex, studentAnswer, wasScanned = false, scannedFiles = []) =>
+    api.patch(`/assignments/${submissionId}/answer`, { questionIndex, studentAnswer, wasScanned, scannedFiles }),
   submit:           (submissionId) => api.post(`/assignments/${submissionId}/submit`),
 
   // Vision transcription can take a few seconds longer than a typical
-  // call — same reasoning as the PDF/photo extraction timeouts elsewhere.
-  extractAnswerFromPhoto: (imageBase64, mimeType, questionText) =>
-    api.post('/assignments/extract-photo', { imageBase64, mimeType, questionText }, { timeout: 60000 }),
+  // call, more so for a multi-page PDF — same reasoning as the PDF/photo
+  // extraction timeouts elsewhere.
+  extractAnswerFromPhoto: (files, questionText) =>
+    api.post('/assignments/extract-photo', { files, questionText }, { timeout: 90000 }),
 }

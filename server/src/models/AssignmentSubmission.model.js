@@ -7,11 +7,19 @@ const assignmentAnswerSchema = new mongoose.Schema({
   marksAwarded:  { type: Number, default: null },
   isCorrect:     { type: Boolean, default: null },
   aiFeedback:    { type: String, default: '' },
-  // Set when this answer came from a photo transcription rather than
-  // being typed — kept true even if the student edits the text
+  // Set when this answer came from a photo/PDF transcription rather
+  // than being typed — kept true even if the student edits the text
   // afterward. Any submission with at least one scanned answer routes
   // to teacher review instead of instant marking (see submitSubmission).
   wasScanned:    { type: Boolean, default: false },
+  // The actual scanned file(s), kept so the teacher can review the
+  // real handwritten work during review, not just the AI's
+  // transcription — multiple entries means multiple photo pages; a
+  // single entry with mimeType 'application/pdf' means a PDF instead.
+  scannedFiles: [{
+    data:     String,  // base64
+    mimeType: String,
+  }],
   partResults: [{
     part:           String,
     marksAwarded:   Number,

@@ -3,9 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom'
 import AppShell from '../../components/layout/AppShell'
 import QuestionDiagram from '../../components/QuestionDiagram'
 import PartAnswerEditor from '../../components/PartAnswerEditor'
+import PhotoAnswerInput from '../../components/PhotoAnswerInput'
+import ScannedFilesViewer from '../../components/ScannedFilesViewer'
 import MathText from '../../components/MathText'
 import { assignmentAPI } from '../../api/assignment.api'
-import { CheckCircle2, XCircle, ArrowLeft, Send, Camera, Clock } from 'lucide-react'
+import { CheckCircle2, XCircle, ArrowLeft, Send, Clock } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 const OPTION_LETTERS = ['A', 'B', 'C', 'D']
@@ -30,7 +32,7 @@ export default function AssignmentAnswerPage() {
   // text, since that component only splits its `value` into per-part
   // boxes once, on mount (by design — see PartAnswerEditor.jsx).
   const [scanVersion, setScanVersion] = useState({}) // { [index]: number }
-  const [scanningIdx, setScanningIdx] = useState(null)
+  const [scannedFiles, setScannedFiles] = useState({}) // { [index]: [{ data, mimeType }] }
 
   const autoSaveRef = useRef(null)
 
@@ -73,29 +75,17 @@ export default function AssignmentAnswerPage() {
   // Scanning is deliberately not debounced/silent like typed answers —
   // it's a rarer, deliberate action, so the student should see a clear
   // success/failure result rather than a silent background retry.
-  const handlePhotoUpload = async (idx, file, questionText) => {
-    if (!file) return
-    setScanningIdx(idx)
+  const handlePhotoCaptured = useCallback(async (idx, { transcribedText, files }) => {
+    setAnswers(prev => ({ ...prev, [idx]: transcribedText }))
+    setScannedFiles(prev => ({ ...prev, [idx]: files }))
+    setScanVersion(prev => ({ ...prev, [idx]: (prev[idx] || 0) + 1 }))
     try {
-      const base64 = await new Promise((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onload  = () => resolve(reader.result.split(',')[1])
-        reader.onerror = () => reject(new Error('Failed to read photo'))
-        reader.readAsDataURL(file)
-      })
-
-      const data = await assignmentAPI.extractAnswerFromPhoto(base64, file.type, questionText)
-      const text = data.transcribedAnswer || ''
-      setAnswers(prev => ({ ...prev, [idx]: text }))
-      setScanVersion(prev => ({ ...prev, [idx]: (prev[idx] || 0) + 1 }))
-      await assignmentAPI.saveAnswer(submissionId, idx, text, true)
-      toast.success('Photo transcribed — review it below before submitting')
+      await assignmentAPI.saveAnswer(submissionId, idx, transcribedText, files.length > 0, files)
+      if (files.length > 0) toast.success('Scanned and saved — review the text below before submitting')
     } catch (err) {
-      toast.error(err.message || 'Could not read that photo')
-    } finally {
-      setScanningIdx(null)
+      toast.error(err.message || 'Could not save your scanned answer')
     }
-  }
+  }, [submissionId])
 
   const handleSubmit = async () => {
     if (!window.confirm('Submit this assignment? You cannot change your answers after submitting.')) return
@@ -222,16 +212,17 @@ export default function AssignmentAnswerPage() {
                   </div>
                 ) : (
                   <>
-                    {!isReview && (
-                      <label className={`inline-flex items-center gap-1.5 text-xs font-medium text-teal-600 hover:text-teal-700 mb-2 cursor-pointer transition-colors ${scanningIdx === idx ? 'opacity-50 pointer-events-none' : ''}`}>
-                        <Camera className="w-3.5 h-3.5" />
-                        {scanningIdx === idx ? 'Reading photo…' : 'Upload a photo of your answer instead'}
-                        <input
-                          type="file" accept="image/*" className="hidden"
-                          onChange={e => handlePhotoUpload(idx, e.target.files[0], q.questionText)}
-                          disabled={scanningIdx === idx}
-                        />
-                      </label>
+                    {isReview && marked?.wasScanned ? (
+                      <ScannedFilesViewer files={marked.scannedFiles} className="mb-3" />
+                    ) : !isReview && (
+                      <PhotoAnswerInput
+                        extractPhoto={assignmentAPI.extractAnswerFromPhoto}
+                        questionText={q.questionText}
+                        disabled={isReview}
+                        hasAnswer={!!answer}
+                        filesPreview={scannedFiles[idx] || []}
+                        onCaptured={result => handlePhotoCaptured(idx, result)}
+                      />
                     )}
                     <PartAnswerEditor
                       key={`q${idx}-v${scanVersion[idx] || 0}`}
@@ -241,7 +232,7 @@ export default function AssignmentAnswerPage() {
                       disabled={isReview}
                       isReview={isReview}
                       partResults={marked?.partResults || []}
-                      placeholder="Write your answer here, or upload a photo above..."
+                      placeholder="Write your answer here, or upload a photo/PDF above..."
                     />
                   </>
                 )}

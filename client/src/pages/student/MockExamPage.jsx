@@ -59,7 +59,7 @@ export default function MockExamPage() {
   const [answersB, setAnswersB] = useState({})   // { questionIndex: 'text...' }
   const [answerCIndices, setAnswerCIndices] = useState([])  // which essay(s) chosen
   const [answersC,       setAnswersC]       = useState({})  // { questionIndex: 'text...' }
-  const [photosB, setPhotosB] = useState({})  // { questionIndex: { photoData, photoMimeType } }
+  const [photosB, setPhotosB] = useState({})  // { questionIndex: { scannedFiles } }
   const [photosC, setPhotosC] = useState({})
 
   // ── Results ─────────────────────────────────────────────────
@@ -102,14 +102,14 @@ export default function MockExamPage() {
         })
         data.exam.sectionB.forEach((q, i) => {
           if (q.studentAnswer) setAnswersB(p => ({ ...p, [i]: q.studentAnswer }))
-          if (q.wasScanned) setPhotosB(p => ({ ...p, [i]: { photoData: q.photoData, photoMimeType: q.photoMimeType } }))
+          if (q.wasScanned) setPhotosB(p => ({ ...p, [i]: { scannedFiles: q.scannedFiles } }))
         })
         data.exam.sectionC.forEach((q, i) => {
           if (q.studentAnswer) {
             setAnswerCIndices(prev => [...prev, i])
             setAnswersC(prev => ({ ...prev, [i]: q.studentAnswer }))
           }
-          if (q.wasScanned) setPhotosC(p => ({ ...p, [i]: { photoData: q.photoData, photoMimeType: q.photoMimeType } }))
+          if (q.wasScanned) setPhotosC(p => ({ ...p, [i]: { scannedFiles: q.scannedFiles } }))
         })
       }
     } catch (err) {
@@ -152,9 +152,12 @@ export default function MockExamPage() {
     setAnswersB(prev => ({ ...prev, [idx]: text }))
     if (photoMeta) {
       setPhotosB(prev => ({ ...prev, [idx]: photoMeta }))
+      // wasScanned reflects whether any file is actually still attached —
+      // a student can remove every page (see PhotoAnswerInput) to go
+      // back to typing, and that shouldn't be recorded as a scan.
       mockExamAPI.saveAnswer(exam._id, {
         section: 'sectionB', questionIndex: idx, studentAnswer: text,
-        wasScanned: true, photoData: photoMeta.photoData, photoMimeType: photoMeta.photoMimeType,
+        wasScanned: photoMeta.wasScanned, scannedFiles: photoMeta.scannedFiles,
       }).catch(() => {})
       return
     }
@@ -180,9 +183,12 @@ export default function MockExamPage() {
     setAnswersC(prev => ({ ...prev, [idx]: text }))
     if (photoMeta) {
       setPhotosC(prev => ({ ...prev, [idx]: photoMeta }))
+      // wasScanned reflects whether any file is actually still attached —
+      // a student can remove every page (see PhotoAnswerInput) to go
+      // back to typing, and that shouldn't be recorded as a scan.
       mockExamAPI.saveAnswer(exam._id, {
         section: 'sectionC', questionIndex: idx, studentAnswer: text,
-        wasScanned: true, photoData: photoMeta.photoData, photoMimeType: photoMeta.photoMimeType,
+        wasScanned: photoMeta.wasScanned, scannedFiles: photoMeta.scannedFiles,
       }).catch(() => {})
       return
     }

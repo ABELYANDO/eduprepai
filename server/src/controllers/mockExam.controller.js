@@ -89,7 +89,7 @@ export const startExam = asyncHandler(async (req, res) => {
 // Called periodically as student progresses through the paper.
 // This is important — if the browser crashes, answers are preserved.
 export const saveAnswer = asyncHandler(async (req, res) => {
-  const { section, questionIndex, studentAnswer, wasScanned, photoData, photoMimeType } = req.body
+  const { section, questionIndex, studentAnswer, wasScanned, scannedFiles } = req.body
 
   if (!['sectionA', 'sectionB', 'sectionC'].includes(section)) {
     throw new AppError('Invalid section', 400)
@@ -106,13 +106,13 @@ export const saveAnswer = asyncHandler(async (req, res) => {
   // Update the specific question's answer
   if (exam[section][questionIndex] !== undefined) {
     exam[section][questionIndex].studentAnswer = studentAnswer
-    // Sticky once true, same as AssignmentSubmission's saveAnswer —
-    // never cleared even if the answer is resaved without the flag.
-    if (wasScanned) {
-      exam[section][questionIndex].wasScanned    = true
-      exam[section][questionIndex].photoData     = photoData || ''
-      exam[section][questionIndex].photoMimeType = photoMimeType || ''
-    }
+    // wasScanned is sticky, same as AssignmentSubmission's saveAnswer —
+    // once flagged for teacher review, never cleared by a later save that
+    // doesn't set it. scannedFiles, though, always mirrors whatever is
+    // currently attached client-side, empty included, so removing every
+    // page doesn't leave stale evidence behind on reload.
+    if (wasScanned) exam[section][questionIndex].wasScanned = true
+    if (Array.isArray(scannedFiles)) exam[section][questionIndex].scannedFiles = scannedFiles
     exam.markModified(section)
     await exam.save()
   }

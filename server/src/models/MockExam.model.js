@@ -28,11 +28,15 @@ const examQuestionSchema = new mongoose.Schema({
   studentAnswer:  { type: String, default: '' },
 
   // Set when the student (in a teacher's class for this subject)
-  // photographed their answer instead of typing it — kept so the
-  // teacher can review the actual handwritten work during publish.
+  // photographed or PDF-scanned their answer instead of typing it —
+  // kept so the teacher can review the actual handwritten work during
+  // publish. Multiple entries means multiple photo pages; a single
+  // entry with mimeType 'application/pdf' means a PDF was submitted.
   wasScanned:     { type: Boolean, default: false },
-  photoData:      { type: String,  default: '' },  // base64
-  photoMimeType:  { type: String,  default: '' },
+  scannedFiles: [{
+    data:     String,  // base64
+    mimeType: String,
+  }],
 
   // Marking result — populated after submission
   marksAwarded:   { type: Number, default: null },

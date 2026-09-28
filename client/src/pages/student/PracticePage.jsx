@@ -212,8 +212,7 @@ export default function PracticePage() {
           ? (question.type === 'Essay' ? 35 * 60 : 90) - timerSeconds
           : 0,
         wasScanned:    photoMeta.wasScanned || false,
-        photoData:     photoMeta.photoData || '',
-        photoMimeType: photoMeta.photoMimeType || '',
+        scannedFiles:  photoMeta.scannedFiles || [],
       })
 
       clearInterval(timerRef.current)

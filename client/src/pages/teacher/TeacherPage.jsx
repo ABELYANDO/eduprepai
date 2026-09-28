@@ -7,6 +7,7 @@ import SubmissionReviewPanel from '../../components/teacher/SubmissionReviewPane
 import MockExamReviewPanel   from '../../components/teacher/MockExamReviewPanel'
 import { teacherAPI }       from '../../api/teacher.api'
 import MasteryHeatmap        from '../../components/analytics/MasteryHeatmap'
+import ScannedFilesViewer    from '../../components/ScannedFilesViewer'
 import SubjectLevelPicker    from '../../components/teacher/SubjectLevelPicker'
 import { useAuth } from '../../context/AuthContext'
 import { settingsAPI } from '../../api/settings.api'
@@ -659,12 +660,8 @@ export default function TeacherPage() {
                                   {a.marksAwarded}/{a.marksAvailable} marks · {new Date(a.date).toLocaleDateString('en-GB')}
                                 </span>
                               </div>
-                              {a.photoData ? (
-                                <img
-                                  src={`data:${a.photoMimeType || 'image/jpeg'};base64,${a.photoData}`}
-                                  alt="Student's uploaded answer"
-                                  className="max-h-56 rounded-lg border border-slate-100"
-                                />
+                              {a.scannedFiles?.length > 0 ? (
+                                <ScannedFilesViewer files={a.scannedFiles} />
                               ) : (
                                 <p className="text-sm text-slate-600 whitespace-pre-line">{a.studentAnswer}</p>
                               )}
