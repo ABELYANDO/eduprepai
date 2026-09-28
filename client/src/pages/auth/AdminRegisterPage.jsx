@@ -4,16 +4,10 @@ import { useAuth } from '../../context/AuthContext'
 import { ShieldCheck, User, Mail, Lock, KeyRound, ArrowRight, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import ThemeToggle from '../../components/ThemeToggle'
-import { useTheme } from '../../context/ThemeContext'
-import examHallBg from '../../assets/exam-hall-bg.jpg'
 
 export default function AdminRegisterPage() {
   const { adminRegister } = useAuth()
   const navigate           = useNavigate()
-  const { theme } = useTheme()
-  // Same wash colour/opacity used everywhere else the background photo
-  // appears, so it reads consistently across every page in the app.
-  const washRGB = theme === 'dark' ? '11,11,15' : '238,243,250'
 
   const [form, setForm] = useState({
     fullName: '', email: '', password: '', inviteCode: '',
@@ -41,19 +35,10 @@ export default function AdminRegisterPage() {
   }
 
   return (
-    <div className="admin-theme min-h-screen flex items-center justify-center p-5 relative">
-      {/* A real position:fixed element, not background-attachment:
-         fixed — iOS Safari renders that CSS property incorrectly
-         (stretches/shifts on scroll as the address bar hides). */}
-      <div
-        className="fixed inset-0 -z-10 pointer-events-none"
-        style={{
-          backgroundImage: `linear-gradient(rgba(${washRGB},0.85), rgba(${washRGB},0.85)), url(${examHallBg})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-        }}
-      />
+    <div
+      className="admin-theme min-h-screen flex items-center justify-center p-5 relative"
+      style={{ background: 'var(--color-bg)' }}
+    >
       <div className="absolute top-4 right-4 z-10">
         <ThemeToggle className="text-slate-500 hover:bg-slate-100 hover:text-slate-700" />
       </div>

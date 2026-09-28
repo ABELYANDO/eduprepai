@@ -1,8 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { ShieldCheck, LogOut } from 'lucide-react'
-import examHallBg from '../../assets/exam-hall-bg.jpg'
-import { useTheme } from '../../context/ThemeContext'
 import ThemeToggle from '../ThemeToggle'
 
 // ── AdminShell ───────────────────────────────────────────────────
@@ -19,10 +17,6 @@ import ThemeToggle from '../ThemeToggle'
 export default function AdminShell({ children }) {
   const { user, logout } = useAuth()
   const navigate           = useNavigate()
-  const { theme } = useTheme()
-  // Same wash colour/opacity as AppShell/TeacherShell/every pre-login
-  // page, so the background photo reads consistently app-wide.
-  const washRGB = theme === 'dark' ? '11,11,15' : '238,243,250'
 
   const handleLogout = () => {
     logout()
@@ -30,20 +24,7 @@ export default function AdminShell({ children }) {
   }
 
   return (
-    <div className="admin-theme min-h-screen">
-      {/* A real position:fixed element, not background-attachment:
-         fixed — iOS Safari renders that CSS property incorrectly
-         (stretches/shifts on scroll as the address bar hides). */}
-      <div
-        className="fixed inset-0 -z-10 pointer-events-none"
-        style={{
-          backgroundImage: `linear-gradient(rgba(${washRGB},0.85), rgba(${washRGB},0.85)), url(${examHallBg})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-        }}
-      />
-
+    <div className="admin-theme min-h-screen" style={{ background: 'var(--color-bg)' }}>
       <header
         className="sticky top-0 z-20 flex items-center gap-4 px-5 md:px-8 py-4"
         style={{ background: 'linear-gradient(135deg, #1E1B4B 0%, #312E81 55%, #1E293B 100%)' }}
