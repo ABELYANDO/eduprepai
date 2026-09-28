@@ -182,7 +182,7 @@ export default function ManualQuestionForm({
         <textarea
           name="questionText" value={form.questionText}
           onChange={handleChange} required rows={3}
-          className="input resize-none"
+          className="input text-base resize-none"
           placeholder="Enter the full question text..."
         />
       </div>
@@ -200,7 +200,7 @@ export default function ManualQuestionForm({
                 <input
                   type="text" value={form.options[i]}
                   onChange={e => handleOptionChange(i, e.target.value)}
-                  className="input flex-1" required
+                  className="input text-base flex-1" required
                 />
                 <button
                   type="button"
@@ -226,7 +226,7 @@ export default function ManualQuestionForm({
           <textarea
             name="modelAnswer" value={form.modelAnswer}
             onChange={handleChange} rows={4}
-            className="input resize-none"
+            className="input text-base resize-none"
             placeholder="Expected answer and marking points..."
           />
         </div>

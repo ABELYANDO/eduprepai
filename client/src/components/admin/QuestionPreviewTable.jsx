@@ -168,12 +168,15 @@ export default function QuestionPreviewTable({ previews, onApprove, onCancel, on
 
                 <QuestionDiagram hasImage={q.hasImage} imageData={q.imageData} />
 
-                {/* Editable question text */}
+                {/* Editable question text — text-base (not text-sm) since
+                   this is the actual content a teacher needs to read and
+                   edit, especially on mobile where anything under 16px
+                   also triggers an awkward auto-zoom on focus in iOS Safari */}
                 <textarea
                   value={q.questionText}
                   onChange={e => editField(q.previewId, 'questionText', e.target.value)}
-                  rows={2}
-                  className="input text-sm resize-none w-full"
+                  rows={3}
+                  className="input text-base resize-none w-full"
                 />
               </div>
 
@@ -220,7 +223,7 @@ export default function QuestionPreviewTable({ previews, onApprove, onCancel, on
                             opts[i] = e.target.value
                             editField(q.previewId, 'options', opts)
                           }}
-                          className="input text-sm flex-1"
+                          className="input text-base flex-1"
                         />
                         <button
                           onClick={() => editField(q.previewId, 'correctOption', letter)}
@@ -245,7 +248,7 @@ export default function QuestionPreviewTable({ previews, onApprove, onCancel, on
                       value={q.modelAnswer}
                       onChange={e => editField(q.previewId, 'modelAnswer', e.target.value)}
                       rows={3}
-                      className="input text-sm resize-none w-full"
+                      className="input text-base resize-none w-full"
                     />
                   </div>
                 )}
