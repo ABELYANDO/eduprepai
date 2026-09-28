@@ -6,6 +6,7 @@ export const assignmentAPI = {
   leaveClass: (classId)  => api.post(`/assignments/classes/${classId}/leave`),
 
   getMyAssignments: (subject) => api.get('/assignments', { params: subject ? { subject } : {} }),
+  getAnnouncements: () => api.get('/assignments/announcements'),
   getPendingCount:  ()        => api.get('/assignments/pending-count'),
   getSubmission:    (submissionId) => api.get(`/assignments/${submissionId}`),
   saveAnswer:       (submissionId, questionIndex, studentAnswer, wasScanned = false) =>

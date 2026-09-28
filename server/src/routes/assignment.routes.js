@@ -4,6 +4,7 @@ import {
   getMyClasses,
   leaveClass,
   listMyAssignments,
+  listMyAnnouncements,
   getPendingCount,
   getSubmission,
   saveAnswer,
@@ -23,6 +24,7 @@ router.post('/classes/:classId/leave', leaveClass)
 router.post('/extract-photo',  extractAnswerFromPhoto)
 
 router.get('/',                listMyAssignments)
+router.get('/announcements',   listMyAnnouncements)
 router.get('/pending-count',   getPendingCount)
 router.get('/:submissionId',   getSubmission)
 router.patch('/:submissionId/answer', saveAnswer)

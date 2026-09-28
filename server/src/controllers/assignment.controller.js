@@ -1,6 +1,7 @@
 import Class                from '../models/Class.model.js'
 import Assignment           from '../models/Assignment.model.js'
 import AssignmentSubmission from '../models/AssignmentSubmission.model.js'
+import Announcement         from '../models/Announcement.model.js'
 import { markMCQ, markEssay } from '../utils/marking.utils.js'
 import { generateAIJSONWithImages } from '../utils/aiService.js'
 import { asyncHandler, AppError } from '../middleware/error.middleware.js'
@@ -75,6 +76,34 @@ export const leaveClass = asyncHandler(async (req, res) => {
   res.json({ success: true, message: 'Left class' })
 })
 
+// ── GET /api/assignments/announcements ──────────────────────────
+// Recent broadcasts from teachers of every class the student is
+// currently in. Class-scoped, not student-scoped — leaving a class
+// (see leaveClass above) also stops its announcements from showing up,
+// same as it stops future assignments.
+export const listMyAnnouncements = asyncHandler(async (req, res) => {
+  const classes = await Class.find({ studentIds: req.user._id }).select('name subject').lean()
+  const classMap = new Map(classes.map(c => [c._id.toString(), c]))
+
+  const announcements = await Announcement.find({ classId: { $in: [...classMap.keys()] } })
+    .populate('teacherId', 'fullName')
+    .sort({ createdAt: -1 })
+    .limit(20)
+    .lean()
+
+  res.json({
+    success: true,
+    announcements: announcements.map(a => ({
+      id:          a._id,
+      message:     a.message,
+      teacherName: a.teacherId?.fullName || 'Your teacher',
+      className:   classMap.get(a.classId.toString())?.name || '',
+      subject:     classMap.get(a.classId.toString())?.subject || '',
+      createdAt:   a.createdAt,
+    })),
+  })
+})
+
 // ── GET /api/assignments ────────────────────────────────────────
 // My submissions, joined with assignment/class info for display.
 export const listMyAssignments = asyncHandler(async (req, res) => {
@@ -84,13 +113,17 @@ export const listMyAssignments = asyncHandler(async (req, res) => {
     .sort({ createdAt: -1 })
     .populate({
       path: 'assignmentId',
-      select: 'title subject examType dueDate questions classId',
+      select: 'title subject examType dueDate releaseDate questions classId',
       populate: { path: 'classId', select: 'name' },
     })
     .lean()
 
+  const now = Date.now()
   const withDerived = submissions
     .filter(s => s.assignmentId) // guard against an assignment somehow deleted later
+    // A scheduled assignment stays fully invisible — not even listed as
+    // "not yet released" — until its releaseDate arrives.
+    .filter(s => !s.assignmentId.releaseDate || new Date(s.assignmentId.releaseDate).getTime() <= now)
     .map(s => ({
       submissionId: s._id,
       status:       s.status,
@@ -112,10 +145,19 @@ export const listMyAssignments = asyncHandler(async (req, res) => {
 
 // ── GET /api/assignments/pending-count ─────────────────────────
 export const getPendingCount = asyncHandler(async (req, res) => {
-  const count = await AssignmentSubmission.countDocuments({
+  // Can't do this as a plain countDocuments — a scheduled assignment's
+  // submission already exists (created eagerly like any other), but
+  // shouldn't count as "pending" until its releaseDate arrives.
+  const submissions = await AssignmentSubmission.find({
     studentId: req.user._id,
     status: { $in: ['assigned', 'in_progress'] },
-  })
+  }).populate('assignmentId', 'releaseDate').lean()
+
+  const now = Date.now()
+  const count = submissions.filter(
+    s => !s.assignmentId?.releaseDate || new Date(s.assignmentId.releaseDate).getTime() <= now
+  ).length
+
   res.json({ success: true, count })
 })
 
@@ -129,6 +171,10 @@ export const getSubmission = asyncHandler(async (req, res) => {
   }).populate('assignmentId')
 
   if (!submission) throw new AppError('Assignment not found', 404)
+
+  if (submission.assignmentId.releaseDate && new Date(submission.assignmentId.releaseDate) > new Date()) {
+    throw new AppError('This assignment is not available yet', 403)
+  }
 
   if (submission.status === 'assigned') {
     submission.status = 'in_progress'

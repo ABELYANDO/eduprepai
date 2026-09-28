@@ -9,6 +9,11 @@ import {
   updateAssignment,
   deleteAssignment,
   assignToNewStudents,
+  getClassAnalytics,
+  exportClassResults,
+  createAnnouncement,
+  listClassAnnouncements,
+  deleteAnnouncement,
   getStudentMastery,
   listPendingReviews,
   getSubmissionForReview,
@@ -30,6 +35,13 @@ router.post('/classes', createClass)
 router.get('/classes',  listClasses)
 router.delete('/classes/:classId', deleteClass)
 router.delete('/classes/:classId/students/:studentId', removeStudent)
+router.get('/classes/:classId/analytics', getClassAnalytics)
+router.get('/classes/:classId/export',    exportClassResults)
+
+// ── Announcements ──────────────────────────────────────────────────
+router.post('/classes/:classId/announcements', createAnnouncement)
+router.get('/classes/:classId/announcements',  listClassAnnouncements)
+router.delete('/announcements/:id',            deleteAnnouncement)
 
 // ── Question tools — same side-effect-free preview generators the
 // admin PDF Extractor / AI Generator already use, reused unmodified ──

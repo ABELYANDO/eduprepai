@@ -7,6 +7,15 @@ export const teacherAPI = {
   deleteClass: (classId) => api.delete(`/teacher/classes/${classId}`),
   removeStudent: (classId, studentId) => api.delete(`/teacher/classes/${classId}/students/${studentId}`),
 
+  // ── Class analytics — dashboard + CSV export of the same data ─────
+  getClassAnalytics:   (classId) => api.get(`/teacher/classes/${classId}/analytics`),
+  exportClassResults:  (classId) => api.get(`/teacher/classes/${classId}/export`, { responseType: 'blob' }),
+
+  // ── Announcements ────────────────────────────────────────────────
+  createAnnouncement: (classId, message) => api.post(`/teacher/classes/${classId}/announcements`, { message }),
+  getClassAnnouncements: (classId) => api.get(`/teacher/classes/${classId}/announcements`),
+  deleteAnnouncement: (id) => api.delete(`/teacher/announcements/${id}`),
+
   // ── Question tools — same endpoints/behaviour as the admin panel,
   // just mounted under /teacher and scoped to the teacher's own use ──
   generateQuestions: (config) => api.post('/teacher/generate-questions', config),

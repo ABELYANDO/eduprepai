@@ -6,6 +6,7 @@ import User                from '../models/User.model.js'
 import MasteryProfile      from '../models/MasteryProfile.model.js'
 import MockExam            from '../models/MockExam.model.js'
 import Session             from '../models/Session.model.js'
+import Announcement        from '../models/Announcement.model.js'
 import { UNLOCK_THRESHOLD, calculateGrade } from '../utils/marking.utils.js'
 import { asyncHandler, AppError } from '../middleware/error.middleware.js'
 
@@ -115,7 +116,7 @@ export const removeStudent = asyncHandler(async (req, res) => {
 // is visible immediately and a student's pending-count query never
 // needs to join against Assignment/Class at read time.
 export const createAssignment = asyncHandler(async (req, res) => {
-  const { classId, title, dueDate, questions, studentIds } = req.body
+  const { classId, title, dueDate, releaseDate, questions, studentIds } = req.body
 
   if (!classId || !title) throw new AppError('Class and title are required', 400)
   if (!Array.isArray(questions) || questions.length === 0) {
@@ -144,6 +145,7 @@ export const createAssignment = asyncHandler(async (req, res) => {
     subject:  cls.subject,
     examType: cls.examType,
     dueDate:  dueDate || null,
+    releaseDate: releaseDate || null,
     questions: questions.map(q => ({
       type:          q.type,
       questionText:  q.questionText,
@@ -219,7 +221,7 @@ export const listAssignments = asyncHandler(async (req, res) => {
 // desync marks already recorded against the old positions. A teacher
 // who needs different questions deletes this and creates a new one.
 export const updateAssignment = asyncHandler(async (req, res) => {
-  const { title, dueDate } = req.body
+  const { title, dueDate, releaseDate } = req.body
   const assignment = await Assignment.findOne({ _id: req.params.id, teacherId: req.user._id })
   if (!assignment) throw new AppError('Assignment not found', 404)
 
@@ -227,7 +229,8 @@ export const updateAssignment = asyncHandler(async (req, res) => {
     if (!title.trim()) throw new AppError('Title is required', 400)
     assignment.title = title
   }
-  if (dueDate !== undefined) assignment.dueDate = dueDate || null
+  if (dueDate !== undefined)     assignment.dueDate = dueDate || null
+  if (releaseDate !== undefined) assignment.releaseDate = releaseDate || null
 
   await assignment.save()
 
@@ -283,6 +286,162 @@ export const assignToNewStudents = asyncHandler(async (req, res) => {
     message: `Assigned to ${newStudentIds.length} new student${newStudentIds.length !== 1 ? 's' : ''}`,
     count: newStudentIds.length,
   })
+})
+
+// ── Shared analytics aggregation — used by both the on-screen
+// dashboard and the CSV export below, so the two never drift apart. ──
+const computeClassAnalytics = async (cls) => {
+  const studentIds = cls.studentIds
+  if (studentIds.length === 0) {
+    return {
+      studentCount: 0,
+      avgMasteryScore: 0,
+      weakestTopics: [],
+      assignmentCompletion: { totalAssignments: 0, avgCompletionRate: 0 },
+      leaderboard: [],
+    }
+  }
+
+  const assignmentIds = (await Assignment.find({ classId: cls._id }).select('_id')).map(a => a._id)
+
+  const [masteryByStudent, weakestTopics, submissionsByStudent, students, completionCounts] = await Promise.all([
+    MasteryProfile.aggregate([
+      { $match: { studentId: { $in: studentIds }, subject: cls.subject } },
+      { $group: { _id: '$studentId', avgScore: { $avg: '$score' } } },
+    ]),
+    MasteryProfile.aggregate([
+      { $match: { studentId: { $in: studentIds }, subject: cls.subject } },
+      { $group: { _id: '$topic', avgScore: { $avg: '$score' }, studentCount: { $sum: 1 } } },
+      { $sort: { avgScore: 1 } },
+      { $limit: 5 },
+    ]),
+    AssignmentSubmission.aggregate([
+      { $match: { assignmentId: { $in: assignmentIds }, status: 'marked' } },
+      { $group: { _id: '$studentId', avgPercent: { $avg: '$percent' } } },
+    ]),
+    User.find({ _id: { $in: studentIds } }).select('fullName email streak').lean(),
+    AssignmentSubmission.aggregate([
+      { $match: { assignmentId: { $in: assignmentIds } } },
+      { $group: {
+          _id: null,
+          total:     { $sum: 1 },
+          completed: { $sum: { $cond: [{ $in: ['$status', ['submitted', 'pending_review', 'marked']] }, 1, 0] } },
+        } },
+    ]),
+  ])
+
+  const masteryMap    = new Map(masteryByStudent.map(m => [m._id.toString(), Math.round(m.avgScore)]))
+  const submissionMap = new Map(submissionsByStudent.map(s => [s._id.toString(), Math.round(s.avgPercent)]))
+
+  const leaderboard = students
+    .map(s => ({
+      studentId:            s._id,
+      fullName:             s.fullName,
+      email:                s.email,
+      avgMasteryScore:      masteryMap.get(s._id.toString()) ?? null,
+      avgAssignmentPercent: submissionMap.get(s._id.toString()) ?? null,
+      streak:               s.streak || 0,
+    }))
+    .sort((a, b) => (b.avgMasteryScore ?? -1) - (a.avgMasteryScore ?? -1))
+
+  const overallAvgMastery = masteryByStudent.length > 0
+    ? Math.round(masteryByStudent.reduce((sum, m) => sum + m.avgScore, 0) / masteryByStudent.length)
+    : 0
+
+  const completion = completionCounts[0] || { total: 0, completed: 0 }
+
+  return {
+    studentCount: studentIds.length,
+    avgMasteryScore: overallAvgMastery,
+    weakestTopics: weakestTopics.map(t => ({
+      topic: t._id, avgScore: Math.round(t.avgScore), studentCount: t.studentCount,
+    })),
+    assignmentCompletion: {
+      totalAssignments: assignmentIds.length,
+      avgCompletionRate: completion.total > 0 ? Math.round((completion.completed / completion.total) * 100) : 0,
+    },
+    leaderboard,
+  }
+}
+
+// ── GET /api/teacher/classes/:classId/analytics ──────────────────
+// Class-wide view built entirely from data already collected for the
+// per-student insight panel — average practice mastery, the weakest
+// topics across the class, assignment completion rate, and a
+// leaderboard ranked by mastery.
+export const getClassAnalytics = asyncHandler(async (req, res) => {
+  const cls = await Class.findOne({ _id: req.params.classId, teacherId: req.user._id })
+  if (!cls) throw new AppError('Class not found', 404)
+
+  const analytics = await computeClassAnalytics(cls)
+  res.json({ success: true, classId: cls._id, className: cls.name, subject: cls.subject, ...analytics })
+})
+
+// ── GET /api/teacher/classes/:classId/export ──────────────────────
+// Same leaderboard data as the analytics dashboard, as a downloadable
+// CSV roster — for a teacher who wants it in a spreadsheet or to hand
+// to a school administrator.
+const csvEscape = (value) => {
+  const str = String(value ?? '')
+  return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str
+}
+
+export const exportClassResults = asyncHandler(async (req, res) => {
+  const cls = await Class.findOne({ _id: req.params.classId, teacherId: req.user._id })
+  if (!cls) throw new AppError('Class not found', 404)
+
+  const { leaderboard } = await computeClassAnalytics(cls)
+
+  const rows = [
+    ['Name', 'Email', 'Avg Mastery %', 'Avg Assignment %', 'Day Streak'],
+    ...leaderboard.map(s => [
+      s.fullName, s.email,
+      s.avgMasteryScore ?? '', s.avgAssignmentPercent ?? '', s.streak,
+    ]),
+  ]
+  const csv = rows.map(r => r.map(csvEscape).join(',')).join('\r\n')
+
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8')
+  res.setHeader('Content-Disposition', `attachment; filename="${cls.name.replace(/[^a-z0-9]/gi, '_')}_results.csv"`)
+  res.send(csv)
+})
+
+// ── POST /api/teacher/classes/:classId/announcements ──────────────
+export const createAnnouncement = asyncHandler(async (req, res) => {
+  const { message } = req.body
+  if (!message?.trim()) throw new AppError('Announcement text is required', 400)
+
+  const cls = await Class.findOne({ _id: req.params.classId, teacherId: req.user._id })
+  if (!cls) throw new AppError('Class not found', 404)
+
+  const announcement = await Announcement.create({
+    teacherId: req.user._id,
+    classId:   cls._id,
+    message:   message.trim(),
+  })
+
+  res.status(201).json({ success: true, message: 'Announcement posted', announcement })
+})
+
+// ── GET /api/teacher/classes/:classId/announcements ────────────────
+export const listClassAnnouncements = asyncHandler(async (req, res) => {
+  const cls = await Class.findOne({ _id: req.params.classId, teacherId: req.user._id })
+  if (!cls) throw new AppError('Class not found', 404)
+
+  const announcements = await Announcement.find({ classId: cls._id })
+    .sort({ createdAt: -1 })
+    .lean()
+
+  res.json({ success: true, announcements })
+})
+
+// ── DELETE /api/teacher/announcements/:id ──────────────────────────
+export const deleteAnnouncement = asyncHandler(async (req, res) => {
+  const announcement = await Announcement.findOne({ _id: req.params.id, teacherId: req.user._id })
+  if (!announcement) throw new AppError('Announcement not found', 404)
+
+  await announcement.deleteOne()
+  res.json({ success: true, message: 'Announcement deleted' })
 })
 
 // ── GET /api/teacher/students/:studentId/mastery?subject= ───────

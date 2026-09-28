@@ -46,6 +46,11 @@ const assignmentSchema = new mongoose.Schema(
     subject:  { type: String, required: true },
     examType: { type: String, enum: ['WASSCE', 'BECE'], default: 'WASSCE' },
     dueDate:  { type: Date, default: null },
+    // null/past = visible immediately (today's default behaviour).
+    // A future date hides this assignment from students entirely —
+    // no submission list entry, no pending-count, no direct access —
+    // until that date, letting a teacher schedule it ahead of time.
+    releaseDate: { type: Date, default: null },
 
     questions: [assignmentQuestionSchema],
   },

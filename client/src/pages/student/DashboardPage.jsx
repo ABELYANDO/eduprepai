@@ -9,7 +9,7 @@ import toast from 'react-hot-toast'
 import {
   BookOpen, TrendingUp, FileText, Target,
   Flame, Award, ArrowRight, BarChart2,
-  Save, LogIn, LogOut, Users,
+  Save, LogIn, LogOut, Users, Megaphone,
 } from 'lucide-react'
 
 export default function DashboardPage() {
@@ -45,7 +45,19 @@ export default function DashboardPage() {
   const [joinCodeInput,  setJoinCodeInput]  = useState('')
   const [joining,        setJoining]        = useState(false)
 
-  useEffect(() => { loadClasses() }, [])
+  // ── Announcements from teachers of your classes ────────────────
+  const [announcements, setAnnouncements] = useState([])
+
+  useEffect(() => { loadClasses(); loadAnnouncements() }, [])
+
+  const loadAnnouncements = async () => {
+    try {
+      const data = await assignmentAPI.getAnnouncements()
+      setAnnouncements(data.announcements || [])
+    } catch {
+      // Non-blocking — the dashboard is still useful without this
+    }
+  }
 
   const loadClasses = async () => {
     setClassesLoading(true)
@@ -124,6 +136,27 @@ export default function DashboardPage() {
             </div>
           ))}
         </div>
+
+        {/* ── Announcements from your teachers ────────────────── */}
+        {announcements.length > 0 && (
+          <div className="card">
+            <h2 className="section-title flex items-center gap-2">
+              <Megaphone className="w-4 h-4 text-teal-600" />
+              Announcements
+            </h2>
+            <div className="space-y-3">
+              {announcements.map(a => (
+                <div key={a.id} className="py-2 border-b border-slate-100 last:border-0">
+                  <p className="text-sm text-slate-700 whitespace-pre-line">{a.message}</p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    {a.teacherName} · {a.className || a.subject} ·{' '}
+                    {new Date(a.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ── Quick actions ────────────────────────────────── */}
         <div>
