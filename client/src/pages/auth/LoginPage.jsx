@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { GraduationCap, Mail, Lock, ArrowRight, Eye, EyeOff, UserCircle, Check, Trophy, AlertTriangle } from 'lucide-react'
+import { GraduationCap, Mail, Lock, ArrowRight, Eye, EyeOff, UserCircle, Check, Trophy, AlertTriangle, ChevronDown } from 'lucide-react'
 import toast from 'react-hot-toast'
 import examHallBg from '../../assets/exam-hall-bg.jpg'
 import ThemeToggle from '../../components/ThemeToggle'
@@ -199,16 +199,23 @@ export default function LoginPage() {
             <div>
               <label className="label">Signing in as</label>
               <div className="relative">
-                <UserCircle className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                {/* iOS Safari ignores padding-left on a native <select>'s
+                   own text, so the icon and the option label can render
+                   on top of each other — appearance-none opts out of the
+                   native chrome entirely (and its own dropdown arrow) so
+                   normal box-model padding applies, then ChevronDown
+                   stands in for the arrow that appearance-none removed. */}
+                <UserCircle className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none z-10" />
                 <select
                   value={role}
                   onChange={e => { setError(''); setRole(e.target.value) }}
-                  className="input pl-10"
+                  className="input pl-10 pr-10 appearance-none"
                 >
                   {Object.entries(ROLES).map(([key, { label }]) => (
                     <option key={key} value={key}>{label}</option>
                   ))}
                 </select>
+                <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
               </div>
             </div>
 
