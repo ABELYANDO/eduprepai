@@ -15,6 +15,9 @@ export const teacherAPI = {
   // ── Assignments ──────────────────────────────────────────────
   createAssignment: (data)    => api.post('/teacher/assignments', data),
   getAssignments:   (classId) => api.get('/teacher/assignments', { params: classId ? { classId } : {} }),
+  updateAssignment: (id, data) => api.put(`/teacher/assignments/${id}`, data),
+  deleteAssignment: (id)      => api.delete(`/teacher/assignments/${id}`),
+  assignToNewStudents: (id)   => api.post(`/teacher/assignments/${id}/assign-new-students`),
 
   // ── Struggling-topics view for one student, one subject ────────
   getStudentMastery: (studentId, subject) => api.get(`/teacher/students/${studentId}/mastery`, { params: { subject } }),

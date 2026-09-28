@@ -212,6 +212,79 @@ export const listAssignments = asyncHandler(async (req, res) => {
   res.json({ success: true, assignments: withCounts })
 })
 
+// ── PUT /api/teacher/assignments/:id ─────────────────────────────
+// Title and due date only — the question set stays fixed once created
+// because AssignmentSubmission.answers is index-aligned to it; letting
+// the question count/order change after a submission exists would
+// desync marks already recorded against the old positions. A teacher
+// who needs different questions deletes this and creates a new one.
+export const updateAssignment = asyncHandler(async (req, res) => {
+  const { title, dueDate } = req.body
+  const assignment = await Assignment.findOne({ _id: req.params.id, teacherId: req.user._id })
+  if (!assignment) throw new AppError('Assignment not found', 404)
+
+  if (title !== undefined) {
+    if (!title.trim()) throw new AppError('Title is required', 400)
+    assignment.title = title
+  }
+  if (dueDate !== undefined) assignment.dueDate = dueDate || null
+
+  await assignment.save()
+
+  res.json({ success: true, message: 'Assignment updated', assignment })
+})
+
+// ── DELETE /api/teacher/assignments/:id ──────────────────────────
+export const deleteAssignment = asyncHandler(async (req, res) => {
+  const assignment = await Assignment.findOne({ _id: req.params.id, teacherId: req.user._id })
+  if (!assignment) throw new AppError('Assignment not found', 404)
+
+  await AssignmentSubmission.deleteMany({ assignmentId: assignment._id })
+  await assignment.deleteOne()
+
+  res.json({ success: true, message: 'Assignment deleted' })
+})
+
+// ── POST /api/teacher/assignments/:id/assign-new-students ────────
+// Backfills submissions for students who joined the class AFTER this
+// assignment was created — createAssignment only snapshots the roster
+// at that moment (see joinClass's note in assignment.controller.js),
+// so a student who joins later never gets this assignment on their own.
+export const assignToNewStudents = asyncHandler(async (req, res) => {
+  const assignment = await Assignment.findOne({ _id: req.params.id, teacherId: req.user._id })
+  if (!assignment) throw new AppError('Assignment not found', 404)
+
+  const cls = await Class.findById(assignment.classId)
+  if (!cls) throw new AppError("This assignment's class no longer exists", 404)
+
+  const alreadyAssigned = new Set(
+    (await AssignmentSubmission.find({ assignmentId: assignment._id }).select('studentId'))
+      .map(s => s.studentId.toString())
+  )
+  const newStudentIds = cls.studentIds.filter(id => !alreadyAssigned.has(id.toString()))
+
+  if (newStudentIds.length === 0) {
+    return res.json({ success: true, message: 'Every student in the class already has this assignment.', count: 0 })
+  }
+
+  const availableMarks = assignment.questions.reduce((sum, q) => sum + (q.marks || 0), 0)
+  await AssignmentSubmission.insertMany(
+    newStudentIds.map(studentId => ({
+      assignmentId: assignment._id,
+      studentId,
+      answers: assignment.questions.map(() => ({})),
+      availableMarks,
+    })),
+    { ordered: false }
+  )
+
+  res.json({
+    success: true,
+    message: `Assigned to ${newStudentIds.length} new student${newStudentIds.length !== 1 ? 's' : ''}`,
+    count: newStudentIds.length,
+  })
+})
+
 // ── GET /api/teacher/students/:studentId/mastery?subject= ───────
 // Struggling-topics view for one student, scoped to a single subject.
 // Combines practice-derived MasteryProfile scores with a fresh

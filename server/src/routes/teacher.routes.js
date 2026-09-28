@@ -6,6 +6,9 @@ import {
   removeStudent,
   createAssignment,
   listAssignments,
+  updateAssignment,
+  deleteAssignment,
+  assignToNewStudents,
   getStudentMastery,
   listPendingReviews,
   getSubmissionForReview,
@@ -36,6 +39,9 @@ router.post('/extract-pdf',        extractFromPDF)
 // ── Assignments ──────────────────────────────────────────────────
 router.post('/assignments', createAssignment)
 router.get('/assignments',  listAssignments)
+router.put('/assignments/:id',    updateAssignment)
+router.delete('/assignments/:id', deleteAssignment)
+router.post('/assignments/:id/assign-new-students', assignToNewStudents)
 
 // ── Struggling-topics view for one student, one subject ──────────
 router.get('/students/:studentId/mastery', getStudentMastery)

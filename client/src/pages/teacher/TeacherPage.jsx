@@ -13,7 +13,7 @@ import { settingsAPI } from '../../api/settings.api'
 import {
   Users, Plus, Cpu, FileSearch, Type, Trash2,
   Copy, ClipboardList, ArrowRight, X, ClipboardCheck, Camera,
-  AlertTriangle, Target, BookOpen, UserMinus,
+  AlertTriangle, Target, BookOpen, UserMinus, Pencil, UserPlus,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { getSubjectsForExamType, GHANAIAN_LANGUAGES } from '../../constants/subjects'
@@ -63,6 +63,12 @@ export default function TeacherPage() {
   // ── Assignments overview (per class, shown under Classes tab) ──
   const [assignments,        setAssignments]        = useState([])
   const [assignmentsLoading, setAssignmentsLoading]  = useState(false)
+  // Which assignment's title/due-date edit form is open, and its draft
+  // values — null when nothing is being edited.
+  const [editingAssignmentId, setEditingAssignmentId] = useState(null)
+  const [editForm, setEditForm] = useState({ title: '', dueDate: '' })
+  const [savingAssignment,  setSavingAssignment]  = useState(false)
+  const [assigningNewIds,   setAssigningNewIds]   = useState([]) // assignment _ids currently running assign-new-students
 
   // ── New assignment builder ──────────────────────────────────
   const [selectedClassId, setSelectedClassId] = useState('')
@@ -244,6 +250,56 @@ export default function TeacherPage() {
       toast.error(err.message)
     } finally {
       setCreatingAssignment(false)
+    }
+  }
+
+  // ── Edit / delete / backfill an existing assignment ────────────
+  // Only title and due date are editable — the question set stays
+  // fixed once created (see updateAssignment's comment server-side).
+  const openEditAssignment = (a) => {
+    setEditingAssignmentId(a._id)
+    setEditForm({ title: a.title, dueDate: a.dueDate ? a.dueDate.slice(0, 10) : '' })
+  }
+
+  const handleSaveAssignment = async (assignmentId) => {
+    if (!editForm.title.trim()) return toast.error('Give the assignment a title')
+    setSavingAssignment(true)
+    try {
+      await teacherAPI.updateAssignment(assignmentId, {
+        title: editForm.title,
+        dueDate: editForm.dueDate || null,
+      })
+      toast.success('Assignment updated')
+      setEditingAssignmentId(null)
+      loadAssignments()
+    } catch (err) {
+      toast.error(err.message)
+    } finally {
+      setSavingAssignment(false)
+    }
+  }
+
+  const handleDeleteAssignment = async (a) => {
+    if (!window.confirm(`Delete "${a.title}"? This removes it and every student's submission for it. This cannot be undone.`)) return
+    try {
+      await teacherAPI.deleteAssignment(a._id)
+      toast.success(`${a.title} deleted`)
+      loadAssignments()
+    } catch (err) {
+      toast.error(err.message)
+    }
+  }
+
+  const handleAssignToNewStudents = async (a) => {
+    setAssigningNewIds(prev => [...prev, a._id])
+    try {
+      const data = await teacherAPI.assignToNewStudents(a._id)
+      toast.success(data.message)
+      if (data.count > 0) loadAssignments()
+    } catch (err) {
+      toast.error(err.message)
+    } finally {
+      setAssigningNewIds(prev => prev.filter(id => id !== a._id))
     }
   }
 
@@ -519,12 +575,78 @@ export default function TeacherPage() {
                 <h3 className="section-title">Assignments given</h3>
                 <div className="space-y-2">
                   {assignments.map(a => (
-                    <div key={a._id} className="flex items-center justify-between gap-3 py-2 border-b border-slate-100 last:border-0">
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-slate-700 truncate">{a.title}</p>
-                        <p className="text-xs text-slate-400">{a.subject} · {a.questionCount} question{a.questionCount !== 1 ? 's' : ''}</p>
-                      </div>
-                      <span className="badge-blue text-xs flex-shrink-0">{a.submittedCount}/{a.totalStudents} submitted</span>
+                    <div key={a._id} className="py-2 border-b border-slate-100 last:border-0">
+                      {editingAssignmentId === a._id ? (
+                        <div className="space-y-2 py-1">
+                          <input
+                            type="text" value={editForm.title}
+                            onChange={e => setEditForm(p => ({ ...p, title: e.target.value }))}
+                            placeholder="Assignment title"
+                            className="input text-sm"
+                          />
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="date" value={editForm.dueDate}
+                              onChange={e => setEditForm(p => ({ ...p, dueDate: e.target.value }))}
+                              className="input text-sm flex-1"
+                            />
+                            <button
+                              onClick={() => handleSaveAssignment(a._id)}
+                              disabled={savingAssignment}
+                              className="btn-primary text-sm py-2 px-3 flex-shrink-0"
+                            >
+                              {savingAssignment ? <span className="spinner w-3.5 h-3.5 border-white/40 border-t-white" /> : 'Save'}
+                            </button>
+                            <button
+                              onClick={() => setEditingAssignmentId(null)}
+                              className="btn-secondary text-sm py-2 px-3 flex-shrink-0"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-slate-700 truncate">{a.title}</p>
+                            <p className="text-xs text-slate-400">
+                              {a.subject} · {a.questionCount} question{a.questionCount !== 1 ? 's' : ''}
+                              {a.dueDate && ` · due ${new Date(a.dueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                            <span className="badge-blue text-xs">{a.submittedCount}/{a.totalStudents} submitted</span>
+                            <button
+                              onClick={() => handleAssignToNewStudents(a)}
+                              disabled={assigningNewIds.includes(a._id)}
+                              className="p-1.5 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                              aria-label={`Assign ${a.title} to newly joined students`}
+                              title="Assign to newly joined students"
+                            >
+                              {assigningNewIds.includes(a._id)
+                                ? <span className="spinner w-3.5 h-3.5" />
+                                : <UserPlus className="w-3.5 h-3.5" />
+                              }
+                            </button>
+                            <button
+                              onClick={() => openEditAssignment(a)}
+                              className="p-1.5 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                              aria-label={`Edit ${a.title}`}
+                              title="Edit title/due date"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteAssignment(a)}
+                              className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                              aria-label={`Delete ${a.title}`}
+                              title="Delete assignment"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
