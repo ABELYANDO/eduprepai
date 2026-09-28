@@ -52,6 +52,19 @@ export default function Sidebar({ mobileOpen, onClose }) {
       .catch(() => {}) // silent — badge just stays at 0
   }, [])
 
+  // Remedial Assignment only ever has anything in it once a student has
+  // joined a teacher's class — hide the nav item entirely until then,
+  // rather than linking to a page that's just an empty "join a class"
+  // prompt for every brand-new student.
+  const [inAnyClass, setInAnyClass] = useState(false)
+  useEffect(() => {
+    assignmentAPI.getClasses()
+      .then(data => setInAnyClass((data.classes || []).length > 0))
+      .catch(() => {}) // silent — nav item just stays hidden
+  }, [])
+
+  const visibleNav = STUDENT_NAV.filter(item => item.to !== '/assignments' || inAnyClass)
+
   const handleLogout = () => {
     logout()
     navigate('/login')
@@ -135,7 +148,7 @@ export default function Sidebar({ mobileOpen, onClose }) {
             Study Tools
           </p>
 
-          {STUDENT_NAV.map(({ to, icon: Icon, label }) => (
+          {visibleNav.map(({ to, icon: Icon, label }) => (
             <NavLink
               key={to}
               to={to}
