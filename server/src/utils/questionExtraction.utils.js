@@ -96,20 +96,24 @@ question whose wording depends on one (e.g. "using the diagram above...",
 a graph to read values from, a map to label, a circuit to analyse).
 
 Instructions:
-- Identify every question — MCQ, structured, and essay
+- Identify every question — MCQ and essay (this includes multi-part,
+  lettered sub-question papers, which are still "type": "Essay", just
+  with a populated "parts" array — see below)
 - For MCQ: capture all 4 options and identify the correct answer if shown
-- For structured/essay questions with sub-parts: capture ONE "parts" entry
-  per LEAF sub-part, not per top-level part. If a part is further divided
-  — e.g. (a)(i), (a)(ii), (b)(i), (b)(ii), (c)(i)-(iii) — use a dotted
-  label combining them: "a.i", "a.ii", "b.i", "b.ii", "c.i", "c.ii", "c.iii".
-  A part with no further sub-division just keeps its own letter: "a". Give
-  each leaf entry ONLY its own mark allocation, not its parent part's total
-  (e.g. if (a) is worth 4 marks split across (a)(i)=2 and (a)(ii)=2, record
+- For essay questions with sub-parts (e.g. a multi-part theory/structured
+  question): capture ONE "parts" entry per LEAF sub-part, not per
+  top-level part. If a part is further divided — e.g. (a)(i), (a)(ii),
+  (b)(i), (b)(ii), (c)(i)-(iii) — use a dotted label combining them:
+  "a.i", "a.ii", "b.i", "b.ii", "c.i", "c.ii", "c.iii". A part with no
+  further sub-division just keeps its own letter: "a". Give each leaf
+  entry ONLY its own mark allocation, not its parent part's total (e.g.
+  if (a) is worth 4 marks split across (a)(i)=2 and (a)(ii)=2, record
   two entries of 2 marks each, not one entry of 4).
-- For essay questions with no sub-parts: capture the full question and any
-  guidance given, with an empty "parts" array
+- For essay questions with no sub-parts (a single free-response essay):
+  capture the full question and any guidance given, with an empty
+  "parts" array
 - Determine the difficulty level (1-5) based on complexity
-- Assign the correct section: A (MCQ), B (Structured), C (Essay)
+- Assign the correct section: A (MCQ), B or C (Essay)
 - Marks: Section A = 1, Section B = varies (check the paper), Section C = 20
 - Most questions are text-only — set "hasImage": true ONLY when the
   question is genuinely unanswerable without seeing a specific diagram,
@@ -138,7 +142,7 @@ Return ONLY a JSON array where each object matches this structure:
     "questionText": "The full question text",
     "topic": "...",
     "subtopic": "More specific subtopic if identifiable",
-    "type": "MCQ" or "Structured" or "Essay",
+    "type": "MCQ" or "Essay",
     "section": "A" or "B" or "C",
     "difficulty": 1-5 (your assessment),
     "marks": number,

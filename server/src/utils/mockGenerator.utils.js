@@ -6,10 +6,20 @@ import { getCurriculumScope, formatScopeNote } from './curriculumGrounding.utils
 // ── WAEC paper structure constants ─────────────────────────────
 // Generic default — applies to every subject/exam-type combo that
 // doesn't have a real structure of its own in SUBJECT_PAPER_STRUCTURES.
+//
+// `type` is only ever 'MCQ' or 'Essay' now — there's no separate
+// "Structured" question type any more. What used to be signalled by
+// `type: 'Structured'` (a multi-part, lettered-sub-question answer
+// with its own marking scheme, vs. a single free-response essay) is
+// now signalled by the `multiPart` flag on each section below, which
+// controls what fillWithAI asks Gemini to generate, and ultimately
+// shows up as a populated `parts` array on the question — the same
+// array PartAnswerEditor.jsx (client) already renders from directly,
+// regardless of the `type` string.
 export const PAPER_STRUCTURE = {
-  sectionA: { type: 'MCQ',        count: 40, marksEach: 1,  totalMarks: 40 },
-  sectionB: { type: 'Structured', count: 4,  marksEach: 10, totalMarks: 40 },
-  sectionC: { type: 'Essay',      count: 2,  marksEach: 20, totalMarks: 40 },
+  sectionA: { type: 'MCQ',   count: 40, marksEach: 1,  totalMarks: 40 },
+  sectionB: { type: 'Essay', count: 4,  marksEach: 10, totalMarks: 40, multiPart: true  },
+  sectionC: { type: 'Essay', count: 2,  marksEach: 20, totalMarks: 40, multiPart: false },
   sectionCAnswerCount: 1,
   // Note: Section C — student answers ONE essay (20 marks)
   // so availableMarks = 100 total (40 + 40 + 20)
@@ -31,21 +41,21 @@ export const PAPER_STRUCTURE = {
 // student answers any 4 at 15 marks each = 60) maps entirely onto this
 // app's `sectionC` bucket, since that's the one built to handle
 // "answer N of M offered" — `sectionB` is deliberately left empty
-// (count 0) for this subject. `type: 'Structured'` (not 'Essay') on
-// that bucket matters: these are genuinely multi-part structured
-// answers, and it's what tells fillWithAI to generate dotted-part
-// questions when the bank is thin, not free-form essay filler.
+// (count 0) for this subject. `multiPart: true` on that bucket matters:
+// these are genuinely multi-part structured answers, and it's what
+// tells fillWithAI to generate dotted-part questions when the bank is
+// thin, not free-form essay filler.
 export const SUBJECT_PAPER_STRUCTURES = {
   'BECE:Computing': {
-    sectionA: { type: 'MCQ',        count: 40, marksEach: 1,  totalMarks: 40, fetchBy: 'typeSection' },
-    sectionB: { type: 'Structured', count: 1,  marksEach: 24, totalMarks: 24, fetchBy: 'marks' },
-    sectionC: { type: 'Essay',      count: 4,  marksEach: 12, totalMarks: 36, fetchBy: 'marks' },
+    sectionA: { type: 'MCQ',   count: 40, marksEach: 1,  totalMarks: 40, fetchBy: 'typeSection' },
+    sectionB: { type: 'Essay', count: 1,  marksEach: 24, totalMarks: 24, fetchBy: 'marks', multiPart: true  },
+    sectionC: { type: 'Essay', count: 4,  marksEach: 12, totalMarks: 36, fetchBy: 'marks', multiPart: false },
     sectionCAnswerCount: 3,
   },
   'BECE:Mathematics': {
-    sectionA: { type: 'MCQ',        count: 40, marksEach: 1,  totalMarks: 40, fetchBy: 'typeSection' },
-    sectionB: { type: 'Structured', count: 0,  marksEach: 0,  totalMarks: 0 },
-    sectionC: { type: 'Structured', count: 6,  marksEach: 15, totalMarks: 60, fetchBy: 'marks' },
+    sectionA: { type: 'MCQ',   count: 40, marksEach: 1,  totalMarks: 40, fetchBy: 'typeSection' },
+    sectionB: { type: 'Essay', count: 0,  marksEach: 0,  totalMarks: 0,  multiPart: true },
+    sectionC: { type: 'Essay', count: 6,  marksEach: 15, totalMarks: 60, fetchBy: 'marks', multiPart: true },
     sectionCAnswerCount: 4,
   },
   // BECE Science's actual paper: Objectives (40 MCQ) matches the generic
@@ -57,9 +67,9 @@ export const SUBJECT_PAPER_STRUCTURES = {
   // Raw total available is 40+40+60=140, not the usual 100 — markFullPaper
   // scales the final total/percent down to a 100 basis for this reason.
   'BECE:Science': {
-    sectionA: { type: 'MCQ',        count: 40, marksEach: 1,  totalMarks: 40, fetchBy: 'typeSection' },
-    sectionB: { type: 'Structured', count: 1,  marksEach: 40, totalMarks: 40, fetchBy: 'marks' },
-    sectionC: { type: 'Structured', count: 4,  marksEach: 20, totalMarks: 60, fetchBy: 'marks' },
+    sectionA: { type: 'MCQ',   count: 40, marksEach: 1,  totalMarks: 40, fetchBy: 'typeSection' },
+    sectionB: { type: 'Essay', count: 1,  marksEach: 40, totalMarks: 40, fetchBy: 'marks', multiPart: true },
+    sectionC: { type: 'Essay', count: 4,  marksEach: 20, totalMarks: 60, fetchBy: 'marks', multiPart: true },
     sectionCAnswerCount: 3,
   },
   // BECE English Language's actual paper: Paper 1 (Objectives, 40 MCQ)
@@ -70,13 +80,13 @@ export const SUBJECT_PAPER_STRUCTURES = {
   // merged into one compulsory `sectionB` item (both are compulsory
   // anyway); `promptHint` tells the AI generator how to split it into a
   // passage + comprehension parts + "[Literature]"-prefixed parts, since
-  // the generic Structured prompt has no way to know that on its own.
+  // the generic multi-part prompt has no way to know that on its own.
   // Essay Writing maps onto `sectionC`'s existing "offer M, answer N"
   // mechanic exactly as-is.
   'BECE:English Language': {
-    sectionA: { type: 'MCQ',        count: 40, marksEach: 1,  totalMarks: 40, fetchBy: 'typeSection' },
+    sectionA: { type: 'MCQ', count: 40, marksEach: 1, totalMarks: 40, fetchBy: 'typeSection' },
     sectionB: {
-      type: 'Structured', count: 1, marksEach: 30, totalMarks: 30, fetchBy: 'marksAndType',
+      type: 'Essay', count: 1, marksEach: 30, totalMarks: 30, fetchBy: 'marksTypeSection', multiPart: true,
       promptHint: `This compulsory question combines two parts. Write a short reading passage ` +
         `(150-250 words, Ghanaian/West African context) as the questionText. Then use "parts" for: ` +
         `3-4 comprehension sub-questions about the passage (lettered a, b, c... testing understanding, ` +
@@ -85,10 +95,11 @@ export const SUBJECT_PAPER_STRUCTURES = {
         `African prescribed text (e.g. a Ghanaian novel, play or poem) — prefix each literature part's ` +
         `"text" with "[Literature]" so it reads as clearly distinct from the comprehension parts.`,
     },
-    // sectionB and sectionC coincidentally share marksEach: 30 (Comprehension+
-    // Literature = 20+10, Essay = 30) — `fetchBy: 'marksAndType'` on both
-    // disambiguates them by `type` ('Structured' vs 'Essay') too.
-    sectionC: { type: 'Essay', count: 3, marksEach: 30, totalMarks: 30, fetchBy: 'marksAndType' },
+    // sectionB and sectionC coincidentally share both marksEach: 30
+    // (Comprehension+Literature = 20+10, Essay = 30) AND type ('Essay' for
+    // both, now that Structured no longer exists as a separate type) —
+    // `fetchBy: 'marksTypeSection'` disambiguates them by `section` too.
+    sectionC: { type: 'Essay', count: 3, marksEach: 30, totalMarks: 30, fetchBy: 'marksTypeSection', multiPart: false },
     sectionCAnswerCount: 1,
   },
   // BECE Social Studies' actual paper: Paper 1 (Objectives, 40 MCQ)
@@ -105,16 +116,16 @@ export const SUBJECT_PAPER_STRUCTURES = {
   // exam UI shows a soft "one from each theme" instruction since the
   // app can't enforce picking one from each real sub-theme.
   'BECE:Social Studies': {
-    sectionA: { type: 'MCQ',        count: 40, marksEach: 1,  totalMarks: 40, fetchBy: 'typeSection' },
+    sectionA: { type: 'MCQ', count: 40, marksEach: 1, totalMarks: 40, fetchBy: 'typeSection' },
     sectionB: {
-      type: 'Structured', count: 1, marksEach: 20, totalMarks: 20, fetchBy: 'marksTypeSection',
+      type: 'Essay', count: 1, marksEach: 20, totalMarks: 20, fetchBy: 'marksTypeSection', multiPart: true,
       promptHint: `This compulsory question is on The Environment (natural resources, environmental ` +
         `issues, land degradation, conservation, sustainable development in Ghana/West Africa). Write a ` +
         `multi-part structured question with lettered parts (a), (b), (c)... covering explanation, causes/` +
         `effects, and solutions/recommendations, worth a combined 20 marks. Set "topic" to "The Environment".`,
     },
     sectionC: {
-      type: 'Structured', count: 4, marksEach: 20, totalMarks: 40, fetchBy: 'marksTypeSection',
+      type: 'Essay', count: 4, marksEach: 20, totalMarks: 40, fetchBy: 'marksTypeSection', multiPart: true,
       promptHint: `Generate exactly 2 questions on "Law, Order and Nation Building" (rule of law, government, ` +
         `national institutions, human rights, democracy) and 2 questions on "Socio-Economic Development" ` +
         `(population, employment, entrepreneurship, national development, social issues in Ghana) — set each ` +
@@ -129,22 +140,22 @@ export const SUBJECT_PAPER_STRUCTURES = {
   // compulsory (20 marks), B: 4 offered, answer 2 (20 marks each) —
   // mapping cleanly onto this app's sectionB (compulsory) / sectionC
   // (offer 4, answer 2) with no merge needed. Both end up at the same
-  // marksEach (20) AND type ('Structured', matching WAEC's real
+  // marksEach (20) AND multiPart (true for both, matching WAEC's real
   // scenario+lettered-parts style for both) — `fetchBy: 'marksTypeSection'`
   // disambiguates by `section` too, and also excludes old free-form
   // Essay-tagged content (pre-existing bank items with no lettered parts)
   // from being pulled into the new sectionC.
   'BECE:Religious & Moral Education': {
-    sectionA: { type: 'MCQ',        count: 40, marksEach: 1,  totalMarks: 40, fetchBy: 'typeSection' },
+    sectionA: { type: 'MCQ', count: 40, marksEach: 1, totalMarks: 40, fetchBy: 'typeSection' },
     sectionB: {
-      type: 'Structured', count: 1, marksEach: 20, totalMarks: 20, fetchBy: 'marksTypeSection',
+      type: 'Essay', count: 1, marksEach: 20, totalMarks: 20, fetchBy: 'marksTypeSection', multiPart: true,
       promptHint: `This compulsory question presents a short real-life Ghanaian scenario, then asks ` +
         `4 lettered sub-questions (a, b, c, d) of increasing depth (identify/state → explain/discuss) on a ` +
         `Religious and Moral Education topic (e.g. moral values, family, religion, environment, authority), ` +
         `worth a combined 20 marks.`,
     },
     sectionC: {
-      type: 'Structured', count: 4, marksEach: 20, totalMarks: 40, fetchBy: 'marksTypeSection',
+      type: 'Essay', count: 4, marksEach: 20, totalMarks: 40, fetchBy: 'marksTypeSection', multiPart: true,
       promptHint: `Each question presents a short real-life Ghanaian scenario (or none, for a direct multi-part ` +
         `prompt), then asks 2-4 lettered sub-questions (a, b, c, d...) worth a combined 20 marks, covering a ` +
         `mix of Religious and Moral Education topics (e.g. Christianity, Islam, African Traditional Religion, ` +
@@ -162,13 +173,13 @@ export const SUBJECT_PAPER_STRUCTURES = {
   // are merged into sectionC's "offer 4, answer 2" pool — same tradeoff
   // already accepted for Social Studies (no distinguishing mechanism for
   // "1 from each Part" since these alternates don't share topic names).
-  // Both buckets land on marksEach: 15 AND type: 'Structured', so
+  // Both buckets land on marksEach: 15 AND multiPart: true, so
   // `fetchBy: 'marksTypeSection'` (built for Social Studies) disambiguates
   // them and excludes old generic-structure bank content (10/20 marks).
   'BECE:Career Technology': {
-    sectionA: { type: 'MCQ',        count: 40, marksEach: 1,  totalMarks: 40, fetchBy: 'typeSection' },
+    sectionA: { type: 'MCQ', count: 40, marksEach: 1, totalMarks: 40, fetchBy: 'typeSection' },
     sectionB: {
-      type: 'Structured', count: 2, marksEach: 15, totalMarks: 30, fetchBy: 'marksTypeSection',
+      type: 'Essay', count: 2, marksEach: 15, totalMarks: 30, fetchBy: 'marksTypeSection', multiPart: true,
       promptHint: `This is a "test of practical" question — a hands-on task description (e.g. a recipe/` +
         `procedure to describe step by step, a technical drawing/projection to construct, a joint or ` +
         `artefact to illustrate stage by stage) from the Career Technology syllabus (Food and Nutrition, ` +
@@ -176,7 +187,7 @@ export const SUBJECT_PAPER_STRUCTURES = {
         `May be a single instruction or have a few lettered parts (a, b, c...).`,
     },
     sectionC: {
-      type: 'Structured', count: 4, marksEach: 15, totalMarks: 30, fetchBy: 'marksTypeSection',
+      type: 'Essay', count: 4, marksEach: 15, totalMarks: 30, fetchBy: 'marksTypeSection', multiPart: true,
       promptHint: `Each question is a Career Technology task (hygiene/safety, design, construction, ` +
         `maintenance, or similar practical topics), worth 15 marks, covering a mix of distinct syllabus ` +
         `areas (Food and Nutrition, Home Management, Woodwork, Metalwork, Technical Drawing, Basic ` +
@@ -200,9 +211,9 @@ export const SUBJECT_PAPER_STRUCTURES = {
   // perform-the-craft). Both buckets land on marksEach: 15, so
   // `fetchBy: 'marksTypeSection'` disambiguates them.
   'BECE:Creative Arts and Design': {
-    sectionA: { type: 'MCQ',        count: 40, marksEach: 1,  totalMarks: 40, fetchBy: 'typeSection' },
+    sectionA: { type: 'MCQ', count: 40, marksEach: 1, totalMarks: 40, fetchBy: 'typeSection' },
     sectionB: {
-      type: 'Structured', count: 1, marksEach: 15, totalMarks: 15, fetchBy: 'marksTypeSection',
+      type: 'Essay', count: 1, marksEach: 15, totalMarks: 15, fetchBy: 'marksTypeSection', multiPart: true,
       promptHint: `This is the compulsory Design question — since this is a text-only platform, reword ` +
         `it as a describe/explain task rather than a literal drawing task (e.g. instead of "create a line ` +
         `doodle pattern", ask the student to describe the elements and principles of design they would use, ` +
@@ -210,7 +221,7 @@ export const SUBJECT_PAPER_STRUCTURES = {
         `few lettered parts (a, b, c...).`,
     },
     sectionC: {
-      type: 'Structured', count: 6, marksEach: 15, totalMarks: 45, fetchBy: 'marksTypeSection',
+      type: 'Essay', count: 6, marksEach: 15, totalMarks: 45, fetchBy: 'marksTypeSection', multiPart: true,
       promptHint: `Generate 2 Visual Art questions (on strands other than Design, e.g. Picture Making, ` +
         `Textiles, Sculpture, Ceramics, Graphic Design — describe/explain/identify tasks, NOT literal ` +
         `drawing tasks), 2 Music questions (music theory, notation concepts explained in words, Ghanaian ` +
@@ -242,14 +253,14 @@ export const SUBJECT_PAPER_STRUCTURES = {
         `isn't supported here.`,
     },
     sectionB: {
-      type: 'Structured', count: 2, marksEach: 20, totalMarks: 40, fetchBy: 'marksTypeSection',
+      type: 'Essay', count: 2, marksEach: 20, totalMarks: 40, fetchBy: 'marksTypeSection', multiPart: true,
       promptHint: `Generate one task-based question: a short scenario in French followed by several lettered ` +
         `sub-tasks (e.g. filling out a form, giving short answers, giving information about a person/place/` +
         `event, giving advice, giving directions using a described map, describing a profession), worth a ` +
         `combined 20 marks, topic "Task-Based Writing". And one single-prompt essay/composition question in ` +
         `French with no lettered parts, worth 20 marks, topic "Essay".`,
     },
-    sectionC: { type: 'Essay', count: 0, marksEach: 0, totalMarks: 0 },
+    sectionC: { type: 'Essay', count: 0, marksEach: 0, totalMarks: 0, multiPart: false },
     sectionCAnswerCount: 0,
   },
 }
@@ -268,9 +279,9 @@ export const SUBJECT_PAPER_STRUCTURES = {
 // "offer M, answer N" mechanic fits Composition's "choose 1 topic" exactly
 // (same mechanic already used for Math/English's essay-writing choice).
 const ghanaianLanguageStructure = {
-  sectionA: { type: 'MCQ',        count: 40, marksEach: 1,  totalMarks: 40, fetchBy: 'typeSection' },
+  sectionA: { type: 'MCQ', count: 40, marksEach: 1, totalMarks: 40, fetchBy: 'typeSection' },
   sectionB: {
-    type: 'Structured', count: 3, marksEach: 10, totalMarks: 30, fetchBy: 'marks',
+    type: 'Essay', count: 3, marksEach: 10, totalMarks: 30, fetchBy: 'marks', multiPart: true,
     promptHint: `Generate exactly one Comprehension question (a short passage written IN the ` +
       `language being examined, followed by 8-10 lettered sub-questions (a, b, c...) about it, each ` +
       `worth 1 mark, testing understanding), one Translation question (10 lettered parts (a-j), each ` +
@@ -286,7 +297,7 @@ const ghanaianLanguageStructure = {
       `respectively so they're distinguishable.`,
   },
   sectionC: {
-    type: 'Essay', count: 4, marksEach: 30, totalMarks: 30, fetchBy: 'marks',
+    type: 'Essay', count: 4, marksEach: 30, totalMarks: 30, fetchBy: 'marks', multiPart: false,
     promptHint: `Composition topics in the style of: describing a personal experience, writing a formal ` +
       `or informal letter, narrating an event, or giving an account of a place or custom — written ` +
       `entirely IN the language being examined, roughly 150 words expected in the answer.`,
@@ -342,9 +353,9 @@ export const generatePaper = async (studentId, subject, examType) => {
   const selectedC = weightedSelect(sectionCQuestions, structure.sectionC.count, getTopicWeight)
 
   // ── 5. If bank doesn't have enough, generate with AI ──────────
-  const finalA = await fillWithAI(selectedA, structure.sectionA.count, subject, examType, structure.sectionA.type, 'A', structure.sectionA.marksEach, structure.sectionA.promptHint)
-  const finalB = await fillWithAI(selectedB, structure.sectionB.count, subject, examType, structure.sectionB.type, 'B', structure.sectionB.marksEach, structure.sectionB.promptHint)
-  const finalC = await fillWithAI(selectedC, structure.sectionC.count, subject, examType, structure.sectionC.type, 'C', structure.sectionC.marksEach, structure.sectionC.promptHint)
+  const finalA = await fillWithAI(selectedA, structure.sectionA.count, subject, examType, structure.sectionA.type, 'A', structure.sectionA.marksEach, structure.sectionA.promptHint, structure.sectionA.multiPart)
+  const finalB = await fillWithAI(selectedB, structure.sectionB.count, subject, examType, structure.sectionB.type, 'B', structure.sectionB.marksEach, structure.sectionB.promptHint, structure.sectionB.multiPart)
+  const finalC = await fillWithAI(selectedC, structure.sectionC.count, subject, examType, structure.sectionC.type, 'C', structure.sectionC.marksEach, structure.sectionC.promptHint, structure.sectionC.multiPart)
 
   // ── 6. Format into exam question schema ───────────────────────
   return {
@@ -372,7 +383,7 @@ const fetchSectionQuestions = async (
     // Like 'marksAndType', plus `section` — needed when two sections of
     // the same subject share BOTH marksEach AND type (e.g. BECE Social
     // Studies: sectionB's compulsory Environment question and sectionC's
-    // Law/Order+Socio-Economic questions are both 20-mark Structured
+    // Law/Order+Socio-Economic questions are both 20-mark multi-part
     // items), so only `section` still tells them apart. Also shields
     // against pre-existing bank content tagged under an older generic
     // structure (different marks/type) for the same subject.
@@ -429,9 +440,13 @@ const weightedSelect = (questions, count, getWeight) => {
 
 // ── Fill gaps with AI-generated questions ─────────────────────
 // If the question bank doesn't have enough questions for a
-// section, Gemini generates the remaining ones.
+// section, Gemini generates the remaining ones. `multiPart` (not
+// `type`, which is only ever 'MCQ'/'Essay' now) decides whether this
+// section's Essay questions get a lettered, marks-summing `parts`
+// breakdown (what used to be signalled by `type: 'Structured'`) or a
+// single free-response essay with `parts: []`.
 const fillWithAI = async (
-  existing, needed, subject, examType, type, section, marksEach, promptHint
+  existing, needed, subject, examType, type, section, marksEach, promptHint, multiPart
 ) => {
   if (existing.length >= needed) return existing.slice(0, needed)
 
@@ -454,7 +469,7 @@ ${type === 'MCQ' ? `Return JSON array:
   "modelAnswer": "",
   "topic": "topic name",
   "parts": []
-}]` : type === 'Structured' ? `If a part naturally divides further (e.g. part (a) has two
+}]` : multiPart ? `If a part naturally divides further (e.g. part (a) has two
 distinct sub-questions), use a dotted leaf label combining them —
 "a.i", "a.ii", "b.i" — each with only its own share of the marks,
 instead of one entry for the whole of (a). A part with no further
@@ -702,7 +717,7 @@ Respond with plain text only — no JSON, no markdown.`
 
   const prompt = `Write a 3-sentence examiner comment for a candidate who scored:
 - Section A (MCQ): ${sectionAMarks}/${sectionATotal}
-- Section B (Structured): ${sectionBMarks}/${sectionBTotal}
+- Section B: ${sectionBMarks}/${sectionBTotal}
 - Section C (Essay): ${sectionCMarks}/${sectionCTotal}
 - Total: ${totalMarks}/100 (${percent}%)
 

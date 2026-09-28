@@ -18,7 +18,8 @@
     "scrape:kuulchat": "node scripts/scrapeKuulchat.js",
     "grades:backfill-bece": "node scripts/backfillBeceGrades.js",
     "subjects:rename-bece-science": "node scripts/renameBeceScience.js",
-    "questions:classify-existing": "node scripts/classifyExistingQuestions.js"
+    "questions:classify-existing": "node scripts/classifyExistingQuestions.js",
+    "questions:migrate-structured-to-essay": "node scripts/migrateStructuredToEssay.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.30.0",

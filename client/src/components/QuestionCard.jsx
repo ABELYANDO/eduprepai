@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CheckCircle2, XCircle, Clock, BookOpen, ChevronRight, Lightbulb } from 'lucide-react'
+import { CheckCircle2, XCircle, Clock, BookOpen, ChevronRight, Lightbulb, NotebookPen } from 'lucide-react'
 import MasteryBadge from './MasteryBadge'
 import MathText from './MathText'
 import QuestionDiagram from './QuestionDiagram'
@@ -46,6 +46,9 @@ export default function QuestionCard({
 
   const isMCQ       = question.type === 'MCQ'
   const isAnswered  = !!result
+  // No teacher for this subject to mark it — show the essay for the
+  // student to answer on paper instead of collecting a typed/photo answer.
+  const isSelfStudy = !isMCQ && !requiresPhoto
 
   const handleSubmit = () => {
     if (hasSubmitted) return
@@ -138,8 +141,8 @@ export default function QuestionCard({
         </div>
       )}
 
-      {/* ── Answer input (Structured + Essay) ──────────────── */}
-      {!isMCQ && (
+      {/* ── Answer input (Essay) ─────────────────────────────── */}
+      {!isMCQ && !isSelfStudy && (
         <div className="mb-6">
           {requiresPhoto ? (
             <PhotoAnswerInput
@@ -161,7 +164,7 @@ export default function QuestionCard({
                 onChange={setTypedAnswer}
                 disabled={isAnswered}
                 placeholder={
-                  question.type === 'Structured'
+                  question.parts?.length > 0
                     ? 'Type your answer here. Address each part (a), (b), (c) clearly...'
                     : 'Write your essay here. Include an introduction, main body, and conclusion...'
                 }
@@ -173,6 +176,19 @@ export default function QuestionCard({
               )}
             </>
           )}
+        </div>
+      )}
+
+      {/* ── Self-study card — no teacher assigned for this subject,
+         so there's no one to mark a typed/photo answer against ─── */}
+      {isSelfStudy && (
+        <div className="mb-6 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 px-4 py-5 flex items-start gap-3">
+          <NotebookPen className="w-5 h-5 text-teal-500 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-slate-600">
+            Answer this in your notebook — you're not in a class for {question.subject}, so this
+            can't be reliably AI-marked. Check your answer against your textbook or notes, or ask
+            a teacher to look it over.
+          </p>
         </div>
       )}
 
@@ -236,7 +252,14 @@ export default function QuestionCard({
 
       {/* ── Action buttons ─────────────────────────────────── */}
       <div className="flex gap-3">
-        {!isAnswered ? (
+        {isSelfStudy ? (
+          <button
+            onClick={() => onSubmit('__next__')}
+            className="btn-primary flex-1 py-3"
+          >
+            Next question <ChevronRight className="w-4 h-4" />
+          </button>
+        ) : !isAnswered ? (
           <button
             onClick={handleSubmit}
             disabled={isMCQ ? !selected : !typedAnswer.trim()}

@@ -19,6 +19,10 @@ export const generateQuestions = asyncHandler(async (req, res) => {
     type      = 'MCQ',
     count     = 5,         // how many questions to generate
     section,
+    // Only meaningful when type is 'Essay' — whether to ask for a
+    // lettered, marks-summing "parts" breakdown (what used to be its
+    // own 'Structured' type) or a single free-response essay.
+    multiPart = false,
   } = req.body
 
   // Validate count — keep AI calls manageable
@@ -27,9 +31,7 @@ export const generateQuestions = asyncHandler(async (req, res) => {
   }
 
   // ── Build section default based on type ─────────────────────
-  const defaultSection = type === 'MCQ'        ? 'A'
-                       : type === 'Structured' ? 'B'
-                       : 'C'
+  const defaultSection = type === 'MCQ' ? 'A' : 'B'
   const resolvedSection = section || defaultSection
 
   // ── Difficulty label for the prompt ─────────────────────────
@@ -59,7 +61,7 @@ Always respond with valid JSON only. No markdown. No explanation outside the JSO
   const prompt = buildGenerationPrompt({
     subject, examType, topic, subtopic, year,
     difficulty, difficultyLabel, type,
-    section: resolvedSection, marks, count,
+    section: resolvedSection, marks, count, multiPart,
   }) + formatGroundingBlock(grounding)
 
   // ── Call AI ──────────────────────────────────────────────────
@@ -272,7 +274,7 @@ export const rejectReviewQueueItem = asyncHandler(async (req, res) => {
 const buildGenerationPrompt = ({
   subject, examType, topic, subtopic, year,
   difficulty, difficultyLabel, type,
-  section, marks, count,
+  section, marks, count, multiPart,
 }) => {
   const mcqInstructions = type === 'MCQ' ? `
 Each question must have:
@@ -280,18 +282,21 @@ Each question must have:
 - "correctOption": one of "A", "B", "C", or "D"
 - "modelAnswer": empty string ""` : ''
 
-  const structuredInstructions = type === 'Structured' ? `
+  // Essay covers both a single free-response essay (multiPart: false)
+  // and a multi-part, lettered sub-question answer with its own marking
+  // scheme (multiPart: true — what used to be a separate 'Structured'
+  // type; the client's PartAnswerEditor.jsx already renders per-part
+  // answer boxes based on `parts.length`, not the `type` string).
+  const essayInstructions = type === 'Essay' && multiPart ? `
 Each question must have:
 - "options": empty array []
 - "correctOption": empty string ""
 - "modelAnswer": a detailed marking guide listing the expected answer points
 - "parts": array of sub-questions, e.g. [{"part":"a","text":"...","marks":3,"answer":"..."}]
-  The parts marks should sum to ${marks} total marks.` : ''
-
-  const essayInstructions = type === 'Essay' ? `
+  The parts marks should sum to ${marks} total marks.` : type === 'Essay' ? `
 Each question must have:
 - "options": empty array []
-- "correctOption": empty string ""  
+- "correctOption": empty string ""
 - "modelAnswer": a detailed marking guide with key points worth marks
 - "parts": empty array []` : ''
 
@@ -311,7 +316,6 @@ WAEC standards to follow:
 - Ensure questions test understanding, not just memorisation
 - Questions must be answerable from the standard ${examType} ${subject} syllabus
 ${mcqInstructions}
-${structuredInstructions}
 ${essayInstructions}
 
 Return ONLY a JSON array with exactly ${count} objects, each matching this structure:

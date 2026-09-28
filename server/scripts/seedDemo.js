@@ -190,7 +190,7 @@ Return a JSON object with this exact structure — no markdown, no explanation:
       })
     })
 
-    // ── Process Structured ─────────────────────────────────────
+    // ── Process Structured (multi-part Essay, has 'parts') ──────
     ;(data.structured || []).forEach(q => {
       if (!q.questionText) return
       questions.push({
@@ -198,7 +198,7 @@ Return a JSON object with this exact structure — no markdown, no explanation:
         subtopic:          q.subtopic || subtopics[0],
         syllabusReference: `WAEC ${examType} ${subject} — ${topic}`,
         year:              Number(q.year) || 2021,
-        type:              'Structured',
+        type:              'Essay',
         section:           'B',
         marks:             10,
         difficulty:        Number(q.difficulty) || 3,

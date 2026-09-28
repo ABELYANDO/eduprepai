@@ -7,7 +7,7 @@ const questionResultSchema = new mongoose.Schema({
     ref: 'Question',
     required: true,
   },
-  type:          String,      // 'MCQ', 'Structured', 'Essay'
+  type:          String,      // 'MCQ', 'Essay'
   topic:         String,
   difficulty:    Number,
 

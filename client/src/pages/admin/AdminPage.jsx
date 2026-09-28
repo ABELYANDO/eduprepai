@@ -165,7 +165,7 @@ export default function AdminPage() {
                         <span className="font-medium text-slate-700">{s.subject}</span>
                         <span className="text-slate-500 text-xs">
                           {s.total} Qs · {s.topicCount} topics ·
-                          MCQ: {s.mcq} Struct: {s.structured} Essay: {s.essay}
+                          MCQ: {s.mcq} Essay: {s.essay}
                         </span>
                       </div>
                       <div className="progress-bar">

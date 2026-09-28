@@ -1,7 +1,7 @@
 import Class                from '../models/Class.model.js'
 import Assignment           from '../models/Assignment.model.js'
 import AssignmentSubmission from '../models/AssignmentSubmission.model.js'
-import { markMCQ, markStructured, markEssay } from '../utils/marking.utils.js'
+import { markMCQ, markEssay } from '../utils/marking.utils.js'
 import { generateAIJSONWithImages } from '../utils/aiService.js'
 import { asyncHandler, AppError } from '../middleware/error.middleware.js'
 
@@ -201,9 +201,9 @@ export const saveAnswer = asyncHandler(async (req, res) => {
 
 // ── POST /api/assignments/:submissionId/submit ─────────────────
 // Marks the paper. Reuses the exact same per-question marking
-// primitives practice mode uses (markMCQ/markStructured/markEssay) —
-// no new marking logic, and no batching like mock exams' markFullPaper
-// since an assignment is a flat list, not a sectioned paper.
+// primitives practice mode uses (markMCQ/markEssay) — no new marking
+// logic, and no batching like mock exams' markFullPaper since an
+// assignment is a flat list, not a sectioned paper.
 export const submitSubmission = asyncHandler(async (req, res) => {
   const submission = await AssignmentSubmission.findOne({
     _id: req.params.submissionId,
@@ -235,8 +235,6 @@ export const submitSubmission = asyncHandler(async (req, res) => {
       result = { isCorrect: false, marksAwarded: 0, partResults: [], overallFeedback: 'Not answered.' }
     } else if (question.type === 'MCQ') {
       result = markMCQ(studentAnswer, question.correctOption, question.marks)
-    } else if (question.type === 'Structured') {
-      result = await markStructured(question, studentAnswer, assignment.subject)
     } else {
       result = await markEssay(question, studentAnswer, assignment.subject)
     }

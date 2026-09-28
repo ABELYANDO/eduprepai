@@ -7,7 +7,7 @@ const examQuestionSchema = new mongoose.Schema({
     ref:  'Question',
   },
   section:        String,   // 'A', 'B', 'C'
-  type:           String,   // 'MCQ', 'Structured', 'Essay'
+  type:           String,   // 'MCQ', 'Essay'
   questionNumber: Number,
   questionText:   String,
   options:        [String], // MCQ only

@@ -5,7 +5,6 @@ import User          from '../models/User.model.js'
   import { checkAndAwardBadges, updateStreak, getBadgeDetails } from '../utils/badge.utils.js'
 import {
   markMCQ,
-  markStructured,
   markEssay,
   generateExplanation,
   computeMasteryUpdate,
@@ -25,7 +24,7 @@ export const getPracticeQuestions = asyncHandler(async (req, res) => {
   const {
     subject,
     topic,
-    type,                    // MCQ, Structured, Essay — optional filter
+    type,                    // MCQ, Essay — optional filter
     limit = 10,
   } = req.query
   const examType = resolveExamType(req, req.query.examType)
@@ -304,8 +303,6 @@ export const submitAnswer = asyncHandler(async (req, res) => {
 
   if (question.type === 'MCQ') {
     markingResult = markMCQ(studentAnswer, question.correctOption, question.marks)
-  } else if (question.type === 'Structured') {
-    markingResult = await markStructured(question, studentAnswer, question.subject)
   } else {
     markingResult = await markEssay(question, studentAnswer, question.subject)
   }

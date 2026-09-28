@@ -9,6 +9,10 @@ const BLANK_CONFIG = {
   subject: 'Mathematics', examType: 'WASSCE',
   topic: '', subtopic: '', year: 2023,
   difficulty: 3, type: 'MCQ', count: 5,
+  // Only meaningful when type is 'Essay' — asks for a lettered,
+  // marks-summing "parts" breakdown (what used to be its own
+  // 'Structured' type) instead of a single free-response essay.
+  multiPart: false,
 }
 
 // `onGenerate`/`onApprove` default to the admin question-bank flow;
@@ -35,7 +39,8 @@ export default function AIGeneratorPanel({
   const [previews, setPreviews] = useState(null)
 
   const handleChange = (e) => {
-    setConfig(prev => ({ ...prev, [e.target.name]: e.target.value }))
+    const { name, value, type, checked } = e.target
+    setConfig(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }))
   }
 
   const handleGenerate = async () => {
@@ -183,7 +188,6 @@ export default function AIGeneratorPanel({
               <label className="label">Type</label>
               <select name="type" value={config.type} onChange={handleChange} className="input">
                 <option>MCQ</option>
-                <option>Structured</option>
                 <option>Essay</option>
               </select>
             </div>
@@ -209,6 +213,17 @@ export default function AIGeneratorPanel({
               />
             </div>
           </div>
+
+          {/* Multi-part toggle — only meaningful for Essay questions */}
+          {config.type === 'Essay' && (
+            <label className="flex items-center gap-2 text-sm text-slate-700">
+              <input
+                type="checkbox" name="multiPart" checked={config.multiPart}
+                onChange={handleChange} className="rounded border-slate-300"
+              />
+              Multi-part (sub-questions like (a)(b)(c))?
+            </label>
+          )}
 
           {/* Difficulty guide */}
           <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-xs text-blue-700">

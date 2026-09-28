@@ -50,8 +50,9 @@ export default function PracticePage() {
   const [topicsLoading, setTopicsLoading] = useState(false)
 
   // ── Classes this student has joined ─────────────────────────
-  // Drives whether Structured/Essay questions require a photo instead
-  // of typing — true when a teacher exists for this subject to review it.
+  // Drives whether Essay questions require a photo instead of typing
+  // — true when a teacher exists for this subject to review it. When
+  // false, Essay questions become self-study (display-only, no marking).
   const [myClasses, setMyClasses] = useState([])
   useEffect(() => {
     assignmentAPI.getClasses().then(data => setMyClasses(data.classes || [])).catch(() => {})
@@ -148,7 +149,8 @@ export default function PracticePage() {
 
       // Start timer if timed mode
       if (timed) {
-        const timePerQ = qType === 'Essay' ? 35 * 60 : qType === 'Structured' ? 15 * 60 : 90
+        const firstQ = data.questions[0]
+        const timePerQ = firstQ?.parts?.length > 0 ? 15 * 60 : qType === 'Essay' ? 35 * 60 : 90
         setTimerSeconds(timePerQ)
       }
 
@@ -188,7 +190,7 @@ export default function PracticePage() {
       // Reset timer for next question
       if (timed) {
         const q = questions[currentIdx + 1]
-        const timePerQ = q?.type === 'Essay' ? 35 * 60 : q?.type === 'Structured' ? 15 * 60 : 90
+        const timePerQ = q?.parts?.length > 0 ? 15 * 60 : q?.type === 'Essay' ? 35 * 60 : 90
         setTimerSeconds(timePerQ)
       }
       return
@@ -235,7 +237,11 @@ export default function PracticePage() {
   useEffect(() => {
     if (timerSeconds === null || !timed || screen !== 'session') return
     if (timerSeconds <= 0) {
-      handleSubmit(questions[currentIdx]?.type === 'MCQ' ? '' : 'Time expired')
+      const q = questions[currentIdx]
+      const isSelfStudy = q?.type !== 'MCQ' && !requiresPhoto
+      if (q?.type === 'MCQ') handleSubmit('')
+      else if (isSelfStudy) handleSubmit('__next__')
+      else handleSubmit('Time expired')
       return
     }
     timerRef.current = setInterval(() => setTimerSeconds(s => s - 1), 1000)
@@ -510,7 +516,7 @@ export default function PracticePage() {
                 <div>
                   <label className="label">Question type</label>
                   <div className="flex flex-col gap-1.5">
-                    {['MCQ', 'Structured', 'Essay'].map(t => (
+                    {['MCQ', 'Essay'].map(t => (
                       <button
                         key={t}
                         onClick={() => setQType(t)}

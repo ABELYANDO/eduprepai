@@ -68,7 +68,7 @@ const questionSchema = new mongoose.Schema(
     type: {
       type: String,
       required: true,
-      enum: ['MCQ', 'Structured', 'Essay'],
+      enum: ['MCQ', 'Essay'],
     },
 
     difficulty: {
@@ -88,7 +88,7 @@ const questionSchema = new mongoose.Schema(
     section: {
       type: String,
       enum: ['A', 'B', 'C'],
-      // A = MCQ section, B = Structured, C = Essay
+      // A = MCQ section, B/C = Essay (some may carry sub-parts, see `parts` below)
     },
 
     // ── Question content ───────────────────────────────────────
@@ -119,7 +119,7 @@ const questionSchema = new mongoose.Schema(
       default: '',
     },
 
-    // Structured/Essay — the model answer used for marking
+    // Essay — the model answer used for marking
     modelAnswer: {
       type: String,
       default: '',
@@ -131,7 +131,11 @@ const questionSchema = new mongoose.Schema(
       default: '',
     },
 
-    // ── Structured question parts (Section B) ─────────────────
+    // ── Multi-part sub-questions (e.g. lettered (a)(b)(c) with their
+    //    own marks) — an Essay question either has these populated for
+    //    a structured, part-by-part answer, or leaves this empty for a
+    //    single free-response essay. PartAnswerEditor.jsx on the client
+    //    already renders based on this array's presence, not `type`. ──
     // e.g. [{ part: 'a', text: 'Define velocity', marks: 3 }]
     parts: [
       {

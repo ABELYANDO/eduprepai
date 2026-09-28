@@ -35,11 +35,11 @@ export default function ExamSectionC({
 }) {
   const marksEach = questions[0]?.marks || 20
   const atCap = selectedIndices.length >= answerCount
-  // Real Structured-type theory questions (e.g. Mathematics) read and
+  // Real multi-part theory questions (e.g. Mathematics) read and
   // behave differently from a free-form Essay — different header
   // wording, placeholder, and "aim for paragraphs" guidance would be
   // actively misleading for a multi-part structured answer.
-  const isStructured = questions[0]?.type === 'Structured'
+  const isStructured = questions[0]?.parts?.length > 0
   const questionWord = isStructured ? 'Structured Question' : 'Essay Question'
 
   return (

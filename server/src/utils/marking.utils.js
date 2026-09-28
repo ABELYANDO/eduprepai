@@ -63,10 +63,23 @@ export const markMCQ = (studentAnswer, correctAnswer, marks = 1) => {
   }
 }
 
-// ── AI structured question marker ─────────────────────────────
-// Sends student answer + marking guide to Gemini.
-// Returns per-part marks and feedback.
-export const markStructured = async (question, studentAnswer, subject) => {
+// ── AI essay marker ───────────────────────────────────────────
+// Marks any non-MCQ answer — branches internally on whether the
+// question has multi-part sub-questions (question.parts.length > 0,
+// what used to be a separate 'Structured' type — marked part-by-part
+// against its own marking guide) or is a single free-response essay
+// (marked against the four fixed WAEC essay criteria). Both paths
+// return the same result shape, so callers never need to know which
+// one ran.
+export const markEssay = async (question, studentAnswer, subject) => {
+  if (question.parts?.length > 0) {
+    return markMultiPart(question, studentAnswer, subject)
+  }
+  return markFreeResponseEssay(question, studentAnswer, subject)
+}
+
+// ── Multi-part marker (lettered sub-questions, own marking guide) ─
+const markMultiPart = async (question, studentAnswer, subject) => {
   const systemPrompt = `You are an experienced WAEC ${subject} examiner.
 Mark student answers fairly and consistently against the marking guide.
 Award partial marks where the student shows partial understanding.
@@ -117,7 +130,7 @@ Return this exact JSON structure:
       overallFeedback: result.overallFeedback    || '',
     }
   } catch (err) {
-    console.error('[Marking] Structured marking failed:', err.message)
+    console.error('[Marking] Multi-part marking failed:', err.message)
     // Graceful fallback — don't crash the session
     return {
       isCorrect:      false,
@@ -129,9 +142,8 @@ Return this exact JSON structure:
   }
 }
 
-// ── AI essay marker ───────────────────────────────────────────
-// Marks essays on four WAEC criteria.
-export const markEssay = async (question, studentAnswer, subject) => {
+// ── Free-response essay marker (four fixed WAEC criteria) ─────────
+const markFreeResponseEssay = async (question, studentAnswer, subject) => {
   const systemPrompt = `You are an experienced WAEC ${subject} examiner marking essay responses.
 Use the official WAEC essay assessment criteria.
 Be fair, constructive, and specific in your feedback.
@@ -242,7 +254,7 @@ Return this exact JSON:
   }
 }
 
-// ── Marking checklist for Structured/Essay questions ────────────
+// ── Marking checklist for Essay questions ───────────────────────
 // Called from mock exam review when a student taps "Explain" on a
 // non-MCQ question. Unlike generateExplanation's prose, this breaks
 // the marking guide into concrete points and says whether the

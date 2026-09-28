@@ -7,7 +7,7 @@ import mongoose from 'mongoose'
 // per student), so answers live on AssignmentSubmission instead,
 // indexed to line up with this array by position.
 const assignmentQuestionSchema = new mongoose.Schema({
-  type:          String,   // 'MCQ', 'Structured', 'Essay'
+  type:          String,   // 'MCQ', 'Essay'
   questionText:  String,
   options:       [String], // MCQ only
   correctOption: String,   // MCQ only

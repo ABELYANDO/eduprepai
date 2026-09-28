@@ -67,7 +67,7 @@ const rateLimit = async () => {
 // ── Core AI question generator ─────────────────────────────────
 const generateQuestions = async ({
   subject, examType, topic, subtopic, year,
-  type, section, marks, difficulty, count,
+  type, section, marks, difficulty, count, multiPart = false,
 }) => {
   await rateLimit()
 
@@ -97,7 +97,7 @@ CRITICAL — Write all maths in plain readable text:
   const typeInstructions = type === 'MCQ'
     ? `Return a JSON array of ${count} MCQ questions.
 Each object: { "questionText": "...", "options": ["optionA", "optionB", "optionC", "optionD"], "correctOption": "A"|"B"|"C"|"D", "modelAnswer": "", "parts": [] }`
-    : type === 'Structured'
+    : multiPart
     ? `Return a JSON array of ${count} structured questions.
 Each object: { "questionText": "...", "options": [], "correctOption": "", "modelAnswer": "detailed marking guide with key points worth marks", "parts": [{"part":"a","text":"...","marks":4,"answer":"..."},{"part":"b","text":"...","marks":3,"answer":"..."},{"part":"c","text":"...","marks":3,"answer":"..."}] }`
     : `Return a JSON array of ${count} essay questions.
@@ -230,7 +230,7 @@ const seed = async () => {
           if (year % 2 === 0) {
             const structured = await generateQuestions({
               subject, examType, topic, subtopic, year,
-              type: 'Structured', section: 'B', marks: 10,
+              type: 'Essay', multiPart: true, section: 'B', marks: 10,
               difficulty: [3, 4][year % 2],
               count: 1,
             })

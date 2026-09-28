@@ -113,7 +113,6 @@ export default function ManualQuestionForm({
           <label className="label">Type</label>
           <select name="type" value={form.type} onChange={handleChange} className="input">
             <option>MCQ</option>
-            <option>Structured</option>
             <option>Essay</option>
           </select>
         </div>
