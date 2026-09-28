@@ -67,6 +67,27 @@ export const listClasses = asyncHandler(async (req, res) => {
   res.json({ success: true, classes: withCounts })
 })
 
+// ── DELETE /api/teacher/classes/:classId ─────────────────────────
+// A class the teacher no longer needs — cascades to its assignments
+// and every student's submissions for them, since those are only ever
+// reached through this class (nothing else references classId once
+// it's gone). Students keep any mastery/practice history unaffected;
+// they just stop being in this class (and lose the assignments that
+// only existed under it).
+export const deleteClass = asyncHandler(async (req, res) => {
+  const { classId } = req.params
+
+  const cls = await Class.findOne({ _id: classId, teacherId: req.user._id })
+  if (!cls) throw new AppError('Class not found', 404)
+
+  const assignmentIds = (await Assignment.find({ classId }).select('_id')).map(a => a._id)
+  await AssignmentSubmission.deleteMany({ assignmentId: { $in: assignmentIds } })
+  await Assignment.deleteMany({ classId })
+  await cls.deleteOne()
+
+  res.json({ success: true, message: 'Class deleted' })
+})
+
 // ── DELETE /api/teacher/classes/:classId/students/:studentId ────
 // A student's already-created assignment submissions are untouched —
 // they authorize purely off studentId, never live class membership —

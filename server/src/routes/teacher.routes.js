@@ -2,6 +2,7 @@ import { Router } from 'express'
 import {
   createClass,
   listClasses,
+  deleteClass,
   removeStudent,
   createAssignment,
   listAssignments,
@@ -24,6 +25,7 @@ router.use(restrictTo('teacher'))
 // ── Classes ──────────────────────────────────────────────────────
 router.post('/classes', createClass)
 router.get('/classes',  listClasses)
+router.delete('/classes/:classId', deleteClass)
 router.delete('/classes/:classId/students/:studentId', removeStudent)
 
 // ── Question tools — same side-effect-free preview generators the

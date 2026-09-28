@@ -182,6 +182,20 @@ export default function TeacherPage() {
     }
   }
 
+  const handleDeleteClass = async (cls) => {
+    if (!window.confirm(`Delete "${cls.name}"? This also deletes its assignments and removes ${cls.studentCount > 0 ? `all ${cls.studentCount} student${cls.studentCount !== 1 ? 's' : ''} from it` : 'it'}. This cannot be undone.`)) return
+    try {
+      await teacherAPI.deleteClass(cls._id)
+      toast.success(`${cls.name} deleted`)
+      if (expandedClassId === cls._id) setExpandedClassId(null)
+      if (selectedClassId === cls._id) setSelectedClassId('')
+      if (viewingStudent?.classId === cls._id) setViewingStudent(null)
+      loadClasses()
+    } catch (err) {
+      toast.error(err.message)
+    }
+  }
+
   const startRemedialAssignment = () => {
     if (!viewingStudent) return
     setSelectedClassId(viewingStudent.classId)
@@ -346,12 +360,22 @@ export default function TeacherPage() {
                         {c.subject} · {c.examType} · {c.studentCount} student{c.studentCount !== 1 ? 's' : ''}
                       </button>
                     </div>
-                    <button
-                      onClick={() => copyCode(c.joinCode)}
-                      className="btn-secondary text-sm"
-                    >
-                      <Copy className="w-3.5 h-3.5" /> {c.joinCode}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => copyCode(c.joinCode)}
+                        className="btn-secondary text-sm"
+                      >
+                        <Copy className="w-3.5 h-3.5" /> {c.joinCode}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteClass(c)}
+                        className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                        aria-label={`Delete ${c.name}`}
+                        title="Delete class"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
 
                   {expandedClassId === c._id && (
