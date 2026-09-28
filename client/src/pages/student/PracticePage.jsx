@@ -8,6 +8,7 @@ import AppShell             from '../../components/layout/AppShell'
 import QuestionCard         from '../../components/QuestionCard'
 import ExplanationPanel     from '../../components/ExplanationPanel'
 import SessionSummary       from '../../components/SessionSummary'
+import SelfStudyPaper       from '../../components/SelfStudyPaper'
 import MasteryBadge         from '../../components/MasteryBadge'
 import StarRating           from '../../components/StarRating'
 import { calculateGrade } from '../../utils/gradeUtils'
@@ -58,6 +59,10 @@ export default function PracticePage() {
     assignmentAPI.getClasses().then(data => setMyClasses(data.classes || [])).catch(() => {})
   }, [])
   const requiresPhoto = myClasses.some(c => c.subject === subject)
+  // No teacher for this subject — an entire Essay session becomes
+  // self-study: every question is shown on one page with no answer
+  // box, no AI marking, and no final score (see SelfStudyPaper).
+  const isSelfStudy = qType === 'Essay' && !requiresPhoto
 
   // ── Session Path (guided, mastery-gated progression) ────────
   // 'path' is the default, recommended route; 'free' is today's
@@ -147,8 +152,9 @@ export default function PracticePage() {
       setMasteryUpdates([])
       setSessionStart(Date.now())
 
-      // Start timer if timed mode
-      if (timed) {
+      // Start timer if timed mode — not for self-study, which has no
+      // per-question pacing (all questions shown together, unmarked)
+      if (timed && !isSelfStudy) {
         const firstQ = data.questions[0]
         const timePerQ = firstQ?.parts?.length > 0 ? 15 * 60 : qType === 'Essay' ? 35 * 60 : 90
         setTimerSeconds(timePerQ)
@@ -234,14 +240,13 @@ export default function PracticePage() {
   }, [currentIdx, questions, timed, timerSeconds])
 
   // ── Timer countdown ────────────────────────────────────────
+  // Never runs for self-study — handleStart skips setting timerSeconds
+  // for those sessions (see isSelfStudy above).
   useEffect(() => {
     if (timerSeconds === null || !timed || screen !== 'session') return
     if (timerSeconds <= 0) {
       const q = questions[currentIdx]
-      const isSelfStudy = q?.type !== 'MCQ' && !requiresPhoto
-      if (q?.type === 'MCQ') handleSubmit('')
-      else if (isSelfStudy) handleSubmit('__next__')
-      else handleSubmit('Time expired')
+      handleSubmit(q?.type === 'MCQ' ? '' : 'Time expired')
       return
     }
     timerRef.current = setInterval(() => setTimerSeconds(s => s - 1), 1000)
@@ -293,6 +298,14 @@ export default function PracticePage() {
     setScreen('done')
   }
 
+  // ── Finish a self-study session ──────────────────────────────
+  // Nothing was answered or marked, so there's no score to save —
+  // no saveSession call, just move to the (score-free) done screen.
+  const finishSelfStudy = () => {
+    clearInterval(timerRef.current)
+    setScreen('done')
+  }
+
   // ── Restart ────────────────────────────────────────────────
   const handleRestart = () => {
     setScreen('setup')
@@ -318,7 +331,9 @@ export default function PracticePage() {
     <AppShell
       title="Practice Mode"
       subtitle={screen === 'session'
-        ? `${subject} · Question ${currentIdx + 1} of ${questions.length}`
+        ? isSelfStudy
+          ? `${subject} · ${questions.length} question${questions.length !== 1 ? 's' : ''} to self-study`
+          : `${subject} · Question ${currentIdx + 1} of ${questions.length}`
         : screen === 'done'
         ? 'Session complete'
         : 'Adaptive question practice'
@@ -590,8 +605,28 @@ export default function PracticePage() {
           </div>
         )}
 
+        {/* ══════════ SELF-STUDY SESSION SCREEN ════════════════ */}
+        {screen === 'session' && isSelfStudy && questions.length > 0 && (
+          <div className="space-y-4">
+            <div className="flex justify-end">
+              <button
+                onClick={handleRestart}
+                className="text-slate-400 hover:text-slate-600 transition-colors flex-shrink-0"
+                aria-label="Exit session"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <SelfStudyPaper
+              questions={questions}
+              subject={subject}
+              onFinish={finishSelfStudy}
+            />
+          </div>
+        )}
+
         {/* ══════════════ SESSION SCREEN ══════════════════════ */}
-        {screen === 'session' && questions[currentIdx] && (
+        {screen === 'session' && !isSelfStudy && questions[currentIdx] && (
           <div className="space-y-4">
 
             {/* Progress bar */}
@@ -639,8 +674,35 @@ export default function PracticePage() {
           </div>
         )}
 
+        {/* ══════════ SELF-STUDY DONE SCREEN — no score ════════ */}
+        {screen === 'done' && isSelfStudy && (
+          <div className="max-w-2xl mx-auto space-y-5 animate-fade-in">
+            <div className="card text-center py-8 shadow-md">
+              <div className="w-16 h-16 rounded-2xl bg-teal-600 flex items-center justify-center mx-auto mb-4">
+                <BookOpen className="w-8 h-8 text-white" />
+              </div>
+              <p
+                className="text-xl font-bold text-slate-900 mb-1"
+                style={{ fontFamily: 'var(--font-heading)' }}
+              >
+                Self-study session complete
+              </p>
+              <p className="text-slate-500 text-sm">
+                You went through {questions.length} question{questions.length !== 1 ? 's' : ''} for {subject}.
+                No score is recorded — check your answers against your textbook, notes, or a teacher.
+              </p>
+            </div>
+            <button
+              onClick={handleRestart}
+              className="btn-secondary w-full py-3 flex items-center justify-center gap-2"
+            >
+              <RotateCcw className="w-4 h-4" /> Practice again
+            </button>
+          </div>
+        )}
+
         {/* ══════════════ DONE SCREEN ═════════════════════════ */}
-        {screen === 'done' && (
+        {screen === 'done' && !isSelfStudy && (
           <SessionSummary
             subject={subject}
             topic={topic}
