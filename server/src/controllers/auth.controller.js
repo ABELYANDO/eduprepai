@@ -35,6 +35,10 @@ export const register = asyncHandler(async (req, res) => {
 })
 
 // ── POST /api/auth/login ───────────────────────────────────────
+// Student login. Same "never reveal which case it was" guard as
+// adminLogin/teacherLogin — a teacher or admin entering correct
+// credentials here still gets the identical generic error, not a
+// successful login into the wrong portal.
 export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body
 
@@ -50,6 +54,11 @@ export const login = asyncHandler(async (req, res) => {
   // 3. Check password
   const isMatch = await user.comparePassword(password)
   if (!isMatch) throw new AppError('Invalid email or password. Please try again.', 401)
+
+  // 3b. Must actually be a student account
+  if (user.role !== 'student') {
+    throw new AppError('Invalid email or password. Please try again.', 401)
+  }
 
   // 4. Update last active
   user.lastActive = new Date()
