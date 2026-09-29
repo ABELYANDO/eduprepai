@@ -2,6 +2,18 @@ import { useState } from 'react'
 import { Plus, Check } from 'lucide-react'
 import { getSubjectsForExamType, GHANAIAN_LANGUAGES } from '../constants/subjects'
 
+// ── Auto-grow a textarea to fit its content ─────────────────────
+// A fixed `rows` count clips anything longer, and with `resize-none`
+// that text is just invisible below the fold with no scroll
+// affordance on mobile. Passed as a ref callback, so it re-measures
+// on every render (new value → new inline function identity → React
+// re-calls the ref) without needing separate state/effects.
+const autoSize = (el) => {
+  if (!el) return
+  el.style.height = 'auto'
+  el.style.height = `${el.scrollHeight}px`
+}
+
 const blankFor = (subject, examType) => ({
   subject, examType, year: 2023,
   topic: '', subtopic: '', syllabusReference: '',
@@ -179,9 +191,10 @@ export default function ManualQuestionForm({
       <div>
         <label className="label">Question text *</label>
         <textarea
+          ref={autoSize}
           name="questionText" value={form.questionText}
           onChange={handleChange} required rows={3}
-          className="input text-base resize-none"
+          className="input text-base resize-none overflow-hidden"
           placeholder="Enter the full question text..."
         />
       </div>
@@ -223,9 +236,10 @@ export default function ManualQuestionForm({
         <div>
           <label className="label">Model answer / marking guide</label>
           <textarea
+            ref={autoSize}
             name="modelAnswer" value={form.modelAnswer}
             onChange={handleChange} rows={4}
-            className="input text-base resize-none"
+            className="input text-base resize-none overflow-hidden"
             placeholder="Expected answer and marking points..."
           />
         </div>

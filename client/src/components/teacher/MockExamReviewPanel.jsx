@@ -5,6 +5,17 @@ import ScannedFilesViewer from '../ScannedFilesViewer'
 import { Camera, ArrowLeft, Send } from 'lucide-react'
 import toast from 'react-hot-toast'
 
+// A fixed `rows` count clips anything longer — AI-suggested feedback
+// routinely runs past 2 lines, and with `resize-none` that text is
+// just invisible below the fold with no scroll affordance on mobile.
+// Passed as a ref callback, so it re-measures on every render (new
+// value → new inline function identity → React re-calls the ref).
+const autoSize = (el) => {
+  if (!el) return
+  el.style.height = 'auto'
+  el.style.height = `${el.scrollHeight}px`
+}
+
 // ── MockExamReviewPanel ───────────────────────────────────────────
 // Mock-exam equivalent of SubmissionReviewPanel — a teacher reviews a
 // pending_review exam's Section B/C answers. Unlike Assignments, a
@@ -58,10 +69,11 @@ const questionsList = (questions, overrides, setOverrides, sectionLetter) =>
         <div>
           <label className="label">Feedback</label>
           <textarea
+            ref={autoSize}
             value={overrides[idx]?.aiFeedback ?? ''}
             onChange={e => setOverrides(prev => prev.map((o, i) => i === idx ? { ...o, aiFeedback: e.target.value } : o))}
             rows={2}
-            className="input resize-none"
+            className="input resize-none overflow-hidden"
           />
         </div>
       </div>

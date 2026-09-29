@@ -5,6 +5,19 @@ import ScannedFilesViewer from '../ScannedFilesViewer'
 import { Camera, ArrowLeft, Send } from 'lucide-react'
 import toast from 'react-hot-toast'
 
+// ── Auto-grow a textarea to fit its content ─────────────────────
+// A fixed `rows` count clips anything longer — AI-suggested feedback
+// routinely runs past 2-3 lines, and with `resize-none` that text is
+// just invisible below the fold with no scroll affordance on mobile.
+// Passed as a ref callback, so it re-measures on every render (new
+// value → new inline function identity → React re-calls the ref)
+// without needing separate state/effects.
+const autoSize = (el) => {
+  if (!el) return
+  el.style.height = 'auto'
+  el.style.height = `${el.scrollHeight}px`
+}
+
 // ── SubmissionReviewPanel ────────────────────────────────────────
 // Shown when a teacher opens one pending-review submission. Two shapes:
 // a question-based assignment (reached when the student scanned at
@@ -126,11 +139,12 @@ export default function SubmissionReviewPanel({ submissionId, onBack, onPublishe
             <div>
               <label className="label">Feedback</label>
               <textarea
+                ref={autoSize}
                 value={fileFeedback}
                 onChange={e => setFileFeedback(e.target.value)}
                 rows={3}
                 placeholder="Optional comments on the student's work"
-                className="input resize-none"
+                className="input resize-none overflow-hidden"
               />
             </div>
           </div>
@@ -183,10 +197,11 @@ export default function SubmissionReviewPanel({ submissionId, onBack, onPublishe
                 <div>
                   <label className="label">Feedback</label>
                   <textarea
+                    ref={autoSize}
                     value={overrides[idx]?.aiFeedback ?? ''}
                     onChange={e => updateOverride(idx, 'aiFeedback', e.target.value)}
                     rows={2}
-                    className="input resize-none"
+                    className="input resize-none overflow-hidden"
                   />
                 </div>
               </div>

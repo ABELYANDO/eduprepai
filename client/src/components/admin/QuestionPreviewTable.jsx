@@ -3,6 +3,19 @@ import { ChevronDown, ChevronUp, Trash2, AlertTriangle, ImageIcon, Check } from 
 import { AI_RISK_SUBJECTS } from '../../constants/subjects'
 import QuestionDiagram from '../QuestionDiagram'
 
+// ── Auto-grow a textarea to fit its content ─────────────────────
+// A fixed `rows` count clips anything longer — AI-generated question
+// text routinely runs past 3 lines, and with `resize-none` that text
+// was just invisible below the fold with no scroll affordance on
+// mobile. Passed as a ref callback, so it re-measures on every
+// render (new value → new inline function identity → React re-calls
+// the ref) without needing separate state/effects.
+const autoSize = (el) => {
+  if (!el) return
+  el.style.height = 'auto'
+  el.style.height = `${el.scrollHeight}px`
+}
+
 // ── QuestionPreviewTable ───────────────────────────────────────
 // Shows AI-generated or PDF-extracted questions for admin review.
 // Admin can select, edit, or delete individual questions before
@@ -173,10 +186,11 @@ export default function QuestionPreviewTable({ previews, onApprove, onCancel, on
                    edit, especially on mobile where anything under 16px
                    also triggers an awkward auto-zoom on focus in iOS Safari */}
                 <textarea
+                  ref={autoSize}
                   value={q.questionText}
                   onChange={e => editField(q.previewId, 'questionText', e.target.value)}
                   rows={3}
-                  className="input text-base resize-none w-full"
+                  className="input text-base resize-none w-full overflow-hidden"
                 />
               </div>
 
@@ -245,10 +259,11 @@ export default function QuestionPreviewTable({ previews, onApprove, onCancel, on
                   <div>
                     <p className="text-xs font-medium text-slate-500 mb-1">Model answer / marking guide</p>
                     <textarea
+                      ref={autoSize}
                       value={q.modelAnswer}
                       onChange={e => editField(q.previewId, 'modelAnswer', e.target.value)}
                       rows={3}
-                      className="input text-base resize-none w-full"
+                      className="input text-base resize-none w-full overflow-hidden"
                     />
                   </div>
                 )}
