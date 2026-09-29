@@ -9,6 +9,7 @@ import {
   getSubmission,
   saveAnswer,
   submitSubmission,
+  submitFileAssignment,
   extractAnswerFromPhoto,
 } from '../controllers/assignment.controller.js'
 import { protect, restrictTo } from '../middleware/auth.middleware.js'
@@ -29,5 +30,6 @@ router.get('/pending-count',   getPendingCount)
 router.get('/:submissionId',   getSubmission)
 router.patch('/:submissionId/answer', saveAnswer)
 router.post('/:submissionId/submit',  submitSubmission)
+router.post('/:submissionId/submit-file', submitFileAssignment)
 
 export default router

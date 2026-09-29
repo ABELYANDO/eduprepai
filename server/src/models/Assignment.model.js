@@ -52,6 +52,20 @@ const assignmentSchema = new mongoose.Schema(
     // until that date, letting a teacher schedule it ahead of time.
     releaseDate: { type: Date, default: null },
 
+    // 'questions' (default) is the original built-from-questions flow —
+    // 'file' is a PDF handout: the teacher attaches one document for
+    // students to download, solve on paper, and send back as their own
+    // file (see AssignmentSubmission.submissionFiles). A file-format
+    // assignment has no `questions` at all; `maxMarks` stands in for
+    // what would otherwise be the sum of question marks.
+    format: { type: String, enum: ['questions', 'file'], default: 'questions' },
+    attachmentFile: {
+      data:     { type: String, default: '' },  // base64
+      mimeType: { type: String, default: '' },
+      filename: { type: String, default: '' },
+    },
+    maxMarks: { type: Number, default: 0 },  // only meaningful when format === 'file'
+
     questions: [assignmentQuestionSchema],
   },
   { timestamps: true }

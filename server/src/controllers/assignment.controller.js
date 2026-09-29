@@ -113,7 +113,7 @@ export const listMyAssignments = asyncHandler(async (req, res) => {
     .sort({ createdAt: -1 })
     .populate({
       path: 'assignmentId',
-      select: 'title subject examType dueDate releaseDate questions classId',
+      select: 'title subject examType dueDate releaseDate format questions classId',
       populate: { path: 'classId', select: 'name' },
     })
     .lean()
@@ -135,6 +135,7 @@ export const listMyAssignments = asyncHandler(async (req, res) => {
       examType:     s.assignmentId.examType,
       dueDate:      s.assignmentId.dueDate,
       className:    s.assignmentId.classId?.name || '',
+      format:       s.assignmentId.format || 'questions',
       questionCount: s.assignmentId.questions?.length || 0,
       createdAt:    s.createdAt,
     }))
@@ -197,8 +198,14 @@ export const getSubmission = asyncHandler(async (req, res) => {
       answers: showResults ? submission.answers : submission.answers.map(a => ({
         studentAnswer: a.studentAnswer, wasScanned: a.wasScanned, scannedFiles: a.scannedFiles,
       })),
+      submissionFiles: submission.submissionFiles,
+      teacherFeedback: showResults ? submission.teacherFeedback : '',
       totalMarks: showResults ? submission.totalMarks : null,
-      availableMarks: showResults ? submission.availableMarks : null,
+      // Not hidden pre-marking like totalMarks/percent — this is just
+      // "what the assignment is worth", the same kind of thing a
+      // question's own `marks` field already reveals below, not a
+      // result that needs withholding.
+      availableMarks: submission.availableMarks,
       percent: showResults ? submission.percent : null,
       isReview: isLocked,
     },
@@ -211,6 +218,8 @@ export const getSubmission = asyncHandler(async (req, res) => {
       subject: assignment.subject,
       examType: assignment.examType,
       dueDate: assignment.dueDate,
+      format: assignment.format,
+      attachmentFile: assignment.attachmentFile,
       questions: assignment.questions.map(q => showResults ? q : {
         type: q.type, questionText: q.questionText, options: q.options,
         marks: q.marks, topic: q.topic, hasImage: q.hasImage,
@@ -264,6 +273,9 @@ export const submitSubmission = asyncHandler(async (req, res) => {
   if (!submission) throw new AppError('Assignment not found', 404)
   if (['submitted', 'pending_review', 'marked'].includes(submission.status)) {
     throw new AppError('This assignment has already been submitted', 400)
+  }
+  if (submission.assignmentId.format === 'file') {
+    throw new AppError('This is a PDF handout — upload your solved work instead of submitting answers.', 400)
   }
 
   const assignment = submission.assignmentId
@@ -334,6 +346,40 @@ export const submitSubmission = asyncHandler(async (req, res) => {
       percent: submission.percent,
     },
   })
+})
+
+// ── POST /api/assignments/:submissionId/submit-file ─────────────
+// For a PDF-handout assignment (assignment.format === 'file') — the
+// student's solved work is a whole file (one or more photo pages, or a
+// single PDF), not per-question answers, so there's nothing to
+// auto-mark against. Every submission goes straight to pending_review
+// for the teacher to grade manually via teacher.controller.js's
+// publishSubmission.
+export const submitFileAssignment = asyncHandler(async (req, res) => {
+  const { files } = req.body
+  if (!Array.isArray(files) || files.length === 0) {
+    throw new AppError('Attach your solved work before submitting', 400)
+  }
+
+  const submission = await AssignmentSubmission.findOne({
+    _id: req.params.submissionId,
+    studentId: req.user._id,
+  }).populate('assignmentId')
+
+  if (!submission) throw new AppError('Assignment not found', 404)
+  if (submission.assignmentId.format !== 'file') {
+    throw new AppError('This assignment is not a PDF handout', 400)
+  }
+  if (['submitted', 'pending_review', 'marked'].includes(submission.status)) {
+    throw new AppError('This assignment has already been submitted', 400)
+  }
+
+  submission.submissionFiles = files
+  submission.status = 'pending_review'
+  submission.submittedAt = new Date()
+  await submission.save()
+
+  res.json({ success: true, message: "Submitted — your teacher will review and mark it." })
 })
 
 // ── POST /api/assignments/extract-photo ─────────────────────────

@@ -6,16 +6,19 @@ import { Camera, ArrowLeft, Send } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 // ── SubmissionReviewPanel ────────────────────────────────────────
-// Shown when a teacher opens one pending-review submission (reached
-// only when the student scanned at least one answer as a photo — see
-// AssignmentSubmission's status flow). Every question's AI-suggested
-// mark/feedback is pre-filled and editable; a teacher happy with the
-// AI's read can just scroll down and click Publish without touching
-// anything — only misread scans need an adjustment.
+// Shown when a teacher opens one pending-review submission. Two shapes:
+// a question-based assignment (reached when the student scanned at
+// least one answer as a photo — every question's AI-suggested
+// mark/feedback is pre-filled and editable), or a PDF-handout
+// assignment (assignment.format === 'file' — every submission needs
+// review, since there's no per-question auto-marking to check; the
+// teacher just reads the student's file and enters one overall mark).
 export default function SubmissionReviewPanel({ submissionId, onBack, onPublished }) {
   const [loading,   setLoading]   = useState(true)
   const [data,      setData]      = useState(null)
-  const [overrides, setOverrides] = useState([]) // [{ marksAwarded, aiFeedback }]
+  const [overrides, setOverrides] = useState([]) // [{ marksAwarded, aiFeedback }] — question-based only
+  const [fileMarks,    setFileMarks]    = useState(0)    // file-based only
+  const [fileFeedback, setFileFeedback] = useState('')   // file-based only
   const [publishing, setPublishing] = useState(false)
 
   useEffect(() => { load() }, [submissionId])
@@ -29,6 +32,8 @@ export default function SubmissionReviewPanel({ submissionId, onBack, onPublishe
         marksAwarded: a.marksAwarded ?? 0,
         aiFeedback:   a.aiFeedback || '',
       })))
+      setFileMarks(0)
+      setFileFeedback('')
     } catch (err) {
       toast.error(err.message)
       onBack()
@@ -44,7 +49,9 @@ export default function SubmissionReviewPanel({ submissionId, onBack, onPublishe
   const handlePublish = async () => {
     setPublishing(true)
     try {
-      const payload = overrides.map(o => ({ marksAwarded: Number(o.marksAwarded) || 0, aiFeedback: o.aiFeedback }))
+      const payload = isFileBased
+        ? { totalMarks: Number(fileMarks) || 0, teacherFeedback: fileFeedback }
+        : { answers: overrides.map(o => ({ marksAwarded: Number(o.marksAwarded) || 0, aiFeedback: o.aiFeedback })) }
       const result = await teacherAPI.publishSubmission(submissionId, payload)
       toast.success(`Published — ${result.results.totalMarks}/${result.results.availableMarks} (${result.results.percent}%)`)
       onPublished()
@@ -59,8 +66,13 @@ export default function SubmissionReviewPanel({ submissionId, onBack, onPublishe
   if (!data) return null
 
   const { submission, assignment } = data
-  const totalMarks = overrides.reduce((sum, o) => sum + (Number(o.marksAwarded) || 0), 0)
-  const availableMarks = assignment.questions.reduce((sum, q) => sum + (q.marks || 0), 0)
+  const isFileBased = assignment.format === 'file'
+  const totalMarks = isFileBased
+    ? Number(fileMarks) || 0
+    : overrides.reduce((sum, o) => sum + (Number(o.marksAwarded) || 0), 0)
+  const availableMarks = isFileBased
+    ? submission.availableMarks
+    : assignment.questions.reduce((sum, q) => sum + (q.marks || 0), 0)
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -76,66 +88,112 @@ export default function SubmissionReviewPanel({ submissionId, onBack, onPublishe
           <p className="font-semibold text-amber-900">{assignment.title}</p>
           <p className="text-sm text-amber-700">{submission.studentName} · {assignment.subject}</p>
         </div>
-        <span className="badge-amber text-sm">{totalMarks}/{availableMarks} marks (AI-suggested, editable below)</span>
+        <span className="badge-amber text-sm">
+          {totalMarks}/{availableMarks} marks {isFileBased ? '' : '(AI-suggested, editable below)'}
+        </span>
       </div>
 
-      {assignment.questions.map((q, idx) => {
-        const answer = submission.answers[idx]
-        return (
-          <div key={idx} className="card">
-            <div className="flex items-start justify-between gap-2 mb-2">
-              <p className="text-sm font-medium text-slate-800 flex-1">
-                <span className="text-slate-400 mr-1.5">{idx + 1}.</span>
-                <MathText text={q.questionText} />
-              </p>
-              <span className="badge-gray text-xs flex-shrink-0">{q.marks} marks</span>
+      {isFileBased ? (
+        <div className="card space-y-4">
+          {assignment.attachmentFile?.data && (
+            <div>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Original handout</p>
+              <ScannedFilesViewer
+                files={[assignment.attachmentFile]}
+                label={assignment.attachmentFile.filename || 'View handout PDF'}
+              />
             </div>
+          )}
 
-            <div className="bg-slate-50 rounded-xl p-3 mb-3">
-              <div className="flex items-center gap-1.5 mb-1">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Student's answer</p>
-                {answer?.wasScanned && (
-                  <span className="flex items-center gap-1 text-xs text-blue-600">
-                    <Camera className="w-3 h-3" /> scanned
-                  </span>
-                )}
-              </div>
-              {answer?.wasScanned && answer?.scannedFiles?.length > 0 && (
-                <ScannedFilesViewer files={answer.scannedFiles} className="mb-2" />
-              )}
-              <p className="text-sm text-slate-700 whitespace-pre-line">{answer?.studentAnswer || 'Not answered.'}</p>
+          <div>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Student's submitted work</p>
+            {submission.submissionFiles?.length > 0
+              ? <ScannedFilesViewer files={submission.submissionFiles} />
+              : <p className="text-sm text-slate-400">No file received.</p>
+            }
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-3">
+            <div>
+              <label className="label">Marks (out of {submission.availableMarks})</label>
+              <input
+                type="number" min={0} max={submission.availableMarks}
+                value={fileMarks}
+                onChange={e => setFileMarks(e.target.value)}
+                className="input"
+              />
             </div>
-
-            {q.modelAnswer && (
-              <div className="bg-teal-50 rounded-xl p-3 mb-3">
-                <p className="text-xs font-semibold text-teal-600 uppercase tracking-wider mb-1">Model answer</p>
-                <p className="text-sm text-teal-800 whitespace-pre-line">{q.modelAnswer}</p>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 sm:grid-cols-[100px_1fr] gap-3">
-              <div>
-                <label className="label">Marks</label>
-                <input
-                  type="number" min={0} max={q.marks}
-                  value={overrides[idx]?.marksAwarded ?? 0}
-                  onChange={e => updateOverride(idx, 'marksAwarded', e.target.value)}
-                  className="input"
-                />
-              </div>
-              <div>
-                <label className="label">Feedback</label>
-                <textarea
-                  value={overrides[idx]?.aiFeedback ?? ''}
-                  onChange={e => updateOverride(idx, 'aiFeedback', e.target.value)}
-                  rows={2}
-                  className="input resize-none"
-                />
-              </div>
+            <div>
+              <label className="label">Feedback</label>
+              <textarea
+                value={fileFeedback}
+                onChange={e => setFileFeedback(e.target.value)}
+                rows={3}
+                placeholder="Optional comments on the student's work"
+                className="input resize-none"
+              />
             </div>
           </div>
-        )
-      })}
+        </div>
+      ) : (
+        assignment.questions.map((q, idx) => {
+          const answer = submission.answers[idx]
+          return (
+            <div key={idx} className="card">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <p className="text-sm font-medium text-slate-800 flex-1">
+                  <span className="text-slate-400 mr-1.5">{idx + 1}.</span>
+                  <MathText text={q.questionText} />
+                </p>
+                <span className="badge-gray text-xs flex-shrink-0">{q.marks} marks</span>
+              </div>
+
+              <div className="bg-slate-50 rounded-xl p-3 mb-3">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Student's answer</p>
+                  {answer?.wasScanned && (
+                    <span className="flex items-center gap-1 text-xs text-blue-600">
+                      <Camera className="w-3 h-3" /> scanned
+                    </span>
+                  )}
+                </div>
+                {answer?.wasScanned && answer?.scannedFiles?.length > 0 && (
+                  <ScannedFilesViewer files={answer.scannedFiles} className="mb-2" />
+                )}
+                <p className="text-sm text-slate-700 whitespace-pre-line">{answer?.studentAnswer || 'Not answered.'}</p>
+              </div>
+
+              {q.modelAnswer && (
+                <div className="bg-teal-50 rounded-xl p-3 mb-3">
+                  <p className="text-xs font-semibold text-teal-600 uppercase tracking-wider mb-1">Model answer</p>
+                  <p className="text-sm text-teal-800 whitespace-pre-line">{q.modelAnswer}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-[100px_1fr] gap-3">
+                <div>
+                  <label className="label">Marks</label>
+                  <input
+                    type="number" min={0} max={q.marks}
+                    value={overrides[idx]?.marksAwarded ?? 0}
+                    onChange={e => updateOverride(idx, 'marksAwarded', e.target.value)}
+                    className="input"
+                  />
+                </div>
+                <div>
+                  <label className="label">Feedback</label>
+                  <textarea
+                    value={overrides[idx]?.aiFeedback ?? ''}
+                    onChange={e => updateOverride(idx, 'aiFeedback', e.target.value)}
+                    rows={2}
+                    className="input resize-none"
+                  />
+                </div>
+              </div>
+            </div>
+          )
+        })
+      )}
 
       <button
         onClick={handlePublish}

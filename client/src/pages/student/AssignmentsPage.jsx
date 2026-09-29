@@ -133,7 +133,7 @@ export default function AssignmentsPage() {
                   </div>
                   <p className="font-medium text-slate-800 truncate">{a.title}</p>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    {a.questionCount} question{a.questionCount !== 1 ? 's' : ''}
+                    {a.format === 'file' ? 'PDF handout' : `${a.questionCount} question${a.questionCount !== 1 ? 's' : ''}`}
                     {a.status === 'marked' && ` · ${a.totalMarks}/${a.availableMarks} (${a.percent}%)`}
                     {a.dueDate && ` · Due ${new Date(a.dueDate).toLocaleDateString('en-GB')}`}
                   </p>

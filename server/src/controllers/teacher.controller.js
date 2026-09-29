@@ -116,10 +116,16 @@ export const removeStudent = asyncHandler(async (req, res) => {
 // is visible immediately and a student's pending-count query never
 // needs to join against Assignment/Class at read time.
 export const createAssignment = asyncHandler(async (req, res) => {
-  const { classId, title, dueDate, releaseDate, questions, studentIds } = req.body
+  const {
+    classId, title, dueDate, releaseDate, studentIds,
+    format = 'questions', questions, attachmentFile, maxMarks,
+  } = req.body
 
   if (!classId || !title) throw new AppError('Class and title are required', 400)
-  if (!Array.isArray(questions) || questions.length === 0) {
+  if (format === 'file') {
+    if (!attachmentFile?.data) throw new AppError('Attach a PDF for students to solve', 400)
+    if (!maxMarks || Number(maxMarks) <= 0) throw new AppError('Set how many marks this assignment is worth', 400)
+  } else if (!Array.isArray(questions) || questions.length === 0) {
     throw new AppError('At least one question is required', 400)
   }
 
@@ -146,21 +152,35 @@ export const createAssignment = asyncHandler(async (req, res) => {
     examType: cls.examType,
     dueDate:  dueDate || null,
     releaseDate: releaseDate || null,
-    questions: questions.map(q => ({
-      type:          q.type,
-      questionText:  q.questionText,
-      options:       q.options || [],
-      correctOption: q.correctOption || '',
-      modelAnswer:   q.modelAnswer || '',
-      marks:         q.marks,
-      topic:         q.topic || '',
-      hasImage:      !!q.hasImage,
-      imageData:     q.imageData || '',
-      parts:         q.parts || [],
-    })),
+    format,
+    ...(format === 'file'
+      ? {
+          attachmentFile: {
+            data:     attachmentFile.data,
+            mimeType: attachmentFile.mimeType || 'application/pdf',
+            filename: attachmentFile.filename || 'assignment.pdf',
+          },
+          maxMarks: Number(maxMarks),
+        }
+      : {
+          questions: questions.map(q => ({
+            type:          q.type,
+            questionText:  q.questionText,
+            options:       q.options || [],
+            correctOption: q.correctOption || '',
+            modelAnswer:   q.modelAnswer || '',
+            marks:         q.marks,
+            topic:         q.topic || '',
+            hasImage:      !!q.hasImage,
+            imageData:     q.imageData || '',
+            parts:         q.parts || [],
+          })),
+        }),
   })
 
-  const availableMarks = assignment.questions.reduce((sum, q) => sum + (q.marks || 0), 0)
+  const availableMarks = format === 'file'
+    ? assignment.maxMarks
+    : assignment.questions.reduce((sum, q) => sum + (q.marks || 0), 0)
 
   if (targetStudentIds.length > 0) {
     await AssignmentSubmission.insertMany(
@@ -270,7 +290,9 @@ export const assignToNewStudents = asyncHandler(async (req, res) => {
     return res.json({ success: true, message: 'Every student in the class already has this assignment.', count: 0 })
   }
 
-  const availableMarks = assignment.questions.reduce((sum, q) => sum + (q.marks || 0), 0)
+  const availableMarks = assignment.format === 'file'
+    ? assignment.maxMarks
+    : assignment.questions.reduce((sum, q) => sum + (q.marks || 0), 0)
   await AssignmentSubmission.insertMany(
     newStudentIds.map(studentId => ({
       assignmentId: assignment._id,
@@ -583,44 +605,55 @@ export const getSubmissionForReview = asyncHandler(async (req, res) => {
       status: submission.status,
       studentName: student?.fullName || 'Unknown student',
       answers: submission.answers,
+      submissionFiles: submission.submissionFiles,
+      availableMarks: submission.availableMarks,
     },
     assignment: {
       title: assignment.title,
       subject: assignment.subject,
+      format: assignment.format,
+      attachmentFile: assignment.attachmentFile,
       questions: assignment.questions,
     },
   })
 })
 
 // ── POST /api/teacher/submissions/:id/publish ────────────────────
-// Releases the results to the student. `answers` is an optional array
-// of {marksAwarded, aiFeedback} overrides, same order as the
-// assignment's questions — a teacher happy with the AI's read can call
-// this with no body at all; one correcting a misread scan only needs
-// to send the entries they changed marks/feedback for other questions
-// are left as the AI originally computed them.
+// Releases the results to the student.
+// Question-based: `answers` is an optional array of
+// {marksAwarded, aiFeedback} overrides, same order as the assignment's
+// questions — a teacher happy with the AI's read can call this with no
+// body at all; one correcting a misread scan only needs to send the
+// entries they changed, other questions are left as the AI computed.
+// File-based (assignment.format === 'file'): there's no per-question
+// breakdown to override — `totalMarks`/`teacherFeedback` are set
+// directly instead, since a free-form PDF can only be graded manually.
 export const publishSubmission = asyncHandler(async (req, res) => {
-  const { answers: overrides } = req.body
+  const { answers: overrides, totalMarks: manualTotalMarks, teacherFeedback } = req.body
   const submission = await findOwnedSubmission(req.params.id, req.user._id)
   if (!submission) throw new AppError('Submission not found', 404)
   if (submission.status !== 'pending_review') {
     throw new AppError('This submission is not awaiting review', 400)
   }
 
-  if (Array.isArray(overrides)) {
-    overrides.forEach((override, i) => {
-      if (!override || !submission.answers[i]) return
-      if (override.marksAwarded !== undefined) submission.answers[i].marksAwarded = Number(override.marksAwarded)
-      if (override.aiFeedback   !== undefined) submission.answers[i].aiFeedback   = override.aiFeedback
-    })
-    submission.markModified('answers')
+  if (submission.assignmentId.format === 'file') {
+    submission.totalMarks = Math.max(0, Math.min(Number(manualTotalMarks) || 0, submission.availableMarks))
+    submission.teacherFeedback = teacherFeedback || ''
+  } else {
+    if (Array.isArray(overrides)) {
+      overrides.forEach((override, i) => {
+        if (!override || !submission.answers[i]) return
+        if (override.marksAwarded !== undefined) submission.answers[i].marksAwarded = Number(override.marksAwarded)
+        if (override.aiFeedback   !== undefined) submission.answers[i].aiFeedback   = override.aiFeedback
+      })
+      submission.markModified('answers')
+    }
+    submission.totalMarks = submission.answers.reduce((sum, a) => sum + (a.marksAwarded || 0), 0)
   }
 
-  const totalMarks = submission.answers.reduce((sum, a) => sum + (a.marksAwarded || 0), 0)
-  submission.totalMarks = totalMarks
-  submission.percent    = submission.availableMarks > 0 ? Math.round((totalMarks / submission.availableMarks) * 100) : 0
-  submission.status     = 'marked'
-  submission.markedAt   = new Date()
+  submission.percent  = submission.availableMarks > 0 ? Math.round((submission.totalMarks / submission.availableMarks) * 100) : 0
+  submission.status   = 'marked'
+  submission.markedAt = new Date()
   await submission.save()
 
   res.json({

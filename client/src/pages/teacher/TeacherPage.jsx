@@ -15,7 +15,7 @@ import {
   Users, Plus, Cpu, FileSearch, Type, Trash2,
   Copy, ClipboardList, ArrowRight, X, ClipboardCheck, Camera,
   AlertTriangle, Target, BookOpen, UserMinus, Pencil, UserPlus,
-  BarChart2, Megaphone, Download, Flame, Clock,
+  BarChart2, Megaphone, Download, Flame, Clock, FileText,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { getSubjectsForExamType, GHANAIAN_LANGUAGES } from '../../constants/subjects'
@@ -95,6 +95,13 @@ export default function TeacherPage() {
   const [draftQuestions, setDraftQuestions] = useState([])
   const [activeTool, setActiveTool] = useState(null) // 'ai' | 'pdf' | 'manual' | null
   const [creatingAssignment, setCreatingAssignment] = useState(false)
+  // 'questions' builds from AI/PDF/manual questions as before; 'file'
+  // sends one PDF handout for students to download, solve on paper and
+  // send back — see attachmentFile/maxMarks below.
+  const [assignmentFormat, setAssignmentFormat] = useState('questions')
+  const [attachmentFile,   setAttachmentFile]   = useState(null) // { data, mimeType, filename }
+  const [maxMarks,         setMaxMarks]         = useState(20)
+  const [uploadingAttachment, setUploadingAttachment] = useState(false)
   // Set when jumping here from a student's insight panel — restricts
   // the assignment to just that student instead of the whole class.
   const [targetStudent, setTargetStudent] = useState(null) // { id, fullName } | null
@@ -260,10 +267,33 @@ export default function TeacherPage() {
 
   const totalMarks = draftQuestions.reduce((sum, q) => sum + (Number(q.marks) || 0), 0)
 
+  const handleAttachmentUpload = async (file) => {
+    if (!file) return
+    setUploadingAttachment(true)
+    try {
+      const data = await new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload  = () => resolve(reader.result.split(',')[1])
+        reader.onerror = () => reject(new Error('Failed to read file'))
+        reader.readAsDataURL(file)
+      })
+      setAttachmentFile({ data, mimeType: file.type, filename: file.name })
+    } catch (err) {
+      toast.error(err.message || 'Could not read that file')
+    } finally {
+      setUploadingAttachment(false)
+    }
+  }
+
   const handleCreateAssignment = async () => {
     if (!selectedClassId) return toast.error('Select a class first')
     if (!title.trim())    return toast.error('Give the assignment a title')
-    if (draftQuestions.length === 0) return toast.error('Add at least one question')
+    if (assignmentFormat === 'file') {
+      if (!attachmentFile) return toast.error('Attach a PDF for students to solve')
+      if (!maxMarks || Number(maxMarks) <= 0) return toast.error('Set how many marks this assignment is worth')
+    } else if (draftQuestions.length === 0) {
+      return toast.error('Add at least one question')
+    }
 
     setCreatingAssignment(true)
     try {
@@ -272,7 +302,10 @@ export default function TeacherPage() {
         title,
         dueDate: dueDate || null,
         releaseDate: releaseDate || null,
-        questions: draftQuestions,
+        format: assignmentFormat,
+        ...(assignmentFormat === 'file'
+          ? { attachmentFile, maxMarks: Number(maxMarks) }
+          : { questions: draftQuestions }),
         studentIds: targetStudent ? [targetStudent.id] : undefined,
       })
       toast.success(data.message)
@@ -280,6 +313,9 @@ export default function TeacherPage() {
       setDueDate('')
       setReleaseDate('')
       setDraftQuestions([])
+      setAttachmentFile(null)
+      setMaxMarks(20)
+      setAssignmentFormat('questions')
       setSelectedClassId('')
       setTargetStudent(null)
       setTab('classes')
@@ -733,7 +769,7 @@ export default function TeacherPage() {
                           <div className="min-w-0">
                             <p className="text-sm font-medium text-slate-700 truncate">{a.title}</p>
                             <p className="text-xs text-slate-400">
-                              {a.subject} · {a.questionCount} question{a.questionCount !== 1 ? 's' : ''}
+                              {a.subject} · {a.format === 'file' ? 'PDF handout' : `${a.questionCount} question${a.questionCount !== 1 ? 's' : ''}`}
                               {a.dueDate && ` · due ${new Date(a.dueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`}
                             </p>
                           </div>
@@ -851,6 +887,83 @@ export default function TeacherPage() {
                 </div>
 
                 {selectedClass && (
+                  <>
+                    {/* Assignment type */}
+                    <div className="card">
+                      <label className="label">Assignment type</label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {[
+                          { value: 'questions', label: 'Question-based', desc: 'Build from AI-generated, PDF-extracted or manually typed questions' },
+                          { value: 'file',      label: 'PDF handout',    desc: 'Send one PDF as-is — students download it, solve it, and upload their work back' },
+                        ].map(({ value, label, desc }) => (
+                          <button
+                            key={value}
+                            onClick={() => setAssignmentFormat(value)}
+                            className={`py-2.5 px-3 rounded-lg text-sm font-medium border-2 text-left transition-all ${
+                              assignmentFormat === value
+                                ? 'bg-blue-600 text-white border-blue-600'
+                                : 'bg-surface text-slate-600 border-slate-200 hover:border-blue-300'
+                            }`}
+                          >
+                            {label}
+                            <p className={`text-xs mt-0.5 font-normal ${assignmentFormat === value ? 'text-blue-100' : 'text-slate-400'}`}>{desc}</p>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {assignmentFormat === 'file' && (
+                      <div className="card space-y-4">
+                        <div>
+                          <label className="label">Assignment PDF</label>
+                          {attachmentFile ? (
+                            <div className="flex items-center gap-3 flex-wrap">
+                              <ScannedFilesViewer files={[attachmentFile]} label={attachmentFile.filename || 'View PDF'} />
+                              <button
+                                onClick={() => setAttachmentFile(null)}
+                                className="text-xs text-slate-400 hover:text-red-500 underline decoration-dotted underline-offset-2"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          ) : (
+                            <label className={`inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 cursor-pointer transition-colors ${uploadingAttachment ? 'opacity-50 pointer-events-none' : ''}`}>
+                              <FileText className="w-4 h-4" />
+                              {uploadingAttachment ? 'Reading…' : 'Upload a PDF'}
+                              <input
+                                type="file" accept="application/pdf" className="hidden"
+                                onChange={e => handleAttachmentUpload(e.target.files[0])}
+                                disabled={uploadingAttachment}
+                              />
+                            </label>
+                          )}
+                        </div>
+                        <div className="max-w-[160px]">
+                          <label className="label">Total marks</label>
+                          <input
+                            type="number" min={1} value={maxMarks}
+                            onChange={e => setMaxMarks(e.target.value)}
+                            className="input"
+                          />
+                        </div>
+                        <button
+                          onClick={handleCreateAssignment}
+                          disabled={creatingAssignment}
+                          className="btn-primary w-full py-3"
+                        >
+                          {creatingAssignment
+                            ? <><span className="spinner border-white/40 border-t-white" /> Creating…</>
+                            : targetStudent
+                              ? <>Create & assign to {targetStudent.fullName} <ArrowRight className="w-4 h-4" /></>
+                              : <>Create & assign to {selectedClass.studentCount} student{selectedClass.studentCount !== 1 ? 's' : ''} <ArrowRight className="w-4 h-4" /></>
+                          }
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {selectedClass && assignmentFormat === 'questions' && (
                   <>
                     {/* Question source picker */}
                     {!activeTool && (

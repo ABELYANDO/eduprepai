@@ -12,6 +12,9 @@ export const assignmentAPI = {
   saveAnswer:       (submissionId, questionIndex, studentAnswer, wasScanned = false, scannedFiles = []) =>
     api.patch(`/assignments/${submissionId}/answer`, { questionIndex, studentAnswer, wasScanned, scannedFiles }),
   submit:           (submissionId) => api.post(`/assignments/${submissionId}/submit`),
+  // PDF-handout assignments (format 'file') — send the student's whole
+  // solved-work file set instead of per-question answers.
+  submitFile:       (submissionId, files) => api.post(`/assignments/${submissionId}/submit-file`, { files }),
 
   // Vision transcription can take a few seconds longer than a typical
   // call, more so for a multi-page PDF — same reasoning as the PDF/photo

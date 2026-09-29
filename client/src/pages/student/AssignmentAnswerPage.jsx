@@ -4,6 +4,7 @@ import AppShell from '../../components/layout/AppShell'
 import QuestionDiagram from '../../components/QuestionDiagram'
 import PartAnswerEditor from '../../components/PartAnswerEditor'
 import PhotoAnswerInput from '../../components/PhotoAnswerInput'
+import FileUploadInput from '../../components/FileUploadInput'
 import ScannedFilesViewer from '../../components/ScannedFilesViewer'
 import MathText from '../../components/MathText'
 import { assignmentAPI } from '../../api/assignment.api'
@@ -33,6 +34,9 @@ export default function AssignmentAnswerPage() {
   // boxes once, on mount (by design — see PartAnswerEditor.jsx).
   const [scanVersion, setScanVersion] = useState({}) // { [index]: number }
   const [scannedFiles, setScannedFiles] = useState({}) // { [index]: [{ data, mimeType }] }
+  // PDF-handout assignments only (assignment.format === 'file') — the
+  // student's whole solved-work file set, held locally until submit.
+  const [fileAnswer, setFileAnswer] = useState([])
 
   const autoSaveRef = useRef(null)
 
@@ -101,6 +105,21 @@ export default function AssignmentAnswerPage() {
     }
   }
 
+  const handleSubmitFile = async () => {
+    if (fileAnswer.length === 0) return toast.error('Attach your solved work first')
+    if (!window.confirm('Submit this assignment? You cannot change it after submitting.')) return
+    setSubmitting(true)
+    try {
+      await assignmentAPI.submitFile(submissionId, fileAnswer)
+      toast.success('Submitted — your teacher will review and mark it.')
+      load()
+    } catch (err) {
+      toast.error(err.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   if (loading) {
     return (
       <AppShell title="Remedial Assignment">
@@ -110,10 +129,14 @@ export default function AssignmentAnswerPage() {
   }
   if (!assignment) return null
 
+  const isFileBased = assignment.format === 'file'
   const answeredCount = Object.values(answers).filter(a => a?.trim()).length
 
   return (
-    <AppShell title={assignment.title} subtitle={`${assignment.subject} · ${assignment.questions.length} questions`}>
+    <AppShell
+      title={assignment.title}
+      subtitle={isFileBased ? assignment.subject : `${assignment.subject} · ${assignment.questions.length} questions`}
+    >
       <div className="max-w-3xl mx-auto space-y-5">
 
         <button
@@ -138,19 +161,63 @@ export default function AssignmentAnswerPage() {
             <div>
               <p className="font-semibold text-amber-900">Awaiting your teacher's review</p>
               <p className="text-sm text-amber-700">
-                You submitted a photographed answer — your teacher checks the AI's reading before results are shown.
+                {isFileBased
+                  ? "You submitted your solved work — your teacher will mark it and share the results."
+                  : 'You submitted a photographed answer — your teacher checks the AI\'s reading before results are shown.'}
               </p>
             </div>
           </div>
         )}
 
-        {!isReview && (
+        {!isReview && !isFileBased && (
           <div className="card bg-slate-50 flex items-center justify-between">
             <p className="text-sm text-slate-600">{answeredCount}/{assignment.questions.length} answered</p>
           </div>
         )}
 
-        {assignment.questions.map((q, idx) => {
+        {isFileBased ? (
+          <div className="card space-y-4">
+            <div>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Assignment</p>
+              {assignment.attachmentFile?.data ? (
+                <ScannedFilesViewer
+                  files={[assignment.attachmentFile]}
+                  label={assignment.attachmentFile.filename || 'Download assignment PDF'}
+                />
+              ) : (
+                <p className="text-sm text-slate-400">No file attached.</p>
+              )}
+              <p className="text-xs text-slate-400 mt-1.5">Worth {submission.availableMarks} marks</p>
+            </div>
+
+            {isReview ? (
+              <div>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Your submitted work</p>
+                {submission.submissionFiles?.length > 0
+                  ? <ScannedFilesViewer files={submission.submissionFiles} />
+                  : <p className="text-sm text-slate-400">No file submitted.</p>
+                }
+                {submission.status === 'marked' && submission.teacherFeedback && (
+                  <div className="mt-3 bg-slate-50 border border-slate-200 rounded-xl p-4">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Teacher feedback</p>
+                    <p className="text-sm text-slate-600 whitespace-pre-line">{submission.teacherFeedback}</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                  Upload your solved work
+                </p>
+                <FileUploadInput
+                  files={fileAnswer}
+                  onChange={setFileAnswer}
+                  photoLabel="Upload photo(s) of your solved work"
+                />
+              </div>
+            )}
+          </div>
+        ) : assignment.questions.map((q, idx) => {
           const answer = answers[idx] || ''
           const marked = isReview ? submission.answers[idx] : null
           const showResult = isReview && marked?.marksAwarded !== null && marked?.marksAwarded !== undefined
@@ -270,8 +337,8 @@ export default function AssignmentAnswerPage() {
 
         {!isReview && (
           <button
-            onClick={handleSubmit}
-            disabled={submitting}
+            onClick={isFileBased ? handleSubmitFile : handleSubmit}
+            disabled={submitting || (isFileBased && fileAnswer.length === 0)}
             className="btn-primary w-full py-3.5 text-base"
           >
             {submitting

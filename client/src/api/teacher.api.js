@@ -34,7 +34,10 @@ export const teacherAPI = {
   // ── Submission review (Phase 2 — scanned answers) ─────────────
   getPendingReviews:      ()   => api.get('/teacher/submissions'),
   getSubmissionForReview: (id) => api.get(`/teacher/submissions/${id}`),
-  publishSubmission:      (id, answers) => api.post(`/teacher/submissions/${id}/publish`, { answers }),
+  // `payload` is either { answers } for a question-based assignment's
+  // per-question overrides, or { totalMarks, teacherFeedback } for a
+  // PDF-handout one (see publishSubmission's server-side branch).
+  publishSubmission:      (id, payload) => api.post(`/teacher/submissions/${id}/publish`, payload),
 
   // ── Mock exam review (Section B/C photo-scanned answers) ───────
   getPendingMockExams:    ()   => api.get('/teacher/mock-exams'),

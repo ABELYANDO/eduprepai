@@ -60,6 +60,20 @@ const assignmentSubmissionSchema = new mongoose.Schema(
 
     answers: [assignmentAnswerSchema],
 
+    // For a PDF-handout assignment (Assignment.format === 'file') —
+    // the student's whole solved work as one or more photo pages, or a
+    // single PDF, instead of per-question answers. There's nothing to
+    // auto-mark against a free-form document, so a file-format
+    // submission always routes straight to 'pending_review' on submit
+    // (see submitFileAssignment) and is graded manually via
+    // totalMarks/teacherFeedback below, not per-question.
+    submissionFiles: [{
+      data:     String,  // base64
+      mimeType: String,
+      filename: String,
+    }],
+    teacherFeedback: { type: String, default: '' },
+
     totalMarks:     { type: Number, default: 0 },
     availableMarks: { type: Number, default: 0 },
     percent:        { type: Number, default: 0 },
