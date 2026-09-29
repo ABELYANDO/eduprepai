@@ -100,15 +100,18 @@ export default function LoginPage() {
       >
         {/* Logo */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center overflow-hidden flex-shrink-0">
+          <div className="w-16 h-16 rounded-xl bg-white flex items-center justify-center overflow-hidden flex-shrink-0">
             <img src={logo} alt="YankelPrep" className="w-full h-full object-cover" />
           </div>
-          <span
-            className="text-white font-semibold text-lg"
-            style={{ fontFamily: 'var(--font-heading)' }}
-          >
-            YankelPrep
-          </span>
+          <div>
+            <span
+              className="text-white font-semibold text-lg block"
+              style={{ fontFamily: 'var(--font-heading)' }}
+            >
+              YankelPrep
+            </span>
+            <p className="text-teal-200/70 text-xs">Practice. Understand. Succeed.</p>
+          </div>
         </div>
 
         {/* Hero copy */}
@@ -161,16 +164,19 @@ export default function LoginPage() {
         <div className="w-full max-w-md animate-fade-in">
 
           {/* Mobile logo */}
-          <div className="flex items-center gap-2 mb-8 lg:hidden">
-            <div className="w-7 h-7 rounded-lg overflow-hidden flex-shrink-0">
+          <div className="flex items-center gap-3 mb-8 lg:hidden">
+            <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
               <img src={logo} alt="YankelPrep" className="w-full h-full object-cover" />
             </div>
-            <span
-              className="font-semibold text-teal-800"
-              style={{ fontFamily: 'var(--font-heading)' }}
-            >
-              YankelPrep
-            </span>
+            <div>
+              <span
+                className="font-semibold text-teal-800 block"
+                style={{ fontFamily: 'var(--font-heading)' }}
+              >
+                YankelPrep
+              </span>
+              <p className="text-slate-400 text-xs">Practice. Understand. Succeed.</p>
+            </div>
           </div>
 
           <div className="mb-8">
