@@ -77,7 +77,11 @@ function TierSummaryCard({ label, sublabel, dot, bg, border, text, ring, count, 
         </span>
       </div>
       <p className={`text-sm font-semibold ${text}`}>{label}</p>
-      <p className="text-xs text-slate-400 mt-0.5">{sublabel}</p>
+      {/* Wraps to 2-3 lines in a cramped 3-across mobile column ("Very
+         likely to appear" etc.) — the label + colour dot already carry
+         the meaning at a glance, so the fuller explanation only shows
+         once there's room for it. */}
+      <p className="hidden sm:block text-xs text-slate-400 mt-0.5">{sublabel}</p>
     </button>
   )
 }

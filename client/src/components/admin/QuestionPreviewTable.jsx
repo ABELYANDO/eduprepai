@@ -268,15 +268,21 @@ export default function QuestionPreviewTable({ previews, onApprove, onCancel, on
                   </div>
                 )}
 
-                {/* Editable metadata */}
-                <div className="grid grid-cols-3 gap-3">
+                {/* Editable metadata — text-base (not text-sm) for the
+                   same reason as the question/model-answer text above:
+                   anything under 16px triggers iOS Safari's auto-zoom
+                   on focus. Topic gets its own full-width row on mobile
+                   since topic names can run long ("Quadratic Equations
+                   and Functions"); Difficulty/Year are short enough to
+                   share a row at any width. */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="text-xs text-slate-500 mb-1 block">Topic</label>
                     <input
                       type="text"
                       value={q.topic || ''}
                       onChange={e => editField(q.previewId, 'topic', e.target.value)}
-                      className="input text-sm"
+                      className="input text-base"
                     />
                   </div>
                   <div>
@@ -285,7 +291,7 @@ export default function QuestionPreviewTable({ previews, onApprove, onCancel, on
                       type="number" min={1} max={5}
                       value={q.difficulty || 3}
                       onChange={e => editField(q.previewId, 'difficulty', Number(e.target.value))}
-                      className="input text-sm"
+                      className="input text-base"
                     />
                   </div>
                   <div>
@@ -294,7 +300,7 @@ export default function QuestionPreviewTable({ previews, onApprove, onCancel, on
                       type="number"
                       value={q.year || 2023}
                       onChange={e => editField(q.previewId, 'year', Number(e.target.value))}
-                      className="input text-sm"
+                      className="input text-base"
                     />
                   </div>
                 </div>

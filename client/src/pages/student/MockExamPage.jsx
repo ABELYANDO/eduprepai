@@ -323,7 +323,7 @@ export default function MockExamPage() {
                 <p className="text-sm font-medium text-slate-700 mb-2">
                   What you'll get
                 </p>
-                <div className="grid grid-cols-3 gap-3 text-xs text-slate-600">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-slate-600">
                   {(examType === 'BECE' && subject === 'Computing' ? [
                     { label: 'Section A', detail: '40 MCQ questions' },
                     { label: 'Section B', detail: '1 compulsory question (24 marks)' },
@@ -333,7 +333,7 @@ export default function MockExamPage() {
                     { label: 'Section B', detail: '4 structured questions' },
                     { label: 'Section C', detail: '1 essay (choose from 2)' },
                   ]).map(({ label, detail }) => (
-                    <div key={label} className="text-center">
+                    <div key={label} className="text-left sm:text-center">
                       <p className="font-semibold text-slate-800">{label}</p>
                       <p className="text-slate-500 mt-0.5">{detail}</p>
                     </div>

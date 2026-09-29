@@ -91,28 +91,31 @@ export default function ExamResultCard({ results, subject, examType, onRetake })
         </div>
       )}
 
-      {/* Actions */}
-      <div className="grid grid-cols-3 gap-3">
+      {/* Actions — a horizontal icon+label row on phones (full-width,
+         no wrapped text, easy to tap) collapses into the icon-on-top
+         3-across layout from sm: up, where each column has room for
+         a two-word label like "Likely Exam Topics" without wrapping. */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <button
           onClick={onRetake}
-          className="btn-secondary flex flex-col items-center gap-1.5 py-4"
+          className="btn-secondary flex flex-row sm:flex-col items-center justify-center gap-2 sm:gap-1.5 py-3 sm:py-4"
         >
           <RotateCcw className="w-5 h-5" />
-          <span className="text-xs">Retake exam</span>
+          <span className="text-sm sm:text-xs">Retake exam</span>
         </button>
         <button
           onClick={() => navigate('/predict')}
-          className="btn-secondary flex flex-col items-center gap-1.5 py-4"
+          className="btn-secondary flex flex-row sm:flex-col items-center justify-center gap-2 sm:gap-1.5 py-3 sm:py-4"
         >
           <TrendingUp className="w-5 h-5" />
-          <span className="text-xs">Likely Exam Topics</span>
+          <span className="text-sm sm:text-xs">Likely Exam Topics</span>
         </button>
         <button
           onClick={() => navigate('/practice')}
-          className="btn-primary flex flex-col items-center gap-1.5 py-4"
+          className="btn-primary flex flex-row sm:flex-col items-center justify-center gap-2 sm:gap-1.5 py-3 sm:py-4"
         >
           <FileText className="w-5 h-5" />
-          <span className="text-xs">Practice gaps</span>
+          <span className="text-sm sm:text-xs">Practice gaps</span>
         </button>
       </div>
     </div>

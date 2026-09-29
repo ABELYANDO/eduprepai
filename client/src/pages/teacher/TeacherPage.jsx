@@ -728,7 +728,7 @@ export default function TeacherPage() {
                             type="text" value={editForm.title}
                             onChange={e => setEditForm(p => ({ ...p, title: e.target.value }))}
                             placeholder="Assignment title"
-                            className="input text-sm"
+                            className="input"
                           />
                           <div className="grid grid-cols-2 gap-2">
                             <div>
@@ -736,7 +736,7 @@ export default function TeacherPage() {
                               <input
                                 type="date" value={editForm.dueDate}
                                 onChange={e => setEditForm(p => ({ ...p, dueDate: e.target.value }))}
-                                className="input text-sm"
+                                className="input"
                               />
                             </div>
                             <div>
@@ -744,7 +744,7 @@ export default function TeacherPage() {
                               <input
                                 type="date" value={editForm.releaseDate}
                                 onChange={e => setEditForm(p => ({ ...p, releaseDate: e.target.value }))}
-                                className="input text-sm"
+                                className="input"
                               />
                             </div>
                           </div>

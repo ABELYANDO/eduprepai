@@ -46,8 +46,11 @@
 
 @layer components {
 
+  /* text-base, not text-sm — anything under 16px triggers iOS Safari's
+     auto-zoom on focus, and this class is the default for every text
+     input/select/textarea in the app unless a page overrides it. */
   .input {
-    @apply w-full rounded-lg px-3.5 py-2.5 text-sm border border-slate-200
+    @apply w-full rounded-lg px-3.5 py-2.5 text-base border border-slate-200
            text-slate-800 placeholder-slate-400 transition-all duration-200
            focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500;
     background-color: var(--color-surface);
