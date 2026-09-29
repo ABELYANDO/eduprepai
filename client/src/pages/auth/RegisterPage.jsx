@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { GraduationCap, User, Mail, Lock, School, ArrowRight, Eye, EyeOff, Users, AlertTriangle } from 'lucide-react'
+import logo from '../../assets/logo.jpg'
 import toast from 'react-hot-toast'
 import ThemeToggle from '../../components/ThemeToggle'
 
@@ -76,7 +77,7 @@ export default function RegisterPage() {
     try {
       const { confirmPassword, ...payload } = form
       await register(payload)
-      toast.success('Welcome to EduPrepAI!')
+      toast.success('Welcome to YankelPrep!')
       navigate('/onboarding')
     } catch (err) {
       setError(err.message)
@@ -98,8 +99,8 @@ export default function RegisterPage() {
 
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-teal-600 mb-4">
-            <GraduationCap className="w-6 h-6 text-white" />
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white shadow-sm overflow-hidden mb-4">
+            <img src={logo} alt="YankelPrep" className="w-full h-full object-cover" />
           </div>
           <h1
             className="text-2xl font-bold text-slate-900"

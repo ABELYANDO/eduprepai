@@ -28,7 +28,7 @@ export default function TeacherShell({ children }) {
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-white font-semibold text-sm leading-tight" style={{ fontFamily: 'var(--font-heading)' }}>
-            EduPrepAI Teacher Portal
+            YankelPrep Teacher Portal
           </p>
           <p className="text-blue-300 text-xs">Classes & assignments</p>
         </div>

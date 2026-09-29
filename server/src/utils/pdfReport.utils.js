@@ -337,7 +337,7 @@ export const generateMockExamPDF = (exam, student) => {
         grade.percent < 50
           ? 'Prioritise foundation-level practice before attempting more advanced questions.'
           : 'Continue with intermediate and advanced practice questions to push your grade higher.',
-        'Use the EduPrepAI prediction engine to focus revision on high-probability topics.',
+        'Use the YankelPrep prediction engine to focus revision on high-probability topics.',
         'Attempt at least one more mock examination before your sitting date.',
         'For essay questions, practise planning your argument before writing.',
       ]
@@ -357,7 +357,7 @@ export const generateMockExamPDF = (exam, student) => {
         doc.rect(0, 810, 595, 32).fill(DARK)
         doc.font('Helvetica').fontSize(7).fillColor('#CCFBF1')
            .text(
-             `EduPrepAI Practice Report — ${student.fullName || 'Candidate'} — ${subject} ${examType} ${year}`,
+             `YankelPrep Practice Report — ${student.fullName || 'Candidate'} — ${subject} ${examType} ${year}`,
              50, 820, { align: 'left', width: 350 }
            )
         doc.font('Helvetica').fontSize(7).fillColor('#CCFBF1')

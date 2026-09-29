@@ -168,7 +168,7 @@ Return ONLY the JSON array. No markdown. No preamble. No explanation.`
 
 // ── Main seeder ────────────────────────────────────────────────
 const seed = async () => {
-  console.log('\n🌱 EduPrepAI Question Bank Seeder')
+  console.log('\n🌱 YankelPrep Question Bank Seeder')
   console.log('━'.repeat(50))
 
   // Connect to MongoDB

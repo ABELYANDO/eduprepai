@@ -28,7 +28,7 @@ export const reportAPI = {
         const objectUrl = URL.createObjectURL(blob)
         const link      = document.createElement('a')
         link.href       = objectUrl
-        link.download   = `EduPrepAI_Report.pdf`
+        link.download   = `YankelPrep_Report.pdf`
         link.click()
         URL.revokeObjectURL(objectUrl)
       })

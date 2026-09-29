@@ -34,7 +34,7 @@ export default function AdminShell({ children }) {
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-white font-semibold text-sm leading-tight" style={{ fontFamily: 'var(--font-heading)' }}>
-            EduPrepAI Admin Console
+            YankelPrep Admin Console
           </p>
           <p className="text-indigo-300 text-xs">Content & question bank control</p>
         </div>

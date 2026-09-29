@@ -77,7 +77,7 @@ export const downloadMockReport = asyncHandler(async (req, res) => {
   const pdfBuffer = await generateMockExamPDF(exam, student)
 
   // Build a clean filename
-  const filename = `EduPrepAI_${exam.subject.replace(/\s+/g, '_')}_${exam.examType}_Report.pdf`
+  const filename = `YankelPrep_${exam.subject.replace(/\s+/g, '_')}_${exam.examType}_Report.pdf`
 
   // Stream the PDF to the client
   res.setHeader('Content-Type',        'application/pdf')

@@ -440,7 +440,7 @@ export default function SettingsPage() {
               Theme
             </h3>
             <p className="text-sm text-slate-500 -mt-3">
-              Choose how EduPrepAI looks. "System" follows your device's own light/dark setting automatically.
+              Choose how YankelPrep looks. "System" follows your device's own light/dark setting automatically.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

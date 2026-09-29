@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { GraduationCap, Mail, Lock, ArrowRight, Eye, EyeOff, UserCircle, Check, Trophy, AlertTriangle, ChevronDown } from 'lucide-react'
+import { Mail, Lock, ArrowRight, Eye, EyeOff, UserCircle, Check, Trophy, AlertTriangle, ChevronDown } from 'lucide-react'
 import toast from 'react-hot-toast'
 import examHallBg from '../../assets/exam-hall-bg.jpg'
+import logo from '../../assets/logo.jpg'
 import ThemeToggle from '../../components/ThemeToggle'
 import { useTheme } from '../../context/ThemeContext'
 
@@ -99,14 +100,14 @@ export default function LoginPage() {
       >
         {/* Logo */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-teal-400/20 flex items-center justify-center">
-            <GraduationCap className="w-6 h-6 text-teal-300" />
+          <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center overflow-hidden flex-shrink-0">
+            <img src={logo} alt="YankelPrep" className="w-full h-full object-cover" />
           </div>
           <span
             className="text-white font-semibold text-lg"
             style={{ fontFamily: 'var(--font-heading)' }}
           >
-            EduPrepAI
+            YankelPrep
           </span>
         </div>
 
@@ -161,12 +162,14 @@ export default function LoginPage() {
 
           {/* Mobile logo */}
           <div className="flex items-center gap-2 mb-8 lg:hidden">
-            <GraduationCap className="w-6 h-6 text-teal-600" />
+            <div className="w-7 h-7 rounded-lg overflow-hidden flex-shrink-0">
+              <img src={logo} alt="YankelPrep" className="w-full h-full object-cover" />
+            </div>
             <span
               className="font-semibold text-teal-800"
               style={{ fontFamily: 'var(--font-heading)' }}
             >
-              EduPrepAI
+              YankelPrep
             </span>
           </div>
 

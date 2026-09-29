@@ -102,7 +102,7 @@ const fetchWithRetry = async (url, attempts = 2) => {
   for (let i = 0; i < attempts; i++) {
     try {
       return await fetch(url, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; EduPrepAI-research-bot)' },
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; YankelPrep-research-bot)' },
         signal: AbortSignal.timeout(15000),
       })
     } catch (err) {

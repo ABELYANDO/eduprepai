@@ -6,8 +6,9 @@ import { assignmentAPI } from '../../api/assignment.api'
 import {
   LayoutDashboard, BookOpen, TrendingUp, FileText,
   BarChart2, Trophy, Settings, LogOut, ClipboardList,
-  ChevronRight, ChevronDown, GraduationCap,
+  ChevronRight, ChevronDown,
 } from 'lucide-react'
+import logo from '../../assets/logo.jpg'
 
 // This sidebar only ever renders for students — admins/teachers have
 // their own shells with no student nav items, so there's nothing
@@ -101,15 +102,15 @@ export default function Sidebar({ mobileOpen, onClose }) {
       >
         {/* ── Logo ────────────────────────────────────────── */}
         <div className="flex items-center gap-3 px-5 py-5 border-b border-white/10">
-          <div className="w-9 h-9 rounded-xl bg-teal-400/20 flex items-center justify-center flex-shrink-0">
-            <GraduationCap className="w-5 h-5 text-teal-300" />
+          <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center overflow-hidden flex-shrink-0">
+            <img src={logo} alt="YankelPrep" className="w-full h-full object-cover" />
           </div>
           <div>
             <p
               className="font-semibold text-white text-sm"
               style={{ fontFamily: 'var(--font-heading)' }}
             >
-              EduPrepAI
+              YankelPrep
             </p>
             <p className="text-teal-300 text-xs">WASSCE · BECE</p>
           </div>

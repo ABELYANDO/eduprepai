@@ -65,7 +65,7 @@ app.use('/api/assignments', assignmentRoutes)
 app.get('/api/health', (req, res) => {
   res.json({
     success:     true,
-    message:     'EduPrepAI API is running',
+    message:     'YankelPrep API is running',
     environment: process.env.NODE_ENV,
     timestamp:   new Date().toISOString(),
   })
@@ -87,7 +87,7 @@ const start = async () => {
   await connectDB()
   await bootstrapAdmin()
   app.listen(PORT, () => {
-    console.log(`\n🚀 EduPrepAI server running on http://localhost:${PORT}`)
+    console.log(`\n🚀 YankelPrep server running on http://localhost:${PORT}`)
     console.log(`📚 Environment: ${process.env.NODE_ENV}`)
     console.log(`🩺 Health check: http://localhost:${PORT}/api/health\n`)
   })

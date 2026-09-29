@@ -1,7 +1,7 @@
 {
   "name": "eduprepai-server",
   "version": "1.0.0",
-  "description": "EduPrepAI Backend API",
+  "description": "YankelPrep Backend API",
   "main": "src/index.js",
   "type": "module",
   "scripts": {

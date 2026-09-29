@@ -244,7 +244,7 @@ Return a JSON object with this exact structure — no markdown, no explanation:
 
 // ── Main ───────────────────────────────────────────────────────
 const seedDemo = async () => {
-  console.log('\n🌱 EduPrepAI — Full Question Bank Seeder')
+  console.log('\n🌱 YankelPrep — Full Question Bank Seeder')
   console.log('   All WASSCE and BECE subjects · All official topics')
   console.log('━'.repeat(58))
 

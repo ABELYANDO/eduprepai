@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { GraduationCap, Mail, ArrowRight, AlertTriangle, MailCheck } from 'lucide-react'
+import { Mail, ArrowRight, AlertTriangle, MailCheck } from 'lucide-react'
 import { authAPI } from '../../api/auth.api'
 import ThemeToggle from '../../components/ThemeToggle'
+import logo from '../../assets/logo.jpg'
 
 export default function ForgotPasswordPage() {
   const [email,   setEmail]   = useState('')
@@ -34,8 +35,8 @@ export default function ForgotPasswordPage() {
 
       <div className="w-full max-w-md animate-fade-in">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-teal-600 mb-4">
-            <GraduationCap className="w-6 h-6 text-white" />
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white shadow-sm overflow-hidden mb-4">
+            <img src={logo} alt="YankelPrep" className="w-full h-full object-cover" />
           </div>
           <h1
             className="text-2xl font-bold text-slate-900"
