@@ -29,10 +29,10 @@ export const sendPasswordResetEmail = async (to, resetUrl) => {
       subject: 'Reset your YankelPrep password',
       html: `
         <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-          <h2 style="color: #0D9488;">Reset your password</h2>
+          <h2 style="color: #059669;">Reset your password</h2>
           <p>We received a request to reset your YankelPrep password. This link expires in 30 minutes.</p>
           <p style="margin: 24px 0;">
-            <a href="${resetUrl}" style="background: #0D9488; color: #fff; padding: 12px 20px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+            <a href="${resetUrl}" style="background: #059669; color: #fff; padding: 12px 20px; border-radius: 8px; text-decoration: none; font-weight: 600;">
               Reset password
             </a>
           </p>

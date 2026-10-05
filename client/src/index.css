@@ -3,23 +3,45 @@
 
 @layer base {
   :root {
-    --color-primary:        #0D9488;
-    --color-primary-dark:   #0F766E;
-    --color-primary-light:  #2DD4BF;
-    --color-primary-50:     #F0FDFA;
-    --color-accent:         #D97706;
+    /* "Forest Momentum" brand — a deeper, more saturated emerald than
+       the old teal, with a gold accent. See the teal-ramp override
+       further down for the matching Tailwind bg-teal-*/text-teal-*
+       etc. utility retint (same technique .admin-theme already used
+       for its own indigo scoping, just applied globally here). */
+    --color-primary:        #059669;
+    --color-primary-dark:   #047857;
+    --color-primary-light:  #34D399;
+    --color-primary-50:     #ECFDF5;
+    --color-accent:         #F2A900;
     --color-success:        #10B981;
     --color-danger:         #EF4444;
-    --color-bg:             #F0FDFA;
+    --color-bg:             #ECFDF5;
     --color-surface:        #FFFFFF;
-    --color-sidebar:        #134E4A;
-    --color-text:           #134E4A;
+    --color-sidebar:        #064E3B;
+    --color-text:           #064E3B;
     --color-text-secondary: #64748B;
     --color-border:         #E2E8F0;
     --sidebar-width:        260px;
     --topbar-height:        64px;
     --font-heading:         'Lora', Georgia, serif;
     --font-body:            'Inter', system-ui, sans-serif;
+
+    /* Retints every Tailwind bg-teal-*/text-teal-*/border-teal-*/etc.
+       utility across the student portal and shared auth pages at
+       once — no component-by-component class renaming needed. The
+       admin portal's own .admin-theme override (further down) still
+       wins there via normal CSS specificity (a class beats :root),
+       so this doesn't touch the admin's indigo branding. */
+    --color-teal-50:  #ECFDF5;
+    --color-teal-100: #D1FAE5;
+    --color-teal-200: #A7F3D0;
+    --color-teal-300: #6EE7B7;
+    --color-teal-400: #34D399;
+    --color-teal-500: #10B981;
+    --color-teal-600: #059669;
+    --color-teal-700: #047857;
+    --color-teal-800: #065F46;
+    --color-teal-900: #064E3B;
   }
 
   * { box-sizing: border-box; }
@@ -186,13 +208,14 @@
 
 /* ── Admin portal theme ───────────────────────────────────────────
    Every admin panel component (buttons, badges, cards, inputs) reuses
-   the same teal-branded utility classes as the student portal. Rather
-   than re-skin each admin file by hand, this redefines the teal color
-   ramp to indigo scoped under .admin-theme (AdminShell's root) — every
+   the same teal-branded utility classes as the student portal (now
+   emerald — see the root-level override above). Rather than re-skin
+   each admin file by hand, this redefines the teal color ramp to
+   indigo scoped under .admin-theme (AdminShell's root) — every
    Tailwind teal-* utility anywhere inside references these same CSS
    variables, so the whole admin surface retints at once. Nothing
    outside .admin-theme is affected; the student portal keeps its own
-   teal branding untouched. */
+   emerald branding untouched. */
 .admin-theme {
   --color-teal-50:  #EEF2FF;
   --color-teal-100: #E0E7FF;
@@ -248,10 +271,11 @@
   --color-border:         #26262C;
   /* The student Sidebar's background isn't driven by a CSS variable —
      it picks its own gradient directly in Sidebar.jsx based on
-     useTheme(), switching from the teal brand gradient to a near-black
-     one that matches --color-bg/--color-surface above. TeacherShell/
-     AdminShell headers stay their own fixed dark blue/indigo regardless
-     of theme, by design — only the student sidebar reacts. */
+     useTheme(), switching from the emerald brand gradient to a
+     near-black one that matches --color-bg/--color-surface above.
+     TeacherShell/AdminShell headers stay their own fixed dark
+     blue/indigo regardless of theme, by design — only the student
+     sidebar reacts. */
 }
 
 /* ── Force-light surfaces ─────────────────────────────────────────

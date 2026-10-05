@@ -16,7 +16,7 @@ export default function ExamCoverPage({ exam, onStart, isStarting }) {
         {/* Dark header band */}
         <div
           className="px-8 py-6 text-center"
-          style={{ background: 'linear-gradient(135deg, #134E4A 0%, #0D3B37 100%)' }}
+          style={{ background: 'linear-gradient(135deg, #064E3B 0%, #022C22 100%)' }}
         >
           <p className="text-teal-300 text-xs font-medium tracking-widest uppercase mb-2">
             West African Examinations Council

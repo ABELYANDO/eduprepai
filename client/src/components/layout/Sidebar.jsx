@@ -29,13 +29,13 @@ export default function Sidebar({ mobileOpen, onClose }) {
   const navigate          = useNavigate()
   const [subjectsOpen, setSubjectsOpen] = useState(false)
 
-  // Dark mode drops the teal gradient for the same near-black + charcoal
+  // Dark mode drops the emerald gradient for the same near-black + charcoal
   // tone the rest of the app uses in dark mode ( --color-bg/--color-surface
   // in index.css), so the sidebar no longer looks like a separate, always-
-  // teal surface once dark mode is on.
+  // emerald surface once dark mode is on.
   const sidebarBg = theme === 'dark'
     ? 'linear-gradient(180deg, #17171C 0%, #0A0A0D 100%)'
-    : 'linear-gradient(180deg, #134E4A 0%, #0D3B37 100%)'
+    : 'linear-gradient(180deg, #064E3B 0%, #022C22 100%)'
 
   const goToSubject = (subject) => {
     navigate(`/practice?${new URLSearchParams({ subject }).toString()}`)

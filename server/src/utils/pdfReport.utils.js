@@ -38,14 +38,14 @@ export const generateMockExamPDF = (exam, student) => {
         return 2
       }
 
-      // ── Colours ────────────────────────────────────────────
-      const TEAL   = '#0D9488'
-      const DARK   = '#134E4A'
+      // ── Colours — "Forest Momentum" brand (emerald + gold) ──
+      const TEAL   = '#059669'
+      const DARK   = '#064E3B'
       const AMBER  = '#D97706'
       const SLATE  = '#64748B'
       const BLACK  = '#1E293B'
       const WHITE  = '#FFFFFF'
-      const LIGHT  = '#F0FDFA'
+      const LIGHT  = '#ECFDF5'
 
       const bucketBg   = isBECE ? ['#D1FAE5', '#FEF3C7', '#FEE2E2'] : ['#D1FAE5', LIGHT, '#FEE2E2']
       const bucketText = isBECE ? ['#065F46', '#92400E', '#991B1B'] : ['#065F46', DARK, '#991B1B']
@@ -71,14 +71,14 @@ export const generateMockExamPDF = (exam, student) => {
       // Header band
       doc.rect(0, 0, 595, 80).fill(DARK)
       doc.font('Helvetica-Bold').fontSize(14).fillColor(WHITE)
-         .text('EDUPREPAI', 50, 18, { align: 'center', width: 495 })
-      doc.font('Helvetica').fontSize(9).fillColor('#CCFBF1')
+         .text('YANKELPREP', 50, 18, { align: 'center', width: 495 })
+      doc.font('Helvetica').fontSize(9).fillColor('#D1FAE5')
          .text(`${examType} Practice Exam Report — AI-generated, not an official WAEC document · ${year}`, 50, 38, { align: 'center', width: 495 })
       doc.font('Helvetica-Bold').fontSize(11).fillColor(WHITE)
          .text(subject, 50, 55, { align: 'center', width: 495 })
 
       // Student info row
-      doc.rect(50, 95, 495, 50).fill(LIGHT).stroke('#CCFBF1')
+      doc.rect(50, 95, 495, 50).fill(LIGHT).stroke('#D1FAE5')
       doc.font('Helvetica-Bold').fontSize(9).fillColor(DARK).text('CANDIDATE:', 60, 105)
       doc.font('Helvetica').fontSize(9).fillColor(BLACK).text(student.fullName || 'Unknown', 130, 105)
 
@@ -151,7 +151,7 @@ export const generateMockExamPDF = (exam, student) => {
            .fontSize(8)
            .fillColor(isThis ? WHITE : bucketText[bucket])
            .text(g.g, gx + 4, y + 3)
-        doc.font('Helvetica').fontSize(6).fillColor(isThis ? '#CCFBF1' : SLATE)
+        doc.font('Helvetica').fontSize(6).fillColor(isThis ? '#D1FAE5' : SLATE)
            .text(g.r, gx + 1, y + 13)
       })
 
@@ -355,12 +355,12 @@ export const generateMockExamPDF = (exam, student) => {
       for (let i = 0; i < pageCount; i++) {
         doc.switchToPage(i)
         doc.rect(0, 810, 595, 32).fill(DARK)
-        doc.font('Helvetica').fontSize(7).fillColor('#CCFBF1')
+        doc.font('Helvetica').fontSize(7).fillColor('#D1FAE5')
            .text(
              `YankelPrep Practice Report — ${student.fullName || 'Candidate'} — ${subject} ${examType} ${year}`,
              50, 820, { align: 'left', width: 350 }
            )
-        doc.font('Helvetica').fontSize(7).fillColor('#CCFBF1')
+        doc.font('Helvetica').fontSize(7).fillColor('#D1FAE5')
            .text(`Page ${i + 1} of ${pageCount}`, 50, 820, { align: 'right', width: 495 })
       }
 

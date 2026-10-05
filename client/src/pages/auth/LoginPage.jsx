@@ -93,7 +93,7 @@ export default function LoginPage() {
       <div
         className="hidden lg:flex flex-col justify-between w-[420px] flex-shrink-0 p-10"
         style={{
-          backgroundImage: `linear-gradient(160deg, rgba(19,78,74,0.82) 0%, rgba(13,59,55,0.85) 60%, rgba(10,46,43,0.9) 100%), url(${examHallBg})`,
+          backgroundImage: `linear-gradient(160deg, rgba(6,78,59,0.82) 0%, rgba(4,58,44,0.85) 60%, rgba(2,44,34,0.9) 100%), url(${examHallBg})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
