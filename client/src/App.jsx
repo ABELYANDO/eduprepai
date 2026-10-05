@@ -167,7 +167,7 @@ export default function App() {
                 borderRadius: '10px',
                 boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
               },
-              success: { iconTheme: { primary: '#059669', secondary: '#fff' } },
+              success: { iconTheme: { primary: '#2563EB', secondary: '#fff' } },
               error:   { iconTheme: { primary: '#EF4444', secondary: '#fff' } },
             }}
           />

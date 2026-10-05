@@ -37,16 +37,16 @@ export default function SubjectRadar({ data = [] }) {
           <Radar
             name="accuracy"
             dataKey="accuracy"
-            stroke="#059669"
-            fill="#059669"
+            stroke="#2563EB"
+            fill="#2563EB"
             fillOpacity={0.15}
             strokeWidth={2}
           />
           <Radar
             name="mastery"
             dataKey="mastery"
-            stroke="#F2A900"
-            fill="#F2A900"
+            stroke="#D97706"
+            fill="#D97706"
             fillOpacity={0.1}
             strokeWidth={2}
             strokeDasharray="4 4"
@@ -59,7 +59,7 @@ export default function SubjectRadar({ data = [] }) {
           Accuracy
         </div>
         <div className="flex items-center gap-1.5 text-xs text-slate-500">
-          <div className="w-3 h-0.5 bg-amber-500 rounded border-dashed" style={{ borderBottom: '2px dashed #F2A900' }} />
+          <div className="w-3 h-0.5 bg-amber-500 rounded border-dashed" style={{ borderBottom: '2px dashed #D97706' }} />
           Mastery
         </div>
       </div>
