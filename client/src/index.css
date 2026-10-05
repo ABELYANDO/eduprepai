@@ -5,9 +5,9 @@
   :root {
     /* "Forest Momentum" brand — a deeper, more saturated emerald than
        the old teal, with a gold accent. See the teal-ramp override
-       further down for the matching Tailwind bg-teal-*/text-teal-*
-       etc. utility retint (same technique .admin-theme already used
-       for its own indigo scoping, just applied globally here). */
+       further down for the matching Tailwind utility retint (bg-teal,
+       text-teal, etc. — same technique .admin-theme already used for
+       its own indigo scoping, just applied globally here). */
     --color-primary:        #059669;
     --color-primary-dark:   #047857;
     --color-primary-light:  #34D399;
@@ -26,12 +26,12 @@
     --font-heading:         'Lora', Georgia, serif;
     --font-body:            'Inter', system-ui, sans-serif;
 
-    /* Retints every Tailwind bg-teal-*/text-teal-*/border-teal-*/etc.
-       utility across the student portal and shared auth pages at
-       once — no component-by-component class renaming needed. The
-       admin portal's own .admin-theme override (further down) still
-       wins there via normal CSS specificity (a class beats :root),
-       so this doesn't touch the admin's indigo branding. */
+    /* Retints every Tailwind teal-family utility (bg-teal, text-teal,
+       border-teal, etc.) across the student portal and shared auth
+       pages at once, no component-by-component class renaming needed.
+       The admin portal's own admin-theme override (further down) still
+       wins there via normal CSS specificity, a class beats root, so
+       this doesn't touch the admin's indigo branding. */
     --color-teal-50:  #ECFDF5;
     --color-teal-100: #D1FAE5;
     --color-teal-200: #A7F3D0;
