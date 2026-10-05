@@ -28,14 +28,16 @@ export default function Sidebar({ mobileOpen, onClose }) {
   const { theme } = useTheme()
   const navigate          = useNavigate()
   const [subjectsOpen, setSubjectsOpen] = useState(false)
+  const isDark = theme === 'dark'
 
-  // Light mode already uses a near-black navy sidebar by design, so dark
-  // mode's own near-black charcoal ( --color-bg/--color-surface in
-  // index.css) ends up close to it — intentional, this sidebar stays
-  // dark in both themes, just a shade apart.
-  const sidebarBg = theme === 'dark'
+  // Light mode: a light, warm peach surface instead of a dark band —
+  // colour lives in the accents (active states, badges, the streak
+  // flame) rather than in a permanent dark panel, which is what made
+  // the previous palettes feel heavy. Dark mode keeps its own
+  // near-black charcoal, same as every other surface in dark mode.
+  const sidebarBg = isDark
     ? 'linear-gradient(180deg, #17171C 0%, #0A0A0D 100%)'
-    : 'linear-gradient(180deg, #0F172A 0%, #020617 100%)'
+    : '#FFF1E2'
 
   const goToSubject = (subject) => {
     navigate(`/practice?${new URLSearchParams({ subject }).toString()}`)
@@ -97,55 +99,56 @@ export default function Sidebar({ mobileOpen, onClose }) {
         style={{
           width: 'var(--sidebar-width)',
           background: sidebarBg,
+          borderRight: isDark ? 'none' : '1px solid #FCE0BE',
         }}
         aria-label="Main navigation"
       >
         {/* ── Logo ────────────────────────────────────────── */}
-        <div className="flex items-center gap-3 px-5 py-5 border-b border-white/10">
-          <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center overflow-hidden flex-shrink-0">
+        <div className={`flex items-center gap-3 px-5 py-5 border-b ${isDark ? 'border-white/10' : 'border-orange-100'}`}>
+          <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center overflow-hidden flex-shrink-0 shadow-sm">
             <img src={logo} alt="YankelPrep" className="w-full h-full object-cover" />
           </div>
           <div>
             <p
-              className="font-semibold text-white text-sm"
+              className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-orange-950'}`}
               style={{ fontFamily: 'var(--font-heading)' }}
             >
               YankelPrep
             </p>
-            <p className="text-teal-300 text-xs">WASSCE · BECE</p>
+            <p className={`text-xs ${isDark ? 'text-teal-300' : 'text-orange-600'}`}>WASSCE · BECE</p>
           </div>
         </div>
 
         {/* ── User card ────────────────────────────────────── */}
-        <div className="mx-4 mt-4 rounded-xl bg-white/8 border border-white/10 p-3.5">
+        <div className={`mx-4 mt-4 rounded-xl p-3.5 ${isDark ? 'bg-white/8 border border-white/10' : 'bg-white border border-orange-100 shadow-sm'}`}>
           <div className="flex items-center gap-3">
             {/* Avatar initial */}
-            <div className="w-9 h-9 rounded-full bg-teal-400 flex items-center justify-center flex-shrink-0">
-              <span className="text-sm font-semibold text-teal-900">
+            <div className="w-9 h-9 rounded-full bg-orange-500 flex items-center justify-center flex-shrink-0">
+              <span className="text-sm font-semibold text-white">
                 {user?.fullName?.charAt(0)?.toUpperCase() || 'U'}
               </span>
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-white text-sm font-medium truncate">{user?.fullName}</p>
-              <p className="text-teal-300 text-xs truncate">{user?.examType || 'Student'}</p>
+              <p className={`text-sm font-medium truncate ${isDark ? 'text-white' : 'text-orange-950'}`}>{user?.fullName}</p>
+              <p className={`text-xs truncate ${isDark ? 'text-teal-300' : 'text-orange-500'}`}>{user?.examType || 'Student'}</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-white/10">
+          <div className={`grid grid-cols-2 gap-2 mt-3 pt-3 border-t ${isDark ? 'border-white/10' : 'border-orange-100'}`}>
             <div className="text-center">
-              <p className="text-white font-semibold text-sm">{user?.streak || 0}</p>
-              <p className="text-teal-400 text-xs">Day streak</p>
+              <p className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-orange-950'}`}>{user?.streak || 0}</p>
+              <p className={`text-xs ${isDark ? 'text-teal-400' : 'text-orange-500'}`}>Day streak</p>
             </div>
             <div className="text-center">
-              <p className="text-white font-semibold text-sm">{accuracy}%</p>
-              <p className="text-teal-400 text-xs">Accuracy</p>
+              <p className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-orange-950'}`}>{accuracy}%</p>
+              <p className={`text-xs ${isDark ? 'text-teal-400' : 'text-orange-500'}`}>Accuracy</p>
             </div>
           </div>
         </div>
 
         {/* ── Navigation links ─────────────────────────────── */}
         <nav className="flex-1 px-3 py-4 space-y-0.5" aria-label="Sidebar navigation">
-          <p className="text-teal-500 text-xs font-medium uppercase tracking-wider px-3 mb-2">
+          <p className={`text-xs font-medium uppercase tracking-wider px-3 mb-2 ${isDark ? 'text-teal-500' : 'text-orange-400'}`}>
             Study Tools
           </p>
 
@@ -158,8 +161,8 @@ export default function Sidebar({ mobileOpen, onClose }) {
                 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm
                 transition-all duration-150 group relative
                 ${isActive
-                  ? 'bg-teal-400/20 text-white font-medium'
-                  : 'text-teal-100/80 hover:bg-white/8 hover:text-white'
+                  ? isDark ? 'bg-teal-400/20 text-white font-medium' : 'bg-orange-100 text-orange-900 font-medium'
+                  : isDark ? 'text-teal-100/80 hover:bg-white/8 hover:text-white' : 'text-orange-800/70 hover:bg-orange-50 hover:text-orange-900'
                 }
               `}
             >
@@ -167,16 +170,20 @@ export default function Sidebar({ mobileOpen, onClose }) {
                 <>
                   {/* Active indicator bar on left edge */}
                   {isActive && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-teal-400 rounded-r-full" />
+                    <span className={`absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full ${isDark ? 'bg-teal-400' : 'bg-orange-500'}`} />
                   )}
-                  <Icon className={`w-4 h-4 flex-shrink-0 transition-colors ${isActive ? 'text-teal-400' : 'text-teal-400/60 group-hover:text-teal-300'}`} />
+                  <Icon className={`w-4 h-4 flex-shrink-0 transition-colors ${
+                    isActive
+                      ? (isDark ? 'text-teal-400' : 'text-orange-600')
+                      : (isDark ? 'text-teal-400/60 group-hover:text-teal-300' : 'text-orange-400 group-hover:text-orange-600')
+                  }`} />
                   <span className="flex-1">{label}</span>
                   {to === '/assignments' && pendingAssignments > 0 && (
                     <span className="bg-amber-400 text-amber-950 text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
                       {pendingAssignments}
                     </span>
                   )}
-                  {isActive && <ChevronRight className="w-3 h-3 text-teal-400/60" />}
+                  {isActive && <ChevronRight className={`w-3 h-3 ${isDark ? 'text-teal-400/60' : 'text-orange-400'}`} />}
                 </>
               )}
             </NavLink>
@@ -188,11 +195,11 @@ export default function Sidebar({ mobileOpen, onClose }) {
              one jumps into Practice pre-filtered to that subject, same
              query-param convention the command palette already uses. */}
           {user?.subjects?.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-white/10">
+            <div className={`mt-4 pt-4 border-t ${isDark ? 'border-white/10' : 'border-orange-100'}`}>
               <button
                 type="button"
                 onClick={() => setSubjectsOpen(o => !o)}
-                className="w-full flex items-center justify-between px-3 mb-2 text-teal-500 text-xs font-medium uppercase tracking-wider hover:text-teal-300 transition-colors"
+                className={`w-full flex items-center justify-between px-3 mb-2 text-xs font-medium uppercase tracking-wider transition-colors ${isDark ? 'text-teal-500 hover:text-teal-300' : 'text-orange-400 hover:text-orange-600'}`}
                 aria-expanded={subjectsOpen}
               >
                 My Subjects
@@ -205,9 +212,9 @@ export default function Sidebar({ mobileOpen, onClose }) {
                       key={subject}
                       type="button"
                       onClick={() => goToSubject(subject)}
-                      className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs text-teal-200/70 hover:bg-white/8 hover:text-teal-100 transition-colors text-left"
+                      className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-colors text-left ${isDark ? 'text-teal-200/70 hover:bg-white/8 hover:text-teal-100' : 'text-orange-700/70 hover:bg-orange-50 hover:text-orange-900'}`}
                     >
-                      <span className="w-1.5 h-1.5 rounded-full bg-teal-400/50 flex-shrink-0" />
+                      <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isDark ? 'bg-teal-400/50' : 'bg-orange-400/60'}`} />
                       <span className="truncate">{subject}</span>
                     </button>
                   ))}
@@ -218,17 +225,17 @@ export default function Sidebar({ mobileOpen, onClose }) {
         </nav>
 
         {/* ── Bottom: settings + logout ─────────────────────── */}
-        <div className="px-3 pb-5 space-y-0.5 border-t border-white/10 pt-3">
+        <div className={`px-3 pb-5 space-y-0.5 border-t pt-3 ${isDark ? 'border-white/10' : 'border-orange-100'}`}>
           <NavLink
             to="/settings"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-teal-100/70 hover:bg-white/8 hover:text-white transition-all duration-150"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 ${isDark ? 'text-teal-100/70 hover:bg-white/8 hover:text-white' : 'text-orange-800/70 hover:bg-orange-50 hover:text-orange-900'}`}
           >
-            <Settings className="w-4 h-4 text-teal-400/60" />
+            <Settings className={`w-4 h-4 ${isDark ? 'text-teal-400/60' : 'text-orange-400'}`} />
             Settings
           </NavLink>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-teal-100/70 hover:bg-red-500/15 hover:text-red-300 transition-all duration-150"
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 ${isDark ? 'text-teal-100/70 hover:bg-red-500/15 hover:text-red-300' : 'text-orange-800/70 hover:bg-red-50 hover:text-red-600'}`}
           >
             <LogOut className="w-4 h-4" />
             Sign out

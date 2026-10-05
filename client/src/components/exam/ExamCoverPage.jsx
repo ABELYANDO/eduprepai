@@ -16,9 +16,9 @@ export default function ExamCoverPage({ exam, onStart, isStarting }) {
         {/* Dark header band */}
         <div
           className="px-8 py-6 text-center"
-          style={{ background: 'linear-gradient(135deg, #0F172A 0%, #020617 100%)' }}
+          style={{ background: 'linear-gradient(135deg, #EA580C 0%, #9A3412 100%)' }}
         >
-          <p className="text-teal-300 text-xs font-medium tracking-widest uppercase mb-2">
+          <p className="text-orange-100 text-xs font-medium tracking-widest uppercase mb-2">
             West African Examinations Council
           </p>
           <h1
@@ -27,7 +27,7 @@ export default function ExamCoverPage({ exam, onStart, isStarting }) {
           >
             {exam.examType} — {exam.subject}
           </h1>
-          <p className="text-teal-200 text-sm mt-1">
+          <p className="text-orange-50 text-sm mt-1">
             AI-Generated Practice Examination · {year}
           </p>
         </div>

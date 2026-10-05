@@ -6,11 +6,11 @@ import { BarChart, Bar, ResponsiveContainer, Tooltip, Cell } from 'recharts'
 export default function TrendSparkline({ data = [], trendDirection }) {
   if (!data.length) return null
 
-  // Colour matches our blue brand — rising is green, falling is red, stable is blue
+  // Colour matches our warm orange brand — rising is green, falling is red, stable is orange
   const barColour =
     trendDirection === 1  ? '#10B981'  // green — rising
     : trendDirection === -1 ? '#EF4444' // red — falling
-    : '#2563EB'                          // blue — stable
+    : '#F97316'                          // orange — stable
 
   return (
     <div className="w-full h-10">

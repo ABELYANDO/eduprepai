@@ -56,17 +56,17 @@ export default function AccuracyChart({ data = [] }) {
           <Tooltip content={<CustomTooltip />} />
           <ReferenceLine
             y={60}
-            stroke="#D97706"
+            stroke="#A16207"
             strokeDasharray="4 4"
-            label={{ value: 'Pass', position: 'right', fontSize: 10, fill: '#D97706' }}
+            label={{ value: 'Pass', position: 'right', fontSize: 10, fill: '#A16207' }}
           />
           <Line
             type="monotone"
             dataKey="accuracyDisplay"
-            stroke="#2563EB"
+            stroke="#F97316"
             strokeWidth={2.5}
-            dot={{ fill: '#2563EB', r: 4, strokeWidth: 0 }}
-            activeDot={{ r: 6, fill: '#2563EB' }}
+            dot={{ fill: '#F97316', r: 4, strokeWidth: 0 }}
+            activeDot={{ r: 6, fill: '#F97316' }}
             connectNulls={false}
           />
         </LineChart>

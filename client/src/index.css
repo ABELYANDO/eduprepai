@@ -3,25 +3,26 @@
 
 @layer base {
   :root {
-    /* "Professional Blue" brand — a clean SaaS blue plus a near-black
-       navy for the sidebar, with a muted amber accent reserved for
-       highlights (exam countdowns, streaks, badges). Deliberately a
-       different hue family from the admin portal's indigo below, so
-       the two portals still read as visually distinct. See the
+    /* "Sunrise Motivation" brand — warm orange as the primary colour,
+       a sunny yellow accent for highlights (streaks, countdowns,
+       badges), and a light cream background instead of a dark/neutral
+       one. The sidebar is light too now (see Sidebar.jsx) — colour
+       lives in the accents and moments, not in a permanent dark panel,
+       which is what made the previous palette feel heavy. See the
        teal-ramp override further down for the matching Tailwind
        utility retint (bg-teal, text-teal, etc.). */
-    --color-primary:        #2563EB;
-    --color-primary-dark:   #1D4ED8;
-    --color-primary-light:  #60A5FA;
-    --color-primary-50:     #EFF6FF;
-    --color-accent:         #D97706;
+    --color-primary:        #F97316;
+    --color-primary-dark:   #EA580C;
+    --color-primary-light:  #FDBA74;
+    --color-primary-50:     #FFF7ED;
+    --color-accent:         #FACC15;
     --color-success:        #10B981;
     --color-danger:         #EF4444;
-    --color-bg:             #F8FAFC;
+    --color-bg:             #FFFBF5;
     --color-surface:        #FFFFFF;
-    --color-sidebar:        #0F172A;
-    --color-text:           #0F172A;
-    --color-text-secondary: #64748B;
+    --color-sidebar:        #FFF1E2;
+    --color-text:           #431407;
+    --color-text-secondary: #92400E;
     --color-border:         #E2E8F0;
     --sidebar-width:        260px;
     --topbar-height:        64px;
@@ -34,16 +35,16 @@
        The admin portal's own admin-theme override (further down) still
        wins there via normal CSS specificity, a class beats root, so
        this doesn't touch the admin's indigo branding. */
-    --color-teal-50:  #EFF6FF;
-    --color-teal-100: #DBEAFE;
-    --color-teal-200: #BFDBFE;
-    --color-teal-300: #93C5FD;
-    --color-teal-400: #60A5FA;
-    --color-teal-500: #3B82F6;
-    --color-teal-600: #2563EB;
-    --color-teal-700: #1D4ED8;
-    --color-teal-800: #1E40AF;
-    --color-teal-900: #1E3A8A;
+    --color-teal-50:  #FFF7ED;
+    --color-teal-100: #FFEDD5;
+    --color-teal-200: #FED7AA;
+    --color-teal-300: #FDBA74;
+    --color-teal-400: #FB923C;
+    --color-teal-500: #F97316;
+    --color-teal-600: #EA580C;
+    --color-teal-700: #C2410C;
+    --color-teal-800: #9A3412;
+    --color-teal-900: #7C2D12;
   }
 
   * { box-sizing: border-box; }
@@ -211,13 +212,13 @@
 /* ── Admin portal theme ───────────────────────────────────────────
    Every admin panel component (buttons, badges, cards, inputs) reuses
    the same teal-branded utility classes as the student portal (now
-   blue — see the root-level override above). Rather than re-skin
-   each admin file by hand, this redefines the teal color ramp to
-   indigo scoped under .admin-theme (AdminShell's root) — every
+   warm orange — see the root-level override above). Rather than
+   re-skin each admin file by hand, this redefines the teal color ramp
+   to indigo scoped under .admin-theme (AdminShell's root) — every
    Tailwind teal-* utility anywhere inside references these same CSS
    variables, so the whole admin surface retints at once. Nothing
    outside .admin-theme is affected; the student portal keeps its own
-   blue branding untouched. */
+   warm orange branding untouched. */
 .admin-theme {
   --color-teal-50:  #EEF2FF;
   --color-teal-100: #E0E7FF;
