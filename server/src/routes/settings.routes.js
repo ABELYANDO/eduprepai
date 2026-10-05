@@ -6,6 +6,7 @@ import {
   getBadges,
   triggerBadgeCheck,
   refreshStreak,
+  getExamSchedule,
 } from '../controllers/settings.controller.js'
 import { protect } from '../middleware/auth.middleware.js'
 
@@ -19,5 +20,6 @@ router.put('/password',         changePassword)
 router.get('/badges',           getBadges)
 router.post('/badges/check',    triggerBadgeCheck)
 router.post('/streak/update',   refreshStreak)
+router.get('/exam-schedule',    getExamSchedule)
 
 export default router

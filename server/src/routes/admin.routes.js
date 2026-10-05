@@ -14,6 +14,7 @@ import {
   extractFromPhoto,
 } from '../controllers/physicalExam.controller.js'
 import { getOverview, getLeaderboard } from '../controllers/analytics.controller.js'
+import { updateExamSchedule } from '../controllers/settings.controller.js'
 import { protect, restrictTo } from '../middleware/auth.middleware.js'
 
 const router = Router()
@@ -39,5 +40,8 @@ router.post('/physical/extract-photo',    extractFromPhoto)
 
 // ── Admin analytics ────────────────────────────────────────────
 router.get('/analytics', getOverview)
+
+// ── Exam schedule — the WASSCE/BECE dates students count down to ──
+router.put('/exam-schedule', updateExamSchedule)
 
 export default router

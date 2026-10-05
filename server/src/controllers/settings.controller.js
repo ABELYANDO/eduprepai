@@ -1,4 +1,5 @@
-import User    from '../models/User.model.js'
+import User         from '../models/User.model.js'
+import ExamSchedule from '../models/ExamSchedule.model.js'
 import bcrypt  from 'bcryptjs'
 import { asyncHandler, AppError } from '../middleware/error.middleware.js'
 import {
@@ -149,5 +150,46 @@ export const refreshStreak = asyncHandler(async (req, res) => {
     message:   newStreak > 1
       ? `${newStreak} day streak — keep it up!`
       : 'Streak started — come back tomorrow!',
+  })
+})
+
+// ── GET /api/settings/exam-schedule ────────────────────────────
+// This cycle's WASSCE/BECE dates, set by an admin (see
+// updateExamSchedule below) — read by any logged-in user so the
+// student dashboard can show a "days until your exam" countdown.
+// Either date can be null if an admin hasn't set it yet.
+export const getExamSchedule = asyncHandler(async (req, res) => {
+  const schedule = await ExamSchedule.findOne({}).lean()
+
+  res.json({
+    success:    true,
+    wassceDate: schedule?.wassceDate || null,
+    beceDate:   schedule?.beceDate   || null,
+  })
+})
+
+// ── PUT /api/admin/exam-schedule ───────────────────────────────
+// Admin-only (mounted under admin.routes.js) — sets this cycle's
+// WASSCE/BECE dates. Upserts the singleton document since there's
+// only ever one; either field is optional so one can be updated
+// without touching the other.
+export const updateExamSchedule = asyncHandler(async (req, res) => {
+  const { wassceDate, beceDate } = req.body
+
+  const updates = {}
+  if (wassceDate !== undefined) updates.wassceDate = wassceDate || null
+  if (beceDate   !== undefined) updates.beceDate   = beceDate   || null
+
+  const schedule = await ExamSchedule.findOneAndUpdate(
+    {},
+    { $set: updates },
+    { new: true, upsert: true, setDefaultsOnInsert: true }
+  )
+
+  res.json({
+    success:    true,
+    message:    'Exam schedule updated',
+    wassceDate: schedule.wassceDate,
+    beceDate:   schedule.beceDate,
   })
 })

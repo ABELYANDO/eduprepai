@@ -20,4 +20,7 @@ export const adminAPI = {
   getStudentExams:    (studentId)      => api.get(`/admin/physical/exams/${studentId}`),
   submitPhysicalExam: (data)           => api.post('/admin/physical/submit', data),
   extractFromPhoto:   (data)           => api.post('/admin/physical/extract-photo', data),
+
+  // ── Exam schedule — the WASSCE/BECE dates students count down to ──
+  updateExamSchedule: (data) => api.put('/admin/exam-schedule', data),
 }

@@ -9,7 +9,7 @@ import toast from 'react-hot-toast'
 import {
   BookOpen, TrendingUp, FileText, Target,
   Flame, Award, ArrowRight, BarChart2,
-  Save, LogIn, LogOut, Users, Megaphone,
+  Save, LogIn, LogOut, Users, Megaphone, Calendar,
 } from 'lucide-react'
 
 export default function DashboardPage() {
@@ -48,7 +48,29 @@ export default function DashboardPage() {
   // ── Announcements from teachers of your classes ────────────────
   const [announcements, setAnnouncements] = useState([])
 
-  useEffect(() => { loadClasses(); loadAnnouncements() }, [])
+  // ── Exam countdown — admin-set WASSCE/BECE date for this cycle ──
+  const [examSchedule, setExamSchedule] = useState(null) // { wassceDate, beceDate } | null
+
+  useEffect(() => { loadClasses(); loadAnnouncements(); loadExamSchedule() }, [])
+
+  const loadExamSchedule = async () => {
+    try {
+      const data = await settingsAPI.getExamSchedule()
+      setExamSchedule(data)
+    } catch {
+      // Non-blocking — the dashboard is still useful without this,
+      // and it's expected to be empty until an admin sets a date.
+    }
+  }
+
+  const examDateStr = examSchedule
+    ? (user?.examType === 'BECE' ? examSchedule.beceDate : examSchedule.wassceDate)
+    : null
+  // Whole-day difference, ignoring time-of-day on both sides, so "today"
+  // reads as 0 regardless of what time the student happens to check.
+  const daysUntilExam = examDateStr
+    ? Math.ceil((new Date(examDateStr).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 86400000)
+    : null
 
   const loadAnnouncements = async () => {
     try {
@@ -111,6 +133,29 @@ export default function DashboardPage() {
       subtitle={`${user?.examType || 'WASSCE'} preparation dashboard`}
     >
       <div className="max-w-5xl mx-auto space-y-7">
+
+        {/* ── Exam countdown — hidden until an admin sets a date for
+           this student's exam type, and once that date has passed ── */}
+        {daysUntilExam !== null && daysUntilExam >= 0 && (
+          <div className="card bg-gradient-to-r from-teal-600 to-teal-700 text-white flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0">
+                <Calendar className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-teal-100 text-xs">Your {user?.examType} exam</p>
+                <p className="font-semibold text-lg" style={{ fontFamily: 'var(--font-heading)' }}>
+                  {daysUntilExam === 0
+                    ? "It's today — good luck!"
+                    : `${daysUntilExam} day${daysUntilExam !== 1 ? 's' : ''} to go`}
+                </p>
+              </div>
+            </div>
+            <span className="text-teal-100 text-xs flex-shrink-0">
+              {new Date(examDateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </span>
+          </div>
+        )}
 
         {/* ── Stat cards ──────────────────────────────────── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">

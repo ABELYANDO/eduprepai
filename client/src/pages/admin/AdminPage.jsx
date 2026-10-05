@@ -5,13 +5,15 @@ import PDFExtractorPanel     from '../../components/admin/PDFExtractorPanel'
 import ManualQuestionForm    from '../../components/ManualQuestionForm'
 import { questionAPI }       from '../../api/question.api'
 import { predictionAPI }     from '../../api/prediction.api'
+import { settingsAPI }       from '../../api/settings.api'
+import { adminAPI }          from '../../api/admin.api'
 import PhysicalExamPanel     from '../../components/admin/PhysicalExamPanel'
 import ReviewQueuePanel      from '../../components/admin/ReviewQueuePanel'
 import PredictionAccuracyPanel from '../../components/analytics/PredictionAccuracyPanel'
 import TopicCard              from '../../components/TopicCard'
 import {
   BarChart2, Plus, Cpu, FileSearch, Shield, FileText,
-  ClipboardCheck, TrendingUp, RefreshCw, Sparkles,
+  ClipboardCheck, TrendingUp, RefreshCw, Sparkles, Calendar,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { getSubjectsForExamType, GHANAIAN_LANGUAGES } from '../../constants/subjects'
@@ -24,6 +26,7 @@ const TABS = [
   { id: 'review',   label: 'Review Queue',  icon: ClipboardCheck },
   { id: 'predictions', label: 'Likely Exam Topics', icon: TrendingUp },
   { id: 'physical', label: 'Physical Exam', icon: FileText   },
+  { id: 'schedule', label: 'Exam Dates',    icon: Calendar   },
 ]
 
 export default function AdminPage() {
@@ -93,6 +96,47 @@ export default function AdminPage() {
       setStats(data); setTab('stats')
     } catch (err) { toast.error(err.message) }
     finally { setStatsLoading(false) }
+  }
+
+  // ── Exam schedule tab — the WASSCE/BECE dates students count
+  // down to on their dashboard. Dates are stored/edited as plain
+  // YYYY-MM-DD strings (what a date input gives/wants); converted
+  // to/from the server's ISO datetime only at the API boundary. ───
+  const [wassceDate,     setWassceDate]     = useState('')
+  const [beceDate,       setBeceDate]       = useState('')
+  const [scheduleLoading, setScheduleLoading] = useState(false)
+  const [savingSchedule,  setSavingSchedule]  = useState(false)
+
+  useEffect(() => {
+    if (tab !== 'schedule') return
+    const load = async () => {
+      setScheduleLoading(true)
+      try {
+        const data = await settingsAPI.getExamSchedule()
+        setWassceDate(data.wassceDate ? data.wassceDate.slice(0, 10) : '')
+        setBeceDate(data.beceDate ? data.beceDate.slice(0, 10) : '')
+      } catch (err) {
+        toast.error(err.message)
+      } finally {
+        setScheduleLoading(false)
+      }
+    }
+    load()
+  }, [tab])
+
+  const handleSaveSchedule = async () => {
+    setSavingSchedule(true)
+    try {
+      await adminAPI.updateExamSchedule({
+        wassceDate: wassceDate || null,
+        beceDate:   beceDate   || null,
+      })
+      toast.success('Exam schedule updated')
+    } catch (err) {
+      toast.error(err.message)
+    } finally {
+      setSavingSchedule(false)
+    }
   }
 
   return (
@@ -293,6 +337,54 @@ export default function AdminPage() {
 
         {/* ── Physical Exam tab ──────────────────────────────────── */}
         {tab === 'physical' && <PhysicalExamPanel />}
+
+        {/* ── Exam Dates tab ─────────────────────────────────────── */}
+        {tab === 'schedule' && (
+          <div className="card max-w-lg animate-fade-in">
+            <h3 className="section-title flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-teal-600" /> This cycle's exam dates
+            </h3>
+            <p className="text-xs text-slate-500 mb-4">
+              Shown to students as a "days until your exam" countdown on their dashboard —
+              WAEC sets a new date each year, so update these once the new cycle's dates are announced.
+            </p>
+
+            {scheduleLoading ? (
+              <p className="text-sm text-slate-400 text-center py-8">Loading…</p>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+                  <div>
+                    <label className="label">WASSCE start date</label>
+                    <input
+                      type="date" value={wassceDate}
+                      onChange={e => setWassceDate(e.target.value)}
+                      className="input"
+                    />
+                  </div>
+                  <div>
+                    <label className="label">BECE start date</label>
+                    <input
+                      type="date" value={beceDate}
+                      onChange={e => setBeceDate(e.target.value)}
+                      className="input"
+                    />
+                  </div>
+                </div>
+                <button
+                  onClick={handleSaveSchedule}
+                  disabled={savingSchedule}
+                  className="btn-primary w-full py-3"
+                >
+                  {savingSchedule
+                    ? <><span className="spinner border-white/40 border-t-white" /> Saving…</>
+                    : 'Save exam dates'
+                  }
+                </button>
+              </>
+            )}
+          </div>
+        )}
       </div>
     </AdminShell>
   )

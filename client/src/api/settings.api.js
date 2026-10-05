@@ -7,4 +7,5 @@ export const settingsAPI = {
   getBadges:        ()     => api.get('/settings/badges'),
   checkBadges:      ()     => api.post('/settings/badges/check'),
   updateStreak:     ()     => api.post('/settings/streak/update'),
+  getExamSchedule:  ()     => api.get('/settings/exam-schedule'),
 }

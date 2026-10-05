@@ -29,6 +29,13 @@ dotenv.config()
 const app  = express()
 const PORT = process.env.PORT || 5000
 
+// Render sits in front of this app as a single reverse proxy — trusting
+// exactly that one hop lets express-rate-limit (and req.ip generally)
+// read the real client IP from X-Forwarded-For correctly. `true` would
+// trust the whole chain, which lets a client spoof its own IP and
+// sidestep IP-based rate limits — trusting only 1 hop avoids that.
+app.set('trust proxy', 1)
+
 // ── Security & parsing middleware ──────────────────────────────
 app.use(helmet())
 app.use(cors({
