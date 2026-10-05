@@ -10,6 +10,13 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  // Fail fast instead of hanging — some hosts throttle/block outbound
+  // SMTP, and without these a bad connection just hangs until the
+  // client's own request timeout fires, with forgotPassword's caller
+  // left waiting the whole time either way.
+  connectionTimeout: 10000,
+  greetingTimeout:   10000,
+  socketTimeout:     10000,
 })
 
 // ── Send the password-reset email ───────────────────────────────

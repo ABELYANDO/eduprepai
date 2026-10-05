@@ -174,7 +174,18 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     await user.save({ validateBeforeSave: false })
 
     const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password?token=${rawToken}`
-    await sendPasswordResetEmail(user.email, resetUrl)
+    try {
+      await sendPasswordResetEmail(user.email, resetUrl)
+    } catch (err) {
+      // Never let an SMTP failure surface to the client — besides being
+      // a bad experience, it would only ever happen for a REGISTERED
+      // email (unregistered ones skip sendMail entirely and reach the
+      // generic response below instantly), which quietly defeats the
+      // whole "identical response regardless of cause" point of this
+      // endpoint. Logged here instead, since this is the only place
+      // that can see it — check these logs if resets aren't arriving.
+      console.error('[forgotPassword] Failed to send reset email:', err.message)
+    }
   }
 
   res.json({
