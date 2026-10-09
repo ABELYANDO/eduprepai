@@ -7,6 +7,7 @@ import rateLimit     from 'express-rate-limit'
 
 import { connectDB } from './config/database.js'
 import { bootstrapAdmin } from './utils/bootstrapAdmin.js'
+import { verifyToken } from './utils/jwt.js'
 
 // ── Route imports ──────────────────────────────────────────────
 import authRoutes       from './routes/auth.routes.js'
@@ -47,10 +48,32 @@ app.use(express.urlencoded({ extended: true }))
 app.use(morgan('dev'))
 
 // ── Global rate limiter ────────────────────────────────────────
+// Keyed by logged-in user id, not just IP — many students share one
+// public IP on a school/home network, and IP-only keying bucketed all
+// of them together, so a handful of students using the app at once
+// could exhaust the limit for everyone else on that network. Falling
+// back to req.ip only for unauthenticated requests (mainly login/
+// register, which already sit behind their own much stricter limiters
+// in auth.routes.js) keeps that protection without penalizing a whole
+// shared network for normal concurrent use.
+const rateLimitKey = (req) => {
+  const authHeader = req.headers.authorization
+  if (authHeader?.startsWith('Bearer ')) {
+    try {
+      const decoded = verifyToken(authHeader.split(' ')[1])
+      return `user:${decoded.id}`
+    } catch {
+      // Invalid/expired token — fall through to IP-based keying below.
+    }
+  }
+  return req.ip
+}
+
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max:      200,
-  message:  { success: false, message: 'Too many requests, please try again later.' },
+  windowMs:     15 * 60 * 1000,
+  max:          600,
+  keyGenerator: rateLimitKey,
+  message:      { success: false, message: 'Too many requests, please try again later.' },
 })
 app.use('/api', limiter)
 
